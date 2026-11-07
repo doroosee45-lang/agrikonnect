@@ -1,0 +1,428 @@
+(node:13320) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+⚠️  Messagerie : EMAIL_WEBHOOK_URL pointe vers http://127.0.0.1:55996/email : injoignable hors de cette machine.
+[0mGET /api/v1/health [32m200[0m 3.456 ms - 108[0m
+[0mGET /api/v1/public/map [32m200[0m 46.018 ms - 225[0m
+[0mGET /api/v1/public/farms [32m200[0m 39.507 ms - 80[0m
+[0mGET /api/v1/public/farms/x [33m404[0m 36.625 ms - 133[0m
+[0mPOST /api/v1/public/farms/x/contact [33m422[0m 2.157 ms - 172[0m
+[0mGET /api/v1/public/farms/x/qr.x [33m422[0m 0.623 ms - 219[0m
+[0mGET /api/v1/public/soil-stats [32m200[0m 4.511 ms - 290[0m
+[0mGET /api/v1/public/lots/x [33m404[0m 5.342 ms - 115[0m
+[0mGET /api/v1/countries [32m200[0m 4.478 ms - 424[0m
+[0mGET /api/v1/countries/x [33m404[0m 1.919 ms - 119[0m
+[0mPATCH /api/v1/countries/x [33m401[0m 0.435 ms - 136[0m
+[0mGET /api/v1/countries/fx-rates [33m404[0m 1.658 ms - 119[0m
+[0mGET /api/v1/countries/fx-rates/pairs [32m200[0m 4.348 ms - 153[0m
+[0mPUT /api/v1/countries/fx-rates [33m403[0m 0.458 ms - 129[0m
+[0mGET /api/v1/public-api/v1/products [33m401[0m 0.570 ms - 144[0m
+[0mGET /api/v1/public-api/v1/products/00000000-0000-0000-0000-000000000000/aggregates [33m401[0m 0.447 ms - 144[0m
+[0mGET /api/v1/public-api/v1/prices [33m401[0m 0.222 ms - 144[0m
+[0mGET /api/v1/public-api/v1/agriculture [33m401[0m 0.263 ms - 144[0m
+[0mGET /api/v1/public-api/v1/regions [33m401[0m 0.227 ms - 144[0m
+[0mGET /api/v1/public-api/v1/crops [33m401[0m 0.252 ms - 144[0m
+[0mGET /api/v1/public-api/v1/market-prices [33m401[0m 0.213 ms - 144[0m
+[0mGET /api/v1/public-api/v1/projects [33m401[0m 0.220 ms - 144[0m
+[0mGET /api/v1/public-api/v1/farmers [33m401[0m 0.306 ms - 144[0m
+[0mPOST /api/v1/auth/register [33m422[0m 0.621 ms - 336[0m
+[0mGET /api/v1/auth/mfa/status [33m401[0m 0.432 ms - 136[0m
+[0mPOST /api/v1/auth/mfa/setup [33m401[0m 0.302 ms - 136[0m
+[0mPOST /api/v1/auth/mfa/confirm [33m401[0m 0.233 ms - 136[0m
+[0mPOST /api/v1/auth/mfa/verify [33m401[0m 0.217 ms - 136[0m
+[0mPOST /api/v1/auth/mfa/disable [33m401[0m 0.452 ms - 136[0m
+[0mPOST /api/v1/auth/login [33m422[0m 0.410 ms - 214[0m
+[0mPOST /api/v1/auth/refresh [33m422[0m 0.310 ms - 177[0m
+[0mPOST /api/v1/auth/verify-email [33m422[0m 0.280 ms - 174[0m
+[0mPOST /api/v1/auth/resend-verification [32m200[0m 4.955 ms - 37[0m
+[0mPOST /api/v1/auth/forgot-password [33m422[0m 0.338 ms - 170[0m
+[0mPOST /api/v1/auth/reset-password [33m422[0m 0.295 ms - 213[0m
+[0mPOST /api/v1/auth/logout [33m401[0m 0.271 ms - 136[0m
+[0mPOST /api/v1/auth/verify-phone [33m401[0m 0.260 ms - 136[0m
+[0mPOST /api/v1/auth/send-otp [33m401[0m 0.330 ms - 136[0m
+[0mPOST /api/v1/auth/sync-profile [33m401[0m 0.243 ms - 136[0m
+[0mGET /api/v1/me [33m401[0m 0.360 ms - 136[0m
+[0mPATCH /api/v1/me [33m401[0m 0.536 ms - 136[0m
+[0mGET /api/v1/me/permissions [33m401[0m 0.255 ms - 136[0m
+[0mPOST /api/v1/me/password [33m401[0m 0.288 ms - 136[0m
+[0mDELETE /api/v1/me [33m401[0m 0.246 ms - 136[0m
+[0mGET /api/v1/organizations [33m401[0m 0.272 ms - 136[0m
+[0mPOST /api/v1/organizations [33m401[0m 0.240 ms - 136[0m
+[0mGET /api/v1/organizations/00000000-0000-0000-0000-000000000000 [33m401[0m 0.238 ms - 136[0m
+[0mPATCH /api/v1/organizations/00000000-0000-0000-0000-000000000000 [33m401[0m 0.230 ms - 136[0m
+[0mGET /api/v1/crops [32m200[0m 6.774 ms - 4903[0m
+[0mGET /api/v1/crops/00000000-0000-0000-0000-000000000000 [33m404[0m 2.391 ms - 119[0m
+[0mPOST /api/v1/crops [33m401[0m 0.330 ms - 136[0m
+[0mPATCH /api/v1/crops/00000000-0000-0000-0000-000000000000 [33m401[0m 0.251 ms - 136[0m
+[0mGET /api/v1/farms [33m401[0m 0.262 ms - 136[0m
+[0mPOST /api/v1/farms [33m401[0m 0.347 ms - 136[0m
+[0mGET /api/v1/farms/00000000-0000-0000-0000-000000000000 [33m401[0m 0.246 ms - 136[0m
+[0mPATCH /api/v1/farms/00000000-0000-0000-0000-000000000000 [33m401[0m 0.388 ms - 136[0m
+[0mPATCH /api/v1/farms/00000000-0000-0000-0000-000000000000/publish [33m401[0m 0.245 ms - 136[0m
+[0mDELETE /api/v1/farms/00000000-0000-0000-0000-000000000000 [33m401[0m 0.229 ms - 136[0m
+[0mGET /api/v1/plots [33m401[0m 0.303 ms - 136[0m
+[0mPOST /api/v1/plots [33m401[0m 0.306 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000 [33m401[0m 0.224 ms - 136[0m
+[0mPATCH /api/v1/plots/00000000-0000-0000-0000-000000000000 [33m401[0m 0.274 ms - 136[0m
+[0mDELETE /api/v1/plots/00000000-0000-0000-0000-000000000000 [33m401[0m 0.251 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/crop-history [33m401[0m 0.235 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/crop-history [33m401[0m 0.256 ms - 136[0m
+[0mPATCH /api/v1/plots/00000000-0000-0000-0000-000000000000/crop-history/00000000-0000-0000-0000-000000000000 [33m401[0m 0.278 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-assessments [33m401[0m 0.276 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-profile [33m401[0m 0.226 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-assessments [33m401[0m 0.238 ms - 136[0m
+[0mPATCH /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-assessments/00000000-0000-0000-0000-000000000000 [33m401[0m 0.223 ms - 136[0m
+[0mDELETE /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-assessments/00000000-0000-0000-0000-000000000000 [33m401[0m 0.237 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/suitability [33m401[0m 0.210 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/suitability [33m401[0m 0.205 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/suitability/00000000-0000-0000-0000-000000000000 [33m401[0m 0.198 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/rotation-plans [33m401[0m 0.192 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/rotation-plans [33m401[0m 0.203 ms - 136[0m
+[0mPATCH /api/v1/plots/00000000-0000-0000-0000-000000000000/rotation-plans/00000000-0000-0000-0000-000000000000 [33m401[0m 0.257 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/farming-plans [33m401[0m 0.226 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/farming-plans [33m401[0m 0.216 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/yield-estimates [33m401[0m 0.229 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/yield-estimates [33m401[0m 0.258 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-diagnosis [33m401[0m 0.256 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-diagnosis [33m401[0m 0.242 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/soil-diagnosis/latest [33m401[0m 0.236 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/recommendations [33m401[0m 0.216 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/recommendations [33m401[0m 0.215 ms - 136[0m
+[0mGET /api/v1/recommendations/engine [33m401[0m 0.430 ms - 136[0m
+[0mGET /api/v1/recommendations/00000000-0000-0000-0000-000000000000 [33m401[0m 0.288 ms - 136[0m
+[0mGET /api/v1/recommendations/00000000-0000-0000-0000-000000000000/explanation [33m401[0m 0.206 ms - 136[0m
+[0mPOST /api/v1/recommendations/00000000-0000-0000-0000-000000000000/decision [33m401[0m 0.213 ms - 136[0m
+[0mGET /api/v1/agronomic-ranges [33m401[0m 0.314 ms - 136[0m
+[0mGET /api/v1/agronomic-ranges/meta [33m401[0m 0.322 ms - 136[0m
+[0mGET /api/v1/agronomic-ranges/import/template [33m401[0m 0.225 ms - 136[0m
+[0mPOST /api/v1/agronomic-ranges/import [33m401[0m 0.239 ms - 136[0m
+[0mGET /api/v1/agronomic-ranges/00000000-0000-0000-0000-000000000000 [33m401[0m 0.233 ms - 136[0m
+[0mPOST /api/v1/agronomic-ranges [33m401[0m 0.221 ms - 136[0m
+[0mPATCH /api/v1/agronomic-ranges/00000000-0000-0000-0000-000000000000 [33m401[0m 0.191 ms - 136[0m
+[0mPOST /api/v1/agronomic-ranges/00000000-0000-0000-0000-000000000000/validate [33m401[0m 0.196 ms - 136[0m
+[0mPOST /api/v1/agronomic-ranges/00000000-0000-0000-0000-000000000000/retire [33m401[0m 0.194 ms - 136[0m
+[0mGET /api/v1/sms/consent [33m401[0m 0.297 ms - 136[0m
+[0mPOST /api/v1/sms/consent [33m401[0m 0.254 ms - 136[0m
+[0mDELETE /api/v1/sms/consent [33m401[0m 0.188 ms - 136[0m
+[0mGET /api/v1/sms/settings [33m401[0m 0.252 ms - 136[0m
+[0mGET /api/v1/sms/messages [33m401[0m 0.200 ms - 136[0m
+[0mGET /api/v1/sms/messages/00000000-0000-0000-0000-000000000000 [33m401[0m 0.227 ms - 136[0m
+[0mGET /api/v1/sms/batches [33m401[0m 0.187 ms - 136[0m
+[0mPOST /api/v1/sms/test-send [33m401[0m 0.241 ms - 136[0m
+[0mPOST /api/v1/webhooks/twilio/status [33m403[0m 0.355 ms - 74[0m
+[0mGET /api/v1/alerts [33m401[0m 0.301 ms - 136[0m
+[0mGET /api/v1/alerts/meta [33m401[0m 0.337 ms - 136[0m
+[0mGET /api/v1/alerts/00000000-0000-0000-0000-000000000000 [33m401[0m 0.233 ms - 136[0m
+[0mPOST /api/v1/alerts/00000000-0000-0000-0000-000000000000/read [33m401[0m 0.216 ms - 136[0m
+[0mPOST /api/v1/alerts/00000000-0000-0000-0000-000000000000/handled [33m401[0m 0.221 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/forecasts/x [33m401[0m 0.216 ms - 136[0m
+[0mPOST /api/v1/plots/00000000-0000-0000-0000-000000000000/forecasts/x/backtest [33m401[0m 0.197 ms - 136[0m
+[0mGET /api/v1/plots/00000000-0000-0000-0000-000000000000/forecasts [33m401[0m 0.256 ms - 136[0m
+[0mGET /api/v1/ai/models [33m401[0m 0.243 ms - 136[0m
+[0mPOST /api/v1/ai/models [33m401[0m 0.297 ms - 136[0m
+[0mGET /api/v1/ai/models/00000000-0000-0000-0000-000000000000 [33m401[0m 0.211 ms - 136[0m
+[0mPOST /api/v1/ai/models/00000000-0000-0000-0000-000000000000/promote [33m401[0m 0.209 ms - 136[0m
+[0mPOST /api/v1/ai/models/00000000-0000-0000-0000-000000000000/retire [33m401[0m 0.225 ms - 136[0m
+[0mGET /api/v1/productions/stats [33m401[0m 0.263 ms - 136[0m
+[0mGET /api/v1/productions [33m401[0m 0.271 ms - 136[0m
+[0mPOST /api/v1/productions [33m401[0m 0.225 ms - 136[0m
+[0mGET /api/v1/productions/00000000-0000-0000-0000-000000000000 [33m401[0m 0.264 ms - 136[0m
+[0mPATCH /api/v1/productions/00000000-0000-0000-0000-000000000000 [33m401[0m 0.223 ms - 136[0m
+[0mDELETE /api/v1/productions/00000000-0000-0000-0000-000000000000 [33m401[0m 0.240 ms - 136[0m
+[0mGET /api/v1/seasons/stats [33m401[0m 0.299 ms - 136[0m
+[0mGET /api/v1/seasons [33m401[0m 0.299 ms - 136[0m
+[0mPOST /api/v1/seasons [33m401[0m 0.210 ms - 136[0m
+[0mGET /api/v1/seasons/00000000-0000-0000-0000-000000000000 [33m401[0m 0.254 ms - 136[0m
+[0mGET /api/v1/seasons/00000000-0000-0000-0000-000000000000/compare [33m401[0m 0.180 ms - 136[0m
+[0mPATCH /api/v1/seasons/00000000-0000-0000-0000-000000000000 [33m401[0m 0.204 ms - 136[0m
+[0mDELETE /api/v1/seasons/00000000-0000-0000-0000-000000000000 [33m401[0m 0.216 ms - 136[0m
+[0mPOST /api/v1/geospatial/imports/process-pending [33m401[0m 0.289 ms - 136[0m
+[0mGET /api/v1/geospatial/imports/processing [33m401[0m 0.302 ms - 136[0m
+[0mPOST /api/v1/geospatial/imports/00000000-0000-0000-0000-000000000000/process [33m401[0m 0.226 ms - 136[0m
+[0mGET /api/v1/geospatial/imports [33m401[0m 0.243 ms - 136[0m
+[0mGET /api/v1/geospatial/imports/00000000-0000-0000-0000-000000000000 [33m401[0m 0.240 ms - 136[0m
+[0mGET /api/v1/cooperatives/current [33m401[0m 0.399 ms - 136[0m
+[0mPATCH /api/v1/cooperatives/current [33m401[0m 0.319 ms - 136[0m
+[0mGET /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/members [33m401[0m 0.210 ms - 136[0m
+[0mPOST /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/members [33m401[0m 0.247 ms - 136[0m
+[0mPOST /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/members/import [33m401[0m 0.227 ms - 136[0m
+[0mPATCH /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/members/00000000-0000-0000-0000-000000000000 [33m401[0m 0.228 ms - 136[0m
+[0mGET /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/overview [33m401[0m 0.217 ms - 136[0m
+[0mPOST /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/group-offers/preview [33m401[0m 0.270 ms - 136[0m
+[0mGET /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/group-offers [33m401[0m 0.234 ms - 136[0m
+[0mPOST /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/group-offers [33m401[0m 0.236 ms - 136[0m
+[0mPOST /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/group-offers/00000000-0000-0000-0000-000000000000/confirm [33m401[0m 0.294 ms - 136[0m
+[0mPOST /api/v1/cooperatives/00000000-0000-0000-0000-000000000000/group-offers/00000000-0000-0000-0000-000000000000/cancel [33m401[0m 0.226 ms - 136[0m
+[0mPOST /api/v1/media/upload-url [33m401[0m 0.327 ms - 136[0m
+[0mPOST /api/v1/media/00000000-0000-0000-0000-000000000000/confirm [33m401[0m 0.332 ms - 136[0m
+[0mGET /api/v1/media [33m401[0m 0.242 ms - 136[0m
+[0mDELETE /api/v1/media/00000000-0000-0000-0000-000000000000 [33m401[0m 0.220 ms - 136[0m
+[0mGET /api/v1/dashboard [33m401[0m 0.270 ms - 136[0m
+[0mPOST /api/v1/geospatial/interpolations/00000000-0000-0000-0000-000000000000/x [33m401[0m 0.335 ms - 136[0m
+[0mPOST /api/v1/geospatial/interpolations/00000000-0000-0000-0000-000000000000/x/evaluate [33m401[0m 0.336 ms - 136[0m
+[0mGET /api/v1/geospatial/interpolations/00000000-0000-0000-0000-000000000000 [33m401[0m 0.293 ms - 136[0m
+[0mGET /api/v1/geospatial/interpolations/map/00000000-0000-0000-0000-000000000000 [33m401[0m 0.363 ms - 136[0m
+[0mGET /api/v1/satellite/settings [33m401[0m 0.348 ms - 136[0m
+[0mPOST /api/v1/satellite/plots/00000000-0000-0000-0000-000000000000/acquire [33m401[0m 0.293 ms - 136[0m
+[0mGET /api/v1/satellite/plots/00000000-0000-0000-0000-000000000000/observations [33m401[0m 0.346 ms - 136[0m
+[0mGET /api/v1/anomalies/settings [33m401[0m 0.509 ms - 136[0m
+[0mGET /api/v1/anomalies [33m401[0m 0.322 ms - 136[0m
+[0mGET /api/v1/anomalies/00000000-0000-0000-0000-000000000000 [33m401[0m 0.282 ms - 136[0m
+[0mPOST /api/v1/anomalies/devices/00000000-0000-0000-0000-000000000000/detect [33m401[0m 0.335 ms - 136[0m
+[0mPOST /api/v1/anomalies/plots/00000000-0000-0000-0000-000000000000/detect [33m401[0m 0.384 ms - 136[0m
+[0mPOST /api/v1/anomalies/00000000-0000-0000-0000-000000000000/review [33m401[0m 0.335 ms - 136[0m
+[0mGET /api/v1/geospatial/health [33m401[0m 0.350 ms - 136[0m
+[0mGET /api/v1/geospatial/methods [33m401[0m 0.643 ms - 136[0m
+[0mGET /api/v1/geospatial/soil-diagnostics/00000000-0000-0000-0000-000000000000 [33m401[0m 0.220 ms - 136[0m
+[0mPOST /api/v1/geospatial/texture [33m401[0m 0.208 ms - 136[0m
+[0mPOST /api/v1/geospatial/spectral [33m401[0m 0.270 ms - 136[0m
+[0mPOST /api/v1/geospatial/imagery [33m401[0m 0.185 ms - 136[0m
+[0mPOST /api/v1/geospatial/sensors/quality [33m401[0m 0.196 ms - 136[0m
+[0mPOST /api/v1/geospatial/fusion [33m401[0m 0.166 ms - 136[0m
+[0mPOST /api/v1/geospatial/subsurface [33m401[0m 0.243 ms - 136[0m
+[0mPOST /api/v1/geospatial/spectral/phenology [33m401[0m 0.232 ms - 136[0m
+[0mPOST /api/v1/verifications [33m401[0m 0.227 ms - 136[0m
+[0mGET /api/v1/verifications/me [33m401[0m 0.275 ms - 136[0m
+[0mPOST /api/v1/reports [33m401[0m 0.230 ms - 136[0m
+[0mGET /api/v1/listings [33m401[0m 0.267 ms - 136[0m
+[0mPOST /api/v1/listings [33m401[0m 0.277 ms - 136[0m
+[0mGET /api/v1/listings/00000000-0000-0000-0000-000000000000 [33m401[0m 0.235 ms - 136[0m
+[0mPATCH /api/v1/listings/00000000-0000-0000-0000-000000000000 [33m401[0m 0.187 ms - 136[0m
+[0mPATCH /api/v1/listings/00000000-0000-0000-0000-000000000000/status [33m401[0m 0.208 ms - 136[0m
+[0mPOST /api/v1/listings/00000000-0000-0000-0000-000000000000/contact [33m401[0m 0.184 ms - 136[0m
+[0mPOST /api/v1/listings/00000000-0000-0000-0000-000000000000/photos [33m401[0m 0.185 ms - 136[0m
+[0mPATCH /api/v1/listings/00000000-0000-0000-0000-000000000000/moderate [33m401[0m 0.189 ms - 136[0m
+[0mDELETE /api/v1/listings/00000000-0000-0000-0000-000000000000 [33m401[0m 0.180 ms - 136[0m
+[0mGET /api/v1/purchase-requests [33m401[0m 0.221 ms - 136[0m
+[0mPOST /api/v1/purchase-requests [33m401[0m 0.209 ms - 136[0m
+[0mGET /api/v1/purchase-requests/00000000-0000-0000-0000-000000000000 [33m401[0m 0.190 ms - 136[0m
+[0mPATCH /api/v1/purchase-requests/00000000-0000-0000-0000-000000000000 [33m401[0m 0.177 ms - 136[0m
+[0mGET /api/v1/purchase-requests/00000000-0000-0000-0000-000000000000/matches [33m401[0m 0.174 ms - 136[0m
+[0mPOST /api/v1/market/purchase-requests/00000000-0000-0000-0000-000000000000/offers [33m401[0m 0.331 ms - 136[0m
+[0mGET /api/v1/market/purchase-requests/00000000-0000-0000-0000-000000000000/offers [33m401[0m 0.264 ms - 136[0m
+[0mPATCH /api/v1/market/offers/00000000-0000-0000-0000-000000000000 [33m401[0m 0.207 ms - 136[0m
+[0mPOST /api/v1/orders [33m401[0m 0.327 ms - 136[0m
+[0mGET /api/v1/orders [33m401[0m 0.351 ms - 136[0m
+[0mGET /api/v1/orders/00000000-0000-0000-0000-000000000000 [33m401[0m 0.273 ms - 136[0m
+[0mGET /api/v1/orders/00000000-0000-0000-0000-000000000000/events [33m401[0m 0.259 ms - 136[0m
+[0mPATCH /api/v1/orders/00000000-0000-0000-0000-000000000000/status [33m401[0m 0.271 ms - 136[0m
+[0mPATCH /api/v1/orders/00000000-0000-0000-0000-000000000000/payment [33m401[0m 0.215 ms - 136[0m
+[0mPOST /api/v1/orders/00000000-0000-0000-0000-000000000000/disputes [33m401[0m 0.224 ms - 136[0m
+[0mGET /api/v1/orders/admin/disputes [33m401[0m 0.269 ms - 136[0m
+[0mPATCH /api/v1/orders/admin/disputes/00000000-0000-0000-0000-000000000000 [33m401[0m 0.200 ms - 136[0m
+[0mGET /api/v1/inventory [33m401[0m 0.388 ms - 136[0m
+[0mPOST /api/v1/inventory [33m401[0m 0.389 ms - 136[0m
+[0mGET /api/v1/inventory/00000000-0000-0000-0000-000000000000/movements [33m401[0m 0.294 ms - 136[0m
+[0mPOST /api/v1/inventory/movements [33m401[0m 0.266 ms - 136[0m
+[0mPOST /api/v1/orders/00000000-0000-0000-0000-000000000000/reviews [33m401[0m 0.235 ms - 136[0m
+[0mPOST /api/v1/reviews/00000000-0000-0000-0000-000000000000/response [33m401[0m 0.433 ms - 136[0m
+[0mPOST /api/v1/reviews/00000000-0000-0000-0000-000000000000/report [33m401[0m 0.326 ms - 136[0m
+[0mPOST /api/v1/reviews/00000000-0000-0000-0000-000000000000/moderate [33m401[0m 0.222 ms - 136[0m
+[0mGET /api/v1/organizations/00000000-0000-0000-0000-000000000000/reputation [33m401[0m 0.209 ms - 136[0m
+[0mGET /api/v1/transport/requests [33m401[0m 0.351 ms - 136[0m
+[0mPOST /api/v1/transport/requests [33m401[0m 0.379 ms - 136[0m
+[0mPOST /api/v1/transport/requests/00000000-0000-0000-0000-000000000000/offers [33m401[0m 0.241 ms - 136[0m
+[0mPOST /api/v1/transport/offers/00000000-0000-0000-0000-000000000000/accept [33m401[0m 0.253 ms - 136[0m
+[0mPOST /api/v1/transport/requests/00000000-0000-0000-0000-000000000000/proof-of-delivery [33m401[0m 0.257 ms - 136[0m
+[0mPATCH /api/v1/transport/requests/00000000-0000-0000-0000-000000000000/status [33m401[0m 0.229 ms - 136[0m
+[0mPOST /api/v1/messaging/conversations [33m401[0m 0.349 ms - 136[0m
+[0mGET /api/v1/messaging/conversations [33m401[0m 0.259 ms - 136[0m
+[0mGET /api/v1/messaging/conversations/00000000-0000-0000-0000-000000000000/messages [33m401[0m 0.218 ms - 136[0m
+[0mPOST /api/v1/messaging/conversations/00000000-0000-0000-0000-000000000000/messages [33m401[0m 0.241 ms - 136[0m
+[0mPOST /api/v1/messaging/conversations/00000000-0000-0000-0000-000000000000/archive [33m401[0m 0.242 ms - 136[0m
+[0mPOST /api/v1/messaging/conversations/00000000-0000-0000-0000-000000000000/block [33m401[0m 0.210 ms - 136[0m
+[0mPOST /api/v1/messaging/messages/00000000-0000-0000-0000-000000000000/report [33m401[0m 0.202 ms - 136[0m
+[0mGET /api/v1/notifications [33m401[0m 0.267 ms - 136[0m
+[0mPOST /api/v1/notifications/read-all [33m401[0m 0.301 ms - 136[0m
+[0mPOST /api/v1/notifications/00000000-0000-0000-0000-000000000000/read [33m401[0m 0.366 ms - 136[0m
+[0mGET /api/v1/notifications/preferences [33m401[0m 0.279 ms - 136[0m
+[0mPUT /api/v1/notifications/preferences [33m401[0m 0.268 ms - 136[0m
+[0mGET /api/v1/billing [33m401[0m 0.286 ms - 136[0m
+[0mPOST /api/v1/billing [33m401[0m 0.275 ms - 136[0m
+[0mGET /api/v1/billing/00000000-0000-0000-0000-000000000000 [33m401[0m 0.218 ms - 136[0m
+[0mPOST /api/v1/billing/00000000-0000-0000-0000-000000000000/settlement [33m401[0m 0.225 ms - 136[0m
+[0mGET /api/v1/billing/00000000-0000-0000-0000-000000000000/pdf [33m401[0m 0.225 ms - 136[0m
+[0mGET /api/v1/sync/collections [33m401[0m 0.278 ms - 136[0m
+[0mPOST /api/v1/sync/push [33m401[0m 0.300 ms - 136[0m
+[0mGET /api/v1/sync/pull [33m401[0m 0.235 ms - 136[0m
+[0mGET /api/v1/sync/conflicts [33m401[0m 0.328 ms - 136[0m
+[0mPOST /api/v1/ai/analyses [33m401[0m 0.374 ms - 136[0m
+[0mPOST /api/v1/ai/copilot [33m401[0m 0.390 ms - 136[0m
+[0mPOST /api/v1/ai/documents [33m401[0m 0.282 ms - 136[0m
+[0mGET /api/v1/ai/analyses [33m401[0m 0.228 ms - 136[0m
+[0mGET /api/v1/ai/analyses/00000000-0000-0000-0000-000000000000 [33m401[0m 0.280 ms - 136[0m
+[0mPOST /api/v1/ai/analyses/00000000-0000-0000-0000-000000000000/escalate [33m401[0m 0.205 ms - 136[0m
+[0mPOST /api/v1/ai/analyses/00000000-0000-0000-0000-000000000000/review [33m401[0m 0.221 ms - 136[0m
+[0mPOST /api/v1/ai/analyses/00000000-0000-0000-0000-000000000000/feedback [33m401[0m 0.347 ms - 136[0m
+[0mGET /api/v1/weather/plots/00000000-0000-0000-0000-000000000000 [33m401[0m 0.429 ms - 136[0m
+[0mGET /api/v1/weather/plots/00000000-0000-0000-0000-000000000000/history [33m401[0m 0.344 ms - 136[0m
+[0mGET /api/v1/weather/plots/00000000-0000-0000-0000-000000000000/alerts [33m401[0m 0.272 ms - 136[0m
+[0mPOST /api/v1/weather [33m401[0m 0.275 ms - 136[0m
+[0mGET /api/v1/prices [33m401[0m 0.354 ms - 136[0m
+[0mGET /api/v1/prices/series [33m401[0m 0.252 ms - 136[0m
+[0mPOST /api/v1/prices [33m401[0m 0.236 ms - 136[0m
+[0mGET /api/v1/prices/stale-markets [33m401[0m 0.219 ms - 136[0m
+[0mGET /api/v1/lots [33m401[0m 0.300 ms - 136[0m
+[0mPOST /api/v1/lots [33m401[0m 0.298 ms - 136[0m
+[0mGET /api/v1/lots/00000000-0000-0000-0000-000000000000 [33m401[0m 0.221 ms - 136[0m
+[0mPOST /api/v1/lots/00000000-0000-0000-0000-000000000000/events [33m401[0m 0.199 ms - 136[0m
+[0mPUT /api/v1/lots/00000000-0000-0000-0000-000000000000/public-fields [33m401[0m 0.262 ms - 136[0m
+[0mPOST /api/v1/lots/00000000-0000-0000-0000-000000000000/recall [33m401[0m 0.202 ms - 136[0m
+[0mGET /api/v1/certifications [33m401[0m 0.253 ms - 136[0m
+[0mPOST /api/v1/certifications [33m401[0m 0.261 ms - 136[0m
+[0mGET /api/v1/certifications/organization/00000000-0000-0000-0000-000000000000 [33m401[0m 0.236 ms - 136[0m
+[0mGET /api/v1/certifications/00000000-0000-0000-0000-000000000000 [33m401[0m 0.262 ms - 136[0m
+[0mPATCH /api/v1/certifications/00000000-0000-0000-0000-000000000000/verify [33m401[0m 0.230 ms - 136[0m
+[0mDELETE /api/v1/certifications/00000000-0000-0000-0000-000000000000 [33m401[0m 0.204 ms - 136[0m
+[0mPOST /api/v1/iot/ingest [33m422[0m 0.474 ms - 213[0m
+[0mGET /api/v1/iot/devices [33m401[0m 0.327 ms - 136[0m
+[0mPOST /api/v1/iot/devices [33m401[0m 0.194 ms - 136[0m
+[0mPOST /api/v1/iot/devices/00000000-0000-0000-0000-000000000000/rotate-key [33m401[0m 0.230 ms - 136[0m
+[0mPOST /api/v1/iot/devices/00000000-0000-0000-0000-000000000000/revoke [33m401[0m 0.182 ms - 136[0m
+[0mGET /api/v1/iot/devices/00000000-0000-0000-0000-000000000000/readings [33m401[0m 0.202 ms - 136[0m
+[0mGET /api/v1/geodata/plots/00000000-0000-0000-0000-000000000000/observations [33m401[0m 0.393 ms - 136[0m
+[0mGET /api/v1/geodata/plots/00000000-0000-0000-0000-000000000000/satellite [33m401[0m 0.392 ms - 136[0m
+[0mPOST /api/v1/geodata/satellite [33m401[0m 0.192 ms - 136[0m
+[0mGET /api/v1/geodata/plots/00000000-0000-0000-0000-000000000000/drones [33m401[0m 0.260 ms - 136[0m
+[0mPOST /api/v1/geodata/drones [33m401[0m 0.205 ms - 136[0m
+[0mGET /api/v1/geodata/plots/00000000-0000-0000-0000-000000000000/lab-results [33m401[0m 0.490 ms - 136[0m
+[0mPOST /api/v1/geodata/lab-results [33m401[0m 0.393 ms - 136[0m
+[0mGET /api/v1/projects [33m401[0m 0.384 ms - 136[0m
+[0mPOST /api/v1/projects [33m401[0m 0.355 ms - 136[0m
+[0mGET /api/v1/projects/00000000-0000-0000-0000-000000000000 [33m401[0m 0.406 ms - 136[0m
+[0mPATCH /api/v1/projects/00000000-0000-0000-0000-000000000000 [33m401[0m 0.239 ms - 136[0m
+[0mPOST /api/v1/projects/00000000-0000-0000-0000-000000000000/submit [33m401[0m 0.235 ms - 136[0m
+[0mPATCH /api/v1/projects/00000000-0000-0000-0000-000000000000/review [33m401[0m 0.253 ms - 136[0m
+[0mGET /api/v1/dataroom/projects/00000000-0000-0000-0000-000000000000/documents [33m401[0m 0.430 ms - 136[0m
+[0mPOST /api/v1/dataroom/projects/00000000-0000-0000-0000-000000000000/documents [33m401[0m 0.345 ms - 136[0m
+[0mPOST /api/v1/dataroom/projects/00000000-0000-0000-0000-000000000000/access-requests [33m401[0m 0.206 ms - 136[0m
+[0mPATCH /api/v1/dataroom/access-requests/00000000-0000-0000-0000-000000000000 [33m401[0m 0.324 ms - 136[0m
+[0mGET /api/v1/dataroom/documents/00000000-0000-0000-0000-000000000000 [33m401[0m 0.229 ms - 136[0m
+[0mGET /api/v1/dataroom/projects/00000000-0000-0000-0000-000000000000/access-log [33m401[0m 0.198 ms - 136[0m
+[0mGET /api/v1/projects/00000000-0000-0000-0000-000000000000/due-diligence [33m401[0m 0.199 ms - 136[0m
+[0mPOST /api/v1/projects/00000000-0000-0000-0000-000000000000/due-diligence/checklist [33m401[0m 0.209 ms - 136[0m
+[0mPATCH /api/v1/due-diligence/00000000-0000-0000-0000-000000000000 [33m401[0m 0.364 ms - 136[0m
+[0mPOST /api/v1/due-diligence/00000000-0000-0000-0000-000000000000/evidence [33m401[0m 0.298 ms - 136[0m
+[0mGET /api/v1/projects/00000000-0000-0000-0000-000000000000/reports [33m401[0m 0.214 ms - 136[0m
+[0mPOST /api/v1/projects/00000000-0000-0000-0000-000000000000/progress-reports [33m401[0m 0.179 ms - 136[0m
+[0mPOST /api/v1/projects/00000000-0000-0000-0000-000000000000/impact-reports [33m401[0m 0.218 ms - 136[0m
+[0mGET /api/v1/funding/projects/00000000-0000-0000-0000-000000000000/funding-requests [33m401[0m 0.349 ms - 136[0m
+[0mPOST /api/v1/funding/projects/00000000-0000-0000-0000-000000000000/funding-requests/consent [33m401[0m 0.362 ms - 136[0m
+[0mPOST /api/v1/funding/funding-requests/00000000-0000-0000-0000-000000000000/transmit [33m401[0m 0.228 ms - 136[0m
+[0mPATCH /api/v1/funding/funding-requests/00000000-0000-0000-0000-000000000000/follow-up [33m401[0m 0.206 ms - 136[0m
+[0mGET /api/v1/investors/me [33m401[0m 0.210 ms - 136[0m
+[0mPUT /api/v1/investors/me [33m401[0m 0.224 ms - 136[0m
+[0mPATCH /api/v1/investors/00000000-0000-0000-0000-000000000000/verify [33m401[0m 0.212 ms - 136[0m
+[0mGET /api/v1/precision/plots/00000000-0000-0000-0000-000000000000/management-zones [33m401[0m 0.366 ms - 136[0m
+[0mPOST /api/v1/precision/plots/00000000-0000-0000-0000-000000000000/management-zones [33m401[0m 0.260 ms - 136[0m
+[0mGET /api/v1/precision/plots/00000000-0000-0000-0000-000000000000/precision-reports [33m401[0m 0.217 ms - 136[0m
+[0mPOST /api/v1/precision/plots/00000000-0000-0000-0000-000000000000/precision-reports [33m401[0m 0.258 ms - 136[0m
+[0mPATCH /api/v1/precision/precision-reports/00000000-0000-0000-0000-000000000000/validate [33m401[0m 0.265 ms - 136[0m
+[0mGET /api/v1/precision/precision-reports/00000000-0000-0000-0000-000000000000/pdf [33m401[0m 0.260 ms - 136[0m
+[0mGET /api/v1/invest [33m401[0m 0.239 ms - 136[0m
+[0mGET /api/v1/tenders [33m401[0m 0.320 ms - 136[0m
+[0mPOST /api/v1/tenders [33m401[0m 0.303 ms - 136[0m
+[0mGET /api/v1/tenders/00000000-0000-0000-0000-000000000000 [33m401[0m 0.247 ms - 136[0m
+[0mPOST /api/v1/tenders/00000000-0000-0000-0000-000000000000/responses [33m401[0m 0.203 ms - 136[0m
+[0mPOST /api/v1/tenders/00000000-0000-0000-0000-000000000000/award [33m401[0m 0.278 ms - 136[0m
+[0mPOST /api/v1/tenders/00000000-0000-0000-0000-000000000000/close [33m401[0m 0.228 ms - 136[0m
+[0mGET /api/v1/exports [33m401[0m 0.251 ms - 136[0m
+[0mPOST /api/v1/exports [33m401[0m 0.258 ms - 136[0m
+[0mGET /api/v1/exports/00000000-0000-0000-0000-000000000000 [33m401[0m 0.206 ms - 136[0m
+[0mPOST /api/v1/exports/00000000-0000-0000-0000-000000000000/documents [33m401[0m 0.277 ms - 136[0m
+[0mPATCH /api/v1/exports/00000000-0000-0000-0000-000000000000/status [33m401[0m 1.923 ms - 136[0m
+[0mGET /api/v1/api-clients/clients [33m401[0m 0.405 ms - 136[0m
+[0mPOST /api/v1/api-clients/clients [33m401[0m 0.319 ms - 136[0m
+[0mPATCH /api/v1/api-clients/clients/00000000-0000-0000-0000-000000000000/purpose [33m401[0m 0.237 ms - 136[0m
+[0mPOST /api/v1/api-clients/clients/00000000-0000-0000-0000-000000000000/keys [33m401[0m 0.236 ms - 136[0m
+[0mDELETE /api/v1/api-clients/keys/00000000-0000-0000-0000-000000000000 [33m401[0m 0.250 ms - 136[0m
+[0mGET /api/v1/api-clients/clients/00000000-0000-0000-0000-000000000000/usage [33m401[0m 0.211 ms - 136[0m
+[0mGET /api/v1/data [33m401[0m 0.289 ms - 136[0m
+[0mPOST /api/v1/data [33m401[0m 0.273 ms - 136[0m
+[0mPATCH /api/v1/data/00000000-0000-0000-0000-000000000000/status [33m401[0m 0.227 ms - 136[0m
+[0mPOST /api/v1/data/00000000-0000-0000-0000-000000000000/aggregates [33m401[0m 0.209 ms - 136[0m
+[0mGET /api/v1/data/00000000-0000-0000-0000-000000000000/aggregates [33m401[0m 0.351 ms - 136[0m
+[0mPOST /api/v1/data/contracts [33m401[0m 0.193 ms - 136[0m
+[0mGET /api/v1/insights/overview [33m401[0m 0.365 ms - 136[0m
+[0mGET /api/v1/insights/crops [33m401[0m 0.318 ms - 136[0m
+[0mGET /api/v1/insights/activity [33m401[0m 0.235 ms - 136[0m
+[0mGET /api/v1/insights/disclosure-policy [33m401[0m 0.196 ms - 136[0m
+[0mGET /api/v1/admin/verifications [33m401[0m 0.241 ms - 136[0m
+[0mPATCH /api/v1/admin/verifications/00000000-0000-0000-0000-000000000000 [33m401[0m 0.253 ms - 136[0m
+[0mGET /api/v1/admin/rulesets [33m401[0m 0.378 ms - 136[0m
+[0mPOST /api/v1/admin/rulesets [33m401[0m 0.403 ms - 136[0m
+[0mPOST /api/v1/admin/rulesets/00000000-0000-0000-0000-000000000000/validate [33m401[0m 0.431 ms - 136[0m
+[0mPOST /api/v1/admin/rulesets/00000000-0000-0000-0000-000000000000/retire [33m401[0m 0.212 ms - 136[0m
+[0mGET /api/v1/admin/feature-flags [33m401[0m 0.357 ms - 136[0m
+[0mPUT /api/v1/admin/feature-flags [33m401[0m 0.241 ms - 136[0m
+[0mGET /api/v1/admin/channels/messages [33m401[0m 0.252 ms - 136[0m
+[0mPOST /api/v1/channels/ussd [33m422[0m 0.424 ms - 176[0m
+[0mGET /api/v1/channels/whatsapp/webhook [33m403[0m 1.128 ms - 142[0m
+[0mPOST /api/v1/channels/whatsapp/webhook [33m403[0m 19.853 ms - 127[0m
+[0mGET /api/v1/investment/projects [33m401[0m 0.444 ms - 136[0m
+[0mGET /api/v1/investment/followed [33m401[0m 0.304 ms - 136[0m
+[0mPOST /api/v1/investment/projects/00000000-0000-0000-0000-000000000000/follow [33m401[0m 0.213 ms - 136[0m
+[0mDELETE /api/v1/investment/projects/00000000-0000-0000-0000-000000000000/follow [33m401[0m 0.195 ms - 136[0m
+[0mGET /api/v1/investment/matches [33m401[0m 0.182 ms - 136[0m
+[0mPOST /api/v1/investment/projects/00000000-0000-0000-0000-000000000000/contact [33m401[0m 0.190 ms - 136[0m
+[0mPOST /api/v1/investment/projects/00000000-0000-0000-0000-000000000000/contacts/00000000-0000-0000-0000-000000000000/decide [33m401[0m 0.198 ms - 136[0m
+[0mGET /api/v1/investment/contact-requests [33m401[0m 0.310 ms - 136[0m
+[0mGET /api/v1/admin/reports [33m401[0m 0.221 ms - 136[0m
+[0mPATCH /api/v1/admin/reports/00000000-0000-0000-0000-000000000000 [33m401[0m 0.212 ms - 136[0m
+[0mGET /api/v1/admin/dashboard [33m401[0m 0.200 ms - 136[0m
+[0mGET /api/v1/admin/dashboard/export [33m401[0m 0.196 ms - 136[0m
+[0mGET /api/v1/admin/users [33m401[0m 0.184 ms - 136[0m
+[0mPATCH /api/v1/admin/users/00000000-0000-0000-0000-000000000000/status [33m401[0m 0.210 ms - 136[0m
+[0mGET /api/v1/admin/audit [33m401[0m 0.187 ms - 136[0m
+[0mGET /api/v1/admin/jobs [33m401[0m 0.174 ms - 136[0m
+[0mPOST /api/v1/admin/jobs/x/run [33m401[0m 0.184 ms - 136[0m
+[0mGET /api/v1/admin/settings [33m401[0m 0.179 ms - 136[0m
+[0mPUT /api/v1/admin/settings [33m401[0m 0.185 ms - 136[0m
+[0mGET /api/v1/admin/export/farms [33m401[0m 0.179 ms - 136[0m
+[0mGET /api/v1/agriculture [33m401[0m 0.209 ms - 144[0m
+[0mGET /api/v1/regions [33m401[0m 0.218 ms - 144[0m
+[0mGET /api/v1/market-prices [33m401[0m 0.202 ms - 144[0m
+[0mGET /api/v1/farmers [33m401[0m 0.202 ms - 144[0m
+[0mGET /api/v1/docs [32m200[0m 0.307 ms - 620[0m
+[0mGET /api/v1/docs/openapi.json [32m200[0m 2.596 ms - 322345[0m
+[0mGET / [32m200[0m 0.278 ms - 199[0m
+✔ Surface publique : l’inventaire couvre l’ensemble du routeur (18269.7515ms)
+✔ Surface publique : aucune route ne répond 2xx sans jeton hors liste explicite (0.7017ms)
+✔ Surface publique : la liste publique est exactement celle observée (0.2035ms)
+✔ Surface publique : aucun 5xx sur une requête anonyme (0.1373ms)
+✔ Surface publique : les écritures de référence refusent l’anonyme (0.1246ms)
+✔ Surface publique : les webhooks refusent une requête non signée (0.1734ms)
+✖ Surface publique : la carte des statuts anonymes n’a pas bougé (15.0261ms)
+✔ Surface publique : la majorité des routes exigent un jeton (0.1591ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21509.1521
+
+✖ failing tests:
+
+test at tests\e2e\surfacePublique.e2e.test.mjs:216:1
+✖ Surface publique : la carte des statuts anonymes n’a pas bougé (15.0261ms)
+  AssertionError [ERR_ASSERTION]: La surface anonyme a changé. Si c’est volontaire, régénère la référence avec `node tests/e2e/anonyme.probe.mjs` et documente le motif.
+  + actual - expected
+  
+  + [
+  +   'GET /admin/dashboard/export : référence absente → observé 401'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///D:/AGRIKONNECT/Soupabase/Nouveau%20dossier/agrikonnect-africa-final/backend/tests/e2e/surfacePublique.e2e.test.mjs:243:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'GET /admin/dashboard/export : référence absente → observé 401' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,223 @@
+/**
+ * Parcours d'authentification — destination initiale CENTRALISÉE (CAA §9).
+ *
+ * Une seule fonction décide où un utilisateur authentifié doit atterrir :
+ *
+ *   statut → vérification e-mail → rôle (contexte actif) → permission →
+ *   configuration initiale si identité manquante → espace métier.
+ *
+ * Règles du cahier des charges :
+ *  - jamais de redirection vers le site public après authentification ;
+ *  - le rôle vient de la source fiable (API : `user.organizations[].roles`),
+ *    jamais d'une valeur forgée par le navigateur ;
+ *  - MODERATOR n'accède à `/admin/dashboard` que si la permission réelle
+ *    `admin.dashboard` est accordée — aucune élévation de privilèges ;
+ *  - multi-rôles / multi-organisations : le CONTEXTE ACTIF tranche
+ *    (`activeOrganizationId` explicite ou priorité documentée) ;
+ *  - un compte suspendu, sans rôle valide, ou de rôle inconnu n'atterrit
+ *    jamais dans un espace arbitraire : écrans sûrs uniquement ;
+ *  - aucune configuration facultative ne bloque l'accès : seules des
+ *    informations strictement obligatoires (identité) renvoient vers l'écran
+ *    de configuration du rôle.
+ *
+ * Toutes les destinations citées sont des ROUTES EXISTANTES (App.tsx) :
+ * aucune route n'est inventée ici.
+ */
+
+export type CompletenessItem = { key: string; label?: string; done: boolean };
+
+export type UserLike = {
+  status?: string | null;
+  email?: string | null;
+  emailVerified?: boolean | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  organizations?: { id: string; roles?: string[] | null }[] | null;
+};
+
+export type RedirectInput = {
+  user: UserLike | null;
+  permissions?: string[] | null;
+  /** Complétude optionnelle : jamais bloquante hors identité. */
+  completeness?: CompletenessItem[] | null;
+  /** Contexte actif explicite (organisation choisie). */
+  activeOrganizationId?: string | null;
+};
+
+export type RedirectResult = { route: string; reason: string };
+
+/** Ordre de priorité pour les comptes multi-rôles (documenté au rapport). */
+const ROLE_PRIORITY: string[] = [
+  'SUPER_ADMIN',
+  'ADMIN',
+  'MODERATOR',
+  'COOPERATIVE_ADMIN',
+  'AGRICULTURAL_COMPANY',
+  'FARMER',
+  'BUYER',
+  'SUPPLIER',
+  'TRANSPORTER',
+  'AGRONOMIST',
+  'LAB_PARTNER',
+  'INVESTOR',
+  'SUPPORT_AGENT',
+  'COOPERATIVE_MEMBER',
+  'API_CLIENT',
+  'PUBLIC_USER',
+];
+
+/** Rôle → espace métier (routes réels, tableau validé le 2026-11-04). */
+const ESPACE_PAR_ROLE: Record<string, string> = {
+  SUPER_ADMIN: '/admin/dashboard',
+  ADMIN: '/admin/dashboard',
+  MODERATOR: '/admin/dashboard',
+  FARMER: '/farmer',
+  COOPERATIVE_ADMIN: '/organization',
+  COOPERATIVE_MEMBER: '/organization',
+  AGRICULTURAL_COMPANY: '/organization',
+  BUYER: '/market/app',
+  SUPPLIER: '/market/app',
+  TRANSPORTER: '/app/transport',
+  AGRONOMIST: '/reviewer/missions',
+  LAB_PARTNER: '/reviewer/missions',
+  INVESTOR: '/investment',
+  SUPPORT_AGENT: '/app/agent',
+  API_CLIENT: '/developers',
+  PUBLIC_USER: '/app',
+};
+
+/** Écran de configuration initiale par rôle (écrans de profil EXISTANTS). */
+const CONFIG_PAR_ROLE: Record<string, string> = {
+  FARMER: '/farmer/profile',
+  COOPERATIVE_ADMIN: '/organization/profile',
+  COOPERATIVE_MEMBER: '/organization/profile',
+  AGRICULTURAL_COMPANY: '/organization/profile',
+  INVESTOR: '/investment/profile',
+};
+
+/** Écrans sûrs (aucun espace métier arbitraire). */
+export const ECRAN_ATTENTE = '/app/verification';
+export const ECRAN_SUR = '/app/profile';
+export const ECRAN_CONNEXION = '/auth/login';
+
+const CLE_CONTEXTE = 'agrikonnect.activeOrganizationId';
+
+/** Lecture du contexte actif mémorisé (organisations multiples). */
+export function getActiveOrganizationId(): string | null {
+  try {
+    return globalThis.localStorage?.getItem(CLE_CONTEXTE) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Mémorisation du contexte actif (appelée par les espaces multi-organisations). */
+export function setActiveOrganizationId(id: string | null): void {
+  try {
+    if (id === null) globalThis.localStorage?.removeItem(CLE_CONTEXTE);
+    else globalThis.localStorage?.setItem(CLE_CONTEXTE, id);
+  } catch {
+    /* stockage indisponible : le contexte reste explicite à l'appel */
+  }
+}
+
+/** Tous les rôles de l'utilisateur, toutes organisations confondues. */
+export function getRoles(user: UserLike | null): string[] {
+  const rôles = new Set<string>();
+  for (const org of user?.organizations ?? []) {
+    for (const rôle of org.roles ?? []) rôles.add(rôle);
+  }
+  return [...rôles];
+}
+
+/**
+ * Contexte actif : organisation retenue + ses rôles.
+ *
+ * 1. `activeOrganizationId` explicite (paramètre ou mémorisé) s'il est valide ;
+ * 2. sinon la première organisation selon la priorité de ses rôles.
+ */
+export function resolveActiveContext(
+  user: UserLike | null,
+  activeOrganizationId?: string | null,
+): { organizationId: string | null; roles: string[] } {
+  const organisations = user?.organizations ?? [];
+  if (organisations.length === 0) return { organizationId: null, roles: [] };
+
+  const souhaité = activeOrganizationId ?? getActiveOrganizationId();
+  const explicite = organisations.find((o) => o.id === souhaité);
+  if (explicite) {
+    return { organizationId: explicite.id, roles: [...(explicite.roles ?? [])] };
+  }
+
+  const rang = (rôles: string[] | null | undefined): number => {
+    let meilleur = Number.POSITIVE_INFINITY;
+    for (const rôle of rôles ?? []) {
+      const i = ROLE_PRIORITY.indexOf(rôle);
+      if (i !== -1 && i < meilleur) meilleur = i;
+    }
+    return meilleur;
+  };
+
+  const meilleure = [...organisations].sort((a, b) => rang(a.roles) - rang(b.roles))[0];
+  return { organizationId: meilleure.id, roles: [...(meilleure.roles ?? [])] };
+}
+
+/**
+ * Décision unique de destination initiale.
+ *
+ * Ordre (CAA §9) :
+ * statut → vérification e-mail → rôle du contexte actif → permission →
+ * configuration initiale si identité manquante → espace métier.
+ */
+export function getUserInitialRoute(input: RedirectInput): RedirectResult {
+  const user = input.user;
+  if (!user) return { route: ECRAN_CONNEXION, reason: 'aucun utilisateur' };
+
+  if (user.status && user.status !== 'ACTIVE') {
+    return { route: ECRAN_ATTENTE, reason: `compte ${user.status} — espace d'attente` };
+  }
+
+  if (user.email && user.emailVerified === false) {
+    return {
+      route: '/auth/verify-email?email=' + encodeURIComponent(user.email),
+      reason: 'adresse e-mail non vérifiée — parcours de vérification',
+    };
+  }
+
+  const contexte = resolveActiveContext(user, input.activeOrganizationId);
+  const rôles = contexte.roles.length > 0 ? contexte.roles : getRoles(user);
+  if (rôles.length === 0) {
+    return { route: ECRAN_SUR, reason: 'aucun rôle valide — écran sûr' };
+  }
+
+  const rangs = rôles
+    .map((r) => ROLE_PRIORITY.indexOf(r))
+    .filter((i) => i !== -1)
+    .sort((a, b) => a - b);
+  if (rangs.length === 0) {
+    return { route: ECRAN_SUR, reason: 'rôle(s) inconnu(s) — écran sûr' };
+  }
+  const rôle = ROLE_PRIORITY[rangs[0]];
+  const destination = ESPACE_PAR_ROLE[rôle];
+  if (!destination) return { route: ECRAN_SUR, reason: `rôle ${rôle} sans espace — écran sûr` };
+
+  if (destination === '/admin/dashboard') {
+    const permissions = input.permissions ?? [];
+    if (!permissions.includes('admin.dashboard')) {
+      return {
+        route: ECRAN_SUR,
+        reason: `rôle ${rôle} sans permission admin.dashboard — aucun accès admin`,
+      };
+    }
+  }
+
+  const identitéComplète = Boolean(user.firstName && user.lastName);
+  if (!identitéComplète) {
+    return {
+      route: CONFIG_PAR_ROLE[rôle] ?? ECRAN_SUR,
+      reason: 'identité obligatoire manquante — configuration initiale',
+    };
+  }
+
+  return { route: destination, reason: `espace ${rôle}` };
+}

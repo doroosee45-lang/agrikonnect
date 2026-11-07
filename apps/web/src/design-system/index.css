@@ -1,0 +1,39 @@
+/* Socle Tailwind du design-system (kit v1.0, sections 7-8).
+ *
+ * Les jetons sont les variables CSS de theme/tokens.css (source :
+ * agrikonnect.ts). Les composants design-system utilisent ces classes ;
+ * les ecrans existants gardent les styles inline + jetons (double systeme
+ * assume). I3 : aucune couleur en dur dans les composants.
+ */
+@import 'tailwindcss';
+
+@theme inline {
+  /* Couleurs -- pont vers les variables du theme. */
+  --color-marque: var(--vert-800);
+  --color-marque-clair: var(--vert-100);
+  --color-secondaire: var(--vert-500);
+  --color-accent: var(--terre-700);
+  --color-accent-surface: var(--terre-400);
+  --color-fond: var(--creme-100);
+  --color-surface: var(--pure-white);
+  --color-texte: var(--encre-700);
+  --color-texte-doux: var(--encre-500);
+  --color-bordure: var(--light-border);
+  --color-succes: var(--vert-700);
+  --color-succes-clair: var(--vert-100);
+  --color-attention: var(--terre-700);
+  --color-attention-clair: var(--terre-100);
+  --color-erreur: var(--rouge-700);
+  --color-erreur-clair: var(--rouge-50);
+  --color-info: var(--scientifique-900);
+  --color-info-clair: var(--scientifique-100);
+  --color-desactive: var(--fonction-desactive);
+
+  /* Typographie -- Inter partout, JetBrains Mono pour le technique. */
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  /* Rayons (kit 5). */
+  --radius-carte: 20px;
+  --radius-champ: 12px;
+}

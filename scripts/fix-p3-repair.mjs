@@ -1,0 +1,20 @@
+import fs from 'node:fs';
+import { createHash } from 'node:crypto';
+const md5 = (b) => createHash('md5').update(b).digest('hex');
+const LF = String.fromCharCode(10);
+const F = 'scripts/fix-p3-layout.mjs';
+const ATTENDU = 'f82402a87ce568933e8a3ac6ab53223f';
+const brut = fs.readFileSync(F);
+const avant = md5(brut);
+if (avant === ATTENDU) { console.log('REPAIR_DEJA_OK'); process.exit(0); }
+if (avant !== 'f5df3a38013338560f56d9d84f68c7c8') throw new Error('ARRET_ETAT ' + avant);
+const B64 = 'ICBjb25zdCByZSA9IG5ldyBSZWdFeHAoJ1teXFx4MDAtXFx4N0YnICsgYWNjZW50cyArICddJywgJ2cnKTs=';
+const bon = Buffer.from(B64, 'base64').toString('utf8');
+if (md5(Buffer.from(bon + LF)) !== '46da8a4593213c88b7804e02288fd54e') throw new Error('ARRET_LIGNE56');
+const lignes = brut.toString('utf8').split(LF);
+if (lignes.length !== 766) throw new Error('ARRET_LIGNES ' + lignes.length);
+lignes[55] = bon;
+fs.writeFileSync(F, lignes.join(LF));
+const apres = md5(fs.readFileSync(F));
+if (apres !== ATTENDU) throw new Error('ARRET_MD5_FINAL ' + apres);
+console.log('REPAIR_OK ' + apres);

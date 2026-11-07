@@ -1,0 +1,67 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AGRIKONNECT AFRICA — API V1→V5 (FARM · MARKET · INTELLIGENCE · INVEST · GLOBAL) : Node/Express + Supabase + Prisma",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "seed": "node prisma/seed.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "check": "node --input-type=module -e \"import('./src/app.js').then(()=>console.log('OK'))\"",
+    "docs:openapi": "node scripts/generate-openapi.mjs",
+    "check:fields": "node scripts/check-fields.mjs",
+    "check:env": "node scripts/check-env.mjs",
+    "check:perms": "node scripts/check-perms.mjs",
+    "test": "node --test --test-concurrency=2 --test-force-exit --test-timeout=240000 tests/adminDashboard.test.mjs tests/adminGovernance.test.mjs tests/adminSettings.test.mjs tests/adminMonitoring.test.mjs tests/adminNotifications.test.mjs tests/adminOperations.test.mjs tests/adminSecurity.test.mjs tests/adminUsers.test.mjs tests/agronomicRangesCsv.test.mjs tests/alertLabels.test.mjs tests/alertMessageGsm.test.mjs tests/alerts.test.mjs tests/anomalies.integration.test.mjs tests/anomalies.test.mjs tests/apiQuota.test.mjs tests/apiUsageWrite.test.mjs tests/authShortcut.test.mjs tests/dataMode.test.mjs tests/errorCodeContract.test.mjs tests/families-v1.integration.test.mjs tests/families.integration.test.mjs tests/fileMagic.test.mjs tests/fileParsers.test.mjs tests/forecast.integration.test.mjs tests/forecastAdjustment.test.mjs tests/geospatial.integration.test.mjs tests/geospatialImport.test.mjs tests/hardware.test.mjs tests/intelligence.integration.test.mjs tests/interpolation.integration.test.mjs tests/jobs.integration.test.mjs tests/listings.integration.test.mjs tests/logic.test.mjs tests/messaging.integration.test.mjs tests/messagingConfig.test.mjs tests/mfaBackupCodes.test.mjs tests/mfaSecretExposure.test.mjs tests/multipartS3.test.mjs tests/openapiNotes.test.mjs tests/orderStateMachine.test.mjs tests/orders.integration.test.mjs tests/phoneE164Alignment.test.mjs tests/policies.integration.test.mjs tests/quietHours.test.mjs tests/rateLimitDeposit.test.mjs tests/recommendation.test.mjs tests/recommendationLabels.test.mjs tests/recommendationScoring.test.mjs tests/req-extra.integration.test.mjs tests/req-v1.integration.test.mjs tests/req-v2.integration.test.mjs tests/req-v3.integration.test.mjs tests/req-v4.integration.test.mjs tests/req-v5.integration.test.mjs tests/reviews.integration.test.mjs tests/satellite.test.mjs tests/seasons.test.mjs tests/startupReport.test.mjs tests/twilioErrors.test.mjs tests/twilioFallback.test.mjs tests/twilioSms.test.mjs tests/webLinks.test.mjs tests/e2e/adminSettings.e2e.test.mjs tests/e2e/adminMonitoring.e2e.test.mjs tests/e2e/adminNotifications.e2e.test.mjs tests/e2e/adminOperations.e2e.test.mjs tests/e2e/adminSecurity.e2e.test.mjs tests/e2e/adminUsers.e2e.test.mjs tests/e2e/agronomicRanges.e2e.test.mjs tests/e2e/alertEscalation.e2e.test.mjs tests/e2e/alertSmsJob.e2e.test.mjs tests/e2e/alerts.e2e.test.mjs tests/e2e/anomalies.e2e.test.mjs tests/e2e/channels.e2e.test.mjs tests/e2e/completenessByRole.e2e.test.mjs tests/e2e/forecastPipeline.e2e.test.mjs tests/e2e/geospatialImport.e2e.test.mjs tests/e2e/geospatialQuota.e2e.test.mjs tests/e2e/geospatialUpload.e2e.test.mjs tests/e2e/intelligence.e2e.test.mjs tests/e2e/interpolation.e2e.test.mjs tests/e2e/journeys.e2e.test.mjs tests/e2e/mfaLogin.e2e.test.mjs tests/e2e/otpVerification.e2e.test.mjs tests/e2e/satellite.e2e.test.mjs tests/e2e/scoringEngine.e2e.test.mjs tests/e2e/seasons.e2e.test.mjs tests/e2e/seedDemo.e2e.test.mjs tests/e2e/smsTwilio.e2e.test.mjs tests/e2e/smsVerification.e2e.test.mjs tests/e2e/surfacePublique.e2e.test.mjs tests/e2e/twilioErrors.e2e.test.mjs tests/e2e/twilioWebhookUrl.e2e.test.mjs tests/e2e/verifyEmail.e2e.test.mjs",
+    "test:dbless": "node --test --test-concurrency=2 --test-force-exit --test-name-pattern=\"^(?!.*\\[db\\]).*\" tests/adminDashboard.test.mjs tests/adminGovernance.test.mjs tests/adminSettings.test.mjs tests/adminMonitoring.test.mjs tests/adminNotifications.test.mjs tests/adminOperations.test.mjs tests/adminSecurity.test.mjs tests/adminUsers.test.mjs tests/agronomicRangesCsv.test.mjs tests/alertLabels.test.mjs tests/alertMessageGsm.test.mjs tests/alerts.test.mjs tests/anomalies.integration.test.mjs tests/anomalies.test.mjs tests/apiQuota.test.mjs tests/apiUsageWrite.test.mjs tests/authShortcut.test.mjs tests/dataMode.test.mjs tests/errorCodeContract.test.mjs tests/families-v1.integration.test.mjs tests/families.integration.test.mjs tests/fileMagic.test.mjs tests/fileParsers.test.mjs tests/forecast.integration.test.mjs tests/forecastAdjustment.test.mjs tests/geospatial.integration.test.mjs tests/geospatialImport.test.mjs tests/hardware.test.mjs tests/intelligence.integration.test.mjs tests/interpolation.integration.test.mjs tests/jobs.integration.test.mjs tests/listings.integration.test.mjs tests/logic.test.mjs tests/messaging.integration.test.mjs tests/messagingConfig.test.mjs tests/mfaBackupCodes.test.mjs tests/mfaSecretExposure.test.mjs tests/multipartS3.test.mjs tests/openapiNotes.test.mjs tests/orderStateMachine.test.mjs tests/orders.integration.test.mjs tests/phoneE164Alignment.test.mjs tests/policies.integration.test.mjs tests/quietHours.test.mjs tests/rateLimitDeposit.test.mjs tests/recommendation.test.mjs tests/recommendationLabels.test.mjs tests/recommendationScoring.test.mjs tests/req-extra.integration.test.mjs tests/req-v1.integration.test.mjs tests/req-v2.integration.test.mjs tests/req-v3.integration.test.mjs tests/req-v4.integration.test.mjs tests/req-v5.integration.test.mjs tests/reviews.integration.test.mjs tests/satellite.test.mjs tests/seasons.test.mjs tests/startupReport.test.mjs tests/twilioErrors.test.mjs tests/twilioFallback.test.mjs tests/twilioSms.test.mjs tests/webLinks.test.mjs tests/e2e/adminSettings.e2e.test.mjs tests/e2e/adminMonitoring.e2e.test.mjs tests/e2e/adminNotifications.e2e.test.mjs tests/e2e/adminOperations.e2e.test.mjs tests/e2e/adminSecurity.e2e.test.mjs tests/e2e/adminUsers.e2e.test.mjs tests/e2e/agronomicRanges.e2e.test.mjs tests/e2e/alertEscalation.e2e.test.mjs tests/e2e/alertSmsJob.e2e.test.mjs tests/e2e/alerts.e2e.test.mjs tests/e2e/anomalies.e2e.test.mjs tests/e2e/channels.e2e.test.mjs tests/e2e/completenessByRole.e2e.test.mjs tests/e2e/forecastPipeline.e2e.test.mjs tests/e2e/geospatialImport.e2e.test.mjs tests/e2e/geospatialQuota.e2e.test.mjs tests/e2e/geospatialUpload.e2e.test.mjs tests/e2e/intelligence.e2e.test.mjs tests/e2e/interpolation.e2e.test.mjs tests/e2e/journeys.e2e.test.mjs tests/e2e/mfaLogin.e2e.test.mjs tests/e2e/otpVerification.e2e.test.mjs tests/e2e/satellite.e2e.test.mjs tests/e2e/scoringEngine.e2e.test.mjs tests/e2e/seasons.e2e.test.mjs tests/e2e/seedDemo.e2e.test.mjs tests/e2e/smsTwilio.e2e.test.mjs tests/e2e/smsVerification.e2e.test.mjs tests/e2e/surfacePublique.e2e.test.mjs tests/e2e/twilioErrors.e2e.test.mjs tests/e2e/twilioWebhookUrl.e2e.test.mjs tests/e2e/verifyEmail.e2e.test.mjs",
+    "check:trace": "node scripts/check-traceability.mjs",
+    "docs:traceability": "node scripts/check-traceability.mjs --md",
+    "docs:requirements": "node scripts/check-requirements.mjs --md docs/REQUIREMENTS.md",
+    "check:req": "node scripts/check-requirements.mjs",
+    "check:cdc": "node scripts/check-cdc.mjs",
+    "test:unit": "node --test --test-concurrency=2 tests/adminDashboard.test.mjs tests/adminGovernance.test.mjs tests/adminSettings.test.mjs tests/adminMonitoring.test.mjs tests/adminNotifications.test.mjs tests/adminOperations.test.mjs tests/adminSecurity.test.mjs tests/adminUsers.test.mjs tests/agronomicRangesCsv.test.mjs tests/alertLabels.test.mjs tests/alertMessageGsm.test.mjs tests/alerts.test.mjs tests/anomalies.integration.test.mjs tests/anomalies.test.mjs tests/apiQuota.test.mjs tests/apiUsageWrite.test.mjs tests/authShortcut.test.mjs tests/dataMode.test.mjs tests/errorCodeContract.test.mjs tests/families-v1.integration.test.mjs tests/families.integration.test.mjs tests/fileMagic.test.mjs tests/fileParsers.test.mjs tests/forecast.integration.test.mjs tests/forecastAdjustment.test.mjs tests/geospatial.integration.test.mjs tests/geospatialImport.test.mjs tests/hardware.test.mjs tests/intelligence.integration.test.mjs tests/interpolation.integration.test.mjs tests/jobs.integration.test.mjs tests/listings.integration.test.mjs tests/logic.test.mjs tests/messaging.integration.test.mjs tests/messagingConfig.test.mjs tests/mfaBackupCodes.test.mjs tests/mfaSecretExposure.test.mjs tests/multipartS3.test.mjs tests/openapiNotes.test.mjs tests/orderStateMachine.test.mjs tests/orders.integration.test.mjs tests/phoneE164Alignment.test.mjs tests/policies.integration.test.mjs tests/quietHours.test.mjs tests/rateLimitDeposit.test.mjs tests/recommendation.test.mjs tests/recommendationLabels.test.mjs tests/recommendationScoring.test.mjs tests/req-extra.integration.test.mjs tests/req-v1.integration.test.mjs tests/req-v2.integration.test.mjs tests/req-v3.integration.test.mjs tests/req-v4.integration.test.mjs tests/req-v5.integration.test.mjs tests/reviews.integration.test.mjs tests/satellite.test.mjs tests/seasons.test.mjs tests/startupReport.test.mjs tests/twilioErrors.test.mjs tests/twilioFallback.test.mjs tests/twilioSms.test.mjs tests/webLinks.test.mjs tests/e2e/adminSettings.e2e.test.mjs tests/e2e/adminMonitoring.e2e.test.mjs tests/e2e/adminNotifications.e2e.test.mjs tests/e2e/adminOperations.e2e.test.mjs tests/e2e/adminSecurity.e2e.test.mjs tests/e2e/adminUsers.e2e.test.mjs tests/e2e/agronomicRanges.e2e.test.mjs tests/e2e/alertEscalation.e2e.test.mjs tests/e2e/alertSmsJob.e2e.test.mjs tests/e2e/alerts.e2e.test.mjs tests/e2e/anomalies.e2e.test.mjs tests/e2e/channels.e2e.test.mjs tests/e2e/completenessByRole.e2e.test.mjs tests/e2e/forecastPipeline.e2e.test.mjs tests/e2e/geospatialImport.e2e.test.mjs tests/e2e/geospatialQuota.e2e.test.mjs tests/e2e/geospatialUpload.e2e.test.mjs tests/e2e/intelligence.e2e.test.mjs tests/e2e/interpolation.e2e.test.mjs tests/e2e/journeys.e2e.test.mjs tests/e2e/mfaLogin.e2e.test.mjs tests/e2e/otpVerification.e2e.test.mjs tests/e2e/satellite.e2e.test.mjs tests/e2e/scoringEngine.e2e.test.mjs tests/e2e/seasons.e2e.test.mjs tests/e2e/seedDemo.e2e.test.mjs tests/e2e/smsTwilio.e2e.test.mjs tests/e2e/smsVerification.e2e.test.mjs tests/e2e/surfacePublique.e2e.test.mjs tests/e2e/twilioErrors.e2e.test.mjs tests/e2e/twilioWebhookUrl.e2e.test.mjs tests/e2e/verifyEmail.e2e.test.mjs",
+    "check:migrations": "node scripts/check-migrations.mjs",
+    "sms:verifier-config": "node scripts/sms-verifier-config.mjs",
+    "email:verifier-config": "node scripts/email-verifier-config.mjs",
+    "test:e2e": "node --test --test-concurrency=2 tests/e2e/journeys.e2e.test.mjs tests/e2e/completenessByRole.e2e.test.mjs tests/e2e/intelligence.e2e.test.mjs tests/e2e/channels.e2e.test.mjs tests/e2e/adminSettings.e2e.test.mjs tests/e2e/adminMonitoring.e2e.test.mjs tests/e2e/adminNotifications.e2e.test.mjs tests/e2e/adminOperations.e2e.test.mjs tests/e2e/adminSecurity.e2e.test.mjs tests/e2e/adminUsers.e2e.test.mjs tests/e2e/agronomicRanges.e2e.test.mjs tests/e2e/alerts.e2e.test.mjs tests/e2e/forecastPipeline.e2e.test.mjs tests/e2e/interpolation.e2e.test.mjs tests/e2e/satellite.e2e.test.mjs tests/e2e/anomalies.e2e.test.mjs tests/e2e/scoringEngine.e2e.test.mjs tests/e2e/smsTwilio.e2e.test.mjs tests/e2e/alertSmsJob.e2e.test.mjs tests/e2e/seasons.e2e.test.mjs tests/e2e/geospatialImport.e2e.test.mjs tests/e2e/mfaLogin.e2e.test.mjs tests/e2e/verifyEmail.e2e.test.mjs tests/e2e/seedDemo.e2e.test.mjs tests/e2e/smsVerification.e2e.test.mjs tests/e2e/geospatialQuota.e2e.test.mjs tests/e2e/geospatialUpload.e2e.test.mjs tests/e2e/alertEscalation.e2e.test.mjs tests/e2e/otpVerification.e2e.test.mjs tests/e2e/surfacePublique.e2e.test.mjs tests/e2e/twilioWebhookUrl.e2e.test.mjs tests/e2e/twilioErrors.e2e.test.mjs",
+    "smoke": "node scripts/smoke-http.mjs",
+    "contre-epreuves": "node scripts/contre-epreuves.mjs",
+    "verify": "npm run check && npm run check:fields && npm run check:env && npm run check:perms && npm run check:trace && npm run check:req && npm run check:cdc && npm run test:geoai && npm test && npm run test:e2e && npm run check:migrations && npm run check:mounts && npm run check:models && npm run smoke",
+    "check:mounts": "node scripts/check-mounts.mjs",
+    "geoai": "python3 geoai/server.py",
+    "test:geoai": "python3 -m unittest discover -s geoai/tests -t .",
+    "check:models": "node scripts/check-model-writes.mjs"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@supabase/supabase-js": "^2.45.4",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "pdfkit": "^0.20.2",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.4",
+    "ws": "^8.22.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "embedded-postgres": "^18.4.0-beta.17",
+    "prisma": "^5.22.0"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

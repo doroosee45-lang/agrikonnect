@@ -1,0 +1,223 @@
+{
+  "$schema": "https://tr.designtokens.org/format/",
+  "meta": {
+    "produit": "AGRIKONNECT AFRICA",
+    "genere": "2026-11-05",
+    "source": "UI KIT & DESIGN SYSTEM AGRIKONNECT AFRICA v1.0 (sections 2-5) + apps/web/src/theme/agrikonnect.ts (copie identique : apps/Mobile/src/theme/agrikonnect.ts)",
+    "statut": "Ce fichier DOCUMENTE l'echelle generee par agrikonnect.ts. La source de verite reste le code. Toute modification se fait dans le code, puis ce fichier est regenere.",
+    "historique": "La charte V1-V5 et la reference programme (decisions D1/D2, ancienne section d ecarts) sont supersedees par le kit v1.0 valide le 2026-11-05."
+  },
+  "couleurs": {
+    "vert": {
+      "50": "#f2f8f4",
+      "100": "#e6f3ec",
+      "200": "#c6e0d2",
+      "300": "#9bc7b0",
+      "400": "#63ae8b",
+      "500": "#239b68",
+      "600": "#1b7f55",
+      "700": "#176b45",
+      "800": "#124c34",
+      "900": "#0e3a29",
+      "950": "#08241a"
+    },
+    "terre": {
+      "50": "#f7efe5",
+      "100": "#f0e2cc",
+      "200": "#e2c79b",
+      "300": "#d6ac72",
+      "400": "#d09a55",
+      "500": "#c58b42",
+      "600": "#a5722f",
+      "700": "#8a5b22",
+      "800": "#6e4c1d",
+      "900": "#523a17"
+    },
+    "creme": {
+      "50": "#fafbfa",
+      "100": "#f5f8f5",
+      "200": "#e7ede8",
+      "300": "#d4dcd6"
+    },
+    "encre": {
+      "500": "#64736a",
+      "700": "#17231d",
+      "900": "#0f1712"
+    },
+    "blanc": {
+      "40": "rgba(255, 255, 255, 0.40)",
+      "55": "rgba(255, 255, 255, 0.55)",
+      "70": "rgba(255, 255, 255, 0.70)",
+      "85": "rgba(255, 255, 255, 0.85)",
+      "95": "rgba(255, 255, 255, 0.95)"
+    },
+    "rouge": {
+      "50": "#fef2f2",
+      "100": "#fadedd",
+      "300": "#eea29e",
+      "400": "#e2716b",
+      "500": "#dc4545",
+      "700": "#b42318",
+      "800": "#8e1b12"
+    },
+    "scientifique": {
+      "50": "#f2f7fc",
+      "100": "#e4eef8",
+      "500": "#2878c8",
+      "900": "#17324d"
+    }
+  },
+  "fonction": {
+    "succes": "#16a34a",
+    "attention": "#e59a23",
+    "erreur": "#dc4545",
+    "info": "#2878c8",
+    "desactive": "#a3ada6",
+    "note": "Valeurs exactes du kit 2.2 : remplissages, filets, icones avec libelle. Usages texte : etapes derivees AA."
+  },
+  "roles": {
+    "fond": {
+      "valeur": "#f5f8f5",
+      "note": "kit background."
+    },
+    "surface": {
+      "valeur": "#ffffff",
+      "note": "kit surface : cartes et panneaux poses sur le fond."
+    },
+    "bordure": {
+      "valeur": "#e3eae5",
+      "note": "kit border."
+    },
+    "titre": {
+      "valeur": "#0e3a29",
+      "note": "vert-900 derive. 11,85:1 sur le fond."
+    },
+    "texte": {
+      "valeur": "#17231d",
+      "note": "kit text-primary. 15,16:1 sur le fond."
+    },
+    "texteSecondaire": {
+      "valeur": "#64736a",
+      "note": "kit text-secondary. 4,67:1 sur le fond."
+    },
+    "marque": {
+      "valeur": "#124c34",
+      "note": "kit primary-900. Boutons principaux : 9,96:1 avec le blanc."
+    },
+    "accent": {
+      "valeur": "#8a5b22",
+      "note": "terre-700 derive AA. 5,45:1 sur le fond. earth-500 du kit reste aux surfaces et filets."
+    },
+    "accentSurface": {
+      "valeur": "#d09a55",
+      "note": "terre-400. Texte encre-900 dessus : 7,32:1."
+    },
+    "trait": {
+      "valeur": "#d09a55",
+      "note": "terre-400. Filets, focus."
+    },
+    "erreur": {
+      "valeur": "#b42318",
+      "note": "rouge-700 derive AA. 6,01:1 sur rouge-50."
+    },
+    "erreurFond": {
+      "valeur": "#fef2f2",
+      "note": "rouge-50."
+    },
+    "info": {
+      "valeur": "#2878c8",
+      "note": "kit scientific-500."
+    },
+    "infoTexte": {
+      "valeur": "#17324d",
+      "note": "kit scientific-900. 11,18:1 sur scientifique-100."
+    },
+    "succes": {
+      "valeur": "#16a34a",
+      "note": "kit success : remplissages et icones avec libelle. Texte : vert-700."
+    },
+    "attention": {
+      "valeur": "#e59a23",
+      "note": "kit warning : remplissages et filets. Texte : terre-700."
+    },
+    "desactive": {
+      "valeur": "#a3ada6",
+      "note": "kit disabled."
+    }
+  },
+  "puces": {
+    "succes": {
+      "fond": "#e6f3ec",
+      "texte": "#124c34",
+      "contraste": 8.72
+    },
+    "mesure": {
+      "fond": "#e6f3ec",
+      "texte": "#124c34",
+      "contraste": 8.72
+    },
+    "information": {
+      "fond": "#e4eef8",
+      "texte": "#17324d",
+      "contraste": 11.18
+    },
+    "attention": {
+      "fond": "#f0e2cc",
+      "texte": "#6e4c1d",
+      "contraste": 6.06
+    },
+    "erreur": {
+      "fond": "#fef2f2",
+      "texte": "#b42318",
+      "contraste": 6.01
+    },
+    "neutre": {
+      "fond": "#fafbfa",
+      "texte": "#17231d",
+      "contraste": 15.64
+    },
+    "note": "A11 : la couleur ne porte jamais seule le sens ; libelle + icone."
+  },
+  "geometrie": {
+    "rayonCarte": 20,
+    "rayonPanneau": 28,
+    "rayonChampWeb": 8,
+    "rayonChampMobile": 12,
+    "ombreDouce": "0 1px 2px rgba(18, 76, 52, .05), 0 8px 24px -12px rgba(18, 76, 52, .18)",
+    "conteneur": 1180
+  },
+  "mouvement": {
+    "courbe": "cubic-bezier(.22,.61,.36,1)",
+    "dureeStandard": 300,
+    "focus": "3 px terre-400, decalage 2 px"
+  },
+  "tactile": {
+    "cibleWeb": 44,
+    "cibleMobile": 48,
+    "ecartMinimum": 8
+  },
+  "typographie": {
+    "familles": {
+      "texte": "Inter",
+      "technique": "JetBrains Mono"
+    },
+    "echelle": {
+      "h1": "30-36",
+      "h2": "24-28",
+      "h3": "18-22",
+      "h4": "16-18",
+      "corps": "14-16",
+      "petit": "12-13",
+      "legende": "11-12"
+    }
+  },
+  "derivees": [
+    "vert-200/300/400/600/950 : interpolations de la gamme primary du kit.",
+    "terre-50/100/200/300/600/800/900 : derivation de la teinte earth du kit.",
+    "terre-700 : derive AA pour l accent en texte (earth-500 = 2,34:1 en texte).",
+    "vert-900 : derive fonce pour les titres.",
+    "rouge-100/300/400/800 : derivations de kit error ; rouge-700 derive AA (texte).",
+    "scientifique-50/100 : fonds derives de kit scientific-500.",
+    "creme-50/200/300 : fonds derives de kit background."
+  ]
+}

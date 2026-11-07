@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-error.log*
+coverage/
+dist/
+.DS_Store
+*.log
+
+# Fichiers géospatiaux déposés (GEOSPATIAL_STORAGE_DIR par défaut).
+# Contenu d'utilisateurs : jamais versionné, jamais livré dans une archive.
+storage/

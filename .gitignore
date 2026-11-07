@@ -1,0 +1,42 @@
+# Dépendances et caches — jamais versionnés.
+node_modules/
+.npm/
+.cache/
+.parcel-cache/
+.turbo/
+.vite/
+.next/
+.nuxt/
+.output/
+.svelte-kit/
+.expo/
+
+# Environnements locaux et secrets.
+.env
+.env.*
+!.env.example
+
+# Artefacts de compilation et de test.
+dist/
+build/
+out/
+target/
+coverage/
+*.tsbuildinfo
+
+# Python.
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Journaux de vérification et bases jetables du harnais.
+verify-*.log
+*.log
+npm-debug.log*
+tmp/
+
+# Archives de livraison.
+*.zip

@@ -1,0 +1,3071 @@
+// =============================================================
+// AGRIKONNECT AFRICA — Schéma Prisma (Postgres / Supabase)
+// Périmètre : V1 (FARM) + socle Soil S1 + préparation V2→V5
+// Conventions CDC §12.1 : id (ULID client-possible), countryCode,
+// createdAt, updatedAt, createdBy, deletedAt (soft delete), version, source
+// =============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ÉNUMÉRATIONS
+// ─────────────────────────────────────────────────────────────
+
+/// CDC §3.2 — rôles RBAC
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+  SUPPORT_AGENT
+  FARMER
+  COOPERATIVE_ADMIN
+  COOPERATIVE_MEMBER
+  AGRICULTURAL_COMPANY
+  BUYER
+  SUPPLIER
+  TRANSPORTER
+  AGRONOMIST
+  INVESTOR
+  LAB_PARTNER
+  API_CLIENT
+  PUBLIC_USER
+  // V4 — vérificateur professionnel (juriste, auditeur, agronome missionné)
+  VERIFIER
+  // V5 — administration par pays et gouvernance des données
+  COUNTRY_ADMIN
+  DATA_STEWARD
+}
+
+/// Tenant = Organisation (CDC §3.4 / A.3)
+enum OrgType {
+  INDIVIDUAL
+  COOPERATIVE
+  COMPANY
+}
+
+/// CDC §2 P2 — provenance de la donnée
+enum Source {
+  declared
+  platform_verified
+  third_party_verified
+  measured_lab
+  measured_sensor
+  estimated
+  derived
+  satellite
+  photo_interpreted
+  /// Profil de sous-sol mesuré au GPR (tarière/carottage/SEG-Y).
+  measured_gpr
+  /// Produit d'un modèle d'IA : jamais présenté comme une mesure.
+  model_predicted
+}
+
+/// CDC PROF-02 — visibilité par champ
+enum Visibility {
+  public
+  onRequest
+  private
+}
+
+/// CDC VER-01 — niveaux de vérification
+enum VerificationLevel {
+  PHONE_VERIFIED
+  PROFILE_VERIFIED
+  ORGANIZATION_VERIFIED
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  REMOVED
+}
+
+/// PLOT-01
+enum PlotStatus {
+  FALLOW
+  PLANTED
+  GROWING
+  HARVESTED
+  RESTING
+}
+
+enum GeometryType {
+  POINT
+  POLYGON
+}
+
+enum CropStatus {
+  DRAFT
+  VALIDATED
+  ARCHIVED
+}
+
+enum MediaKind {
+  PHOTO
+  VIDEO
+}
+
+enum Confidentiality {
+  PRIVATE
+  RESTRICTED
+  PUBLIC
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  REJECTED
+}
+
+enum CountryStatus {
+  PLANNED
+  PILOT
+  ACTIVE
+  SUSPENDED
+}
+
+/// CDC §11.3 — niveau de confiance
+enum Confidence {
+  low
+  medium
+  high
+}
+
+enum OtpPurpose {
+  PHONE_VERIFICATION
+  LOGIN
+}
+
+enum TokenPurpose {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  COOPERATIVE_INVITATION
+  AGENT_CONSENT
+}
+
+// ─────────────────────────────────────────────────────────────
+// IDENTITÉ & TENANCY
+// ─────────────────────────────────────────────────────────────
+
+/// Profil applicatif. `id` = id de l'utilisateur Supabase Auth.
+model Profile {
+  id                  String    @id @db.Uuid
+  email               String    @unique
+  emailVerifiedAt     DateTime? @map("email_verified_at")
+  phone               String?   @unique
+  phoneVerifiedAt     DateTime? @map("phone_verified_at")
+  firstName           String?   @map("first_name")
+  lastName            String?   @map("last_name")
+  whatsapp            String?
+  locale              String    @default("fr")
+  countryCode         String    @map("country_code") @db.Char(2)
+  status              String    @default("ACTIVE")
+  avatarUrl           String?   @map("avatar_url")
+  lastLoginAt         DateTime? @map("last_login_at")
+  failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime? @map("locked_until")
+  /// V4 NFR-01 — second facteur réellement exigé à la connexion (miroir de MfaSecret.confirmedAt)
+  mfaEnabled          Boolean   @default(false) @map("mfa_enabled")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  memberships Membership[]
+  auditLogs   AuditLog[]   @relation("AuditActor")
+
+  @@index([countryCode])
+  @@map("profiles")
+}
+
+model Organization {
+  id          String    @id
+  type        OrgType   @default(INDIVIDUAL)
+  name        String
+  slug        String?   @unique
+  description String?
+  countryCode String    @map("country_code") @db.Char(2)
+  createdBy   String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  version     Int       @default(1)
+
+  memberships     Membership[]
+  farms           Farm[]
+  plots           Plot[]
+  productions     Production[]
+  cooperative     Cooperative?
+  documents       Document[]
+  media           Media[]
+  soilAssessments SoilAssessment[]
+  soilDiagnostics SoilDiagnostic[]
+
+  recommendations  CropRecommendation[]
+  alerts           ThresholdAlert[]
+  predictions      SoilPrediction[]
+  interpolatedMaps InterpolatedMap[]
+  sensorAnomalies  SensorAnomaly[]
+  seasonFeedback   SeasonFeedback[]
+  aiModels         AiModelVersion[]
+  imports          GeospatialImport[]
+  agronomicRanges  CropAgronomicRange[]
+
+  @@index([type])
+  @@index([countryCode])
+  @@map("organizations")
+}
+
+/// Rôle(s) d'un utilisateur dans une organisation + consentements délégués
+
+/// Occupation cumulée d'une ressource par organisation.
+///
+/// ## Pourquoi cette table existe
+///
+/// Contrôler un quota avec `aggregate` puis créer la ligne est une course :
+/// deux dépôts arrivés en même temps lisent la même somme et passent **tous les
+/// deux**, puis dépassent le plafond. Le compteur est incrémenté **dans la
+/// transaction du dépôt** : la ligne est verrouillée, le second dépôt attend le
+/// commit du premier et voit la somme mise à jour.
+///
+/// `BigInt` et non `Int` : le quota par défaut est de 5 Go, au-delà de ce
+/// qu'un entier 32 bits peut porter.
+model ResourceUsage {
+  id             String   @id @default(cuid())
+  organizationId String   @map("organization_id")
+  /// Ressource comptée, par exemple `GEOSPATIAL_IMPORT`.
+  resource       String
+  usedBytes      BigInt   @default(0) @map("used_bytes")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, resource])
+  @@index([organizationId])
+  @@map("resource_usages")
+}
+
+model Membership {
+  id             String           @id @default(cuid())
+  userId         String           @db.Uuid
+  organizationId String
+  roles          Role[]
+  status         MembershipStatus @default(ACTIVE)
+  joinedAt       DateTime         @default(now()) @map("joined_at")
+  createdBy      String?          @map("created_by")
+  /// Portée des données autorisées à la coopérative (COOP-05 / §3.3)
+  consentScopes  Json?            @map("consent_scopes")
+
+  user         Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId, status])
+  @@map("memberships")
+}
+
+// ─────────────────────────────────────────────────────────────
+// RÉFÉRENTIELS
+// ─────────────────────────────────────────────────────────────
+
+/// GLB-01 — configuration pays (aucune donnée en dur)
+model Country {
+  code              String        @id @db.Char(2)
+  name              String
+  currencies        String[]
+  defaultCurrency   String        @default("USD") @map("default_currency")
+  locales           String[]
+  timezone          String
+  adminLevels       Json?         @map("admin_levels")
+  units             Json?
+  complianceProfile Json?         @map("compliance_profile")
+  /// GLB-03 / V5:NFR-04 — résidence des données exigée par le pays :
+  /// { region, provider, attestationRef, verifiedAt }.
+  hosting           Json?
+  status            CountryStatus @default(PLANNED)
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  @@map("countries")
+}
+
+/// CROP-01 / CROP-02 — catalogue administré
+model Crop {
+  id        String     @id
+  slug      String     @unique
+  category  String
+  /// { "fr": "Manioc", "en": "Cassava", "ln": "..." }
+  names     Json
+  cycleDays Int?       @map("cycle_days")
+  seasons   Json?
+  units     Json?
+  /// Fiche agronomique (S2) : pH optimal, eau, altitude, texture, précédents
+  agronomy  Json?
+  status    CropStatus @default(VALIDATED)
+  source    Source     @default(declared)
+  createdBy String?    @map("created_by")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  deletedAt DateTime?  @map("deleted_at")
+  version   Int        @default(1)
+
+  farms          FarmCrop[]
+  plots          Plot[]
+  histories      PlotCropHistory[]
+  productions    Production[]
+  seasonFeedback SeasonFeedback[]
+
+  @@index([category, status])
+  @@map("crops")
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+/// Journal immuable des changements de paramètres (SPEC-SUPER-ADMIN M3).
+/// Insertion seule : aucune mise à jour ni suppression applicatives ;
+/// la rétention est une purge de maintenance SUPER_ADMIN, elle-même auditéee.
+model SettingRevision {
+  id            String   @id @default(cuid())
+  key           String
+  previousValue Json?    @map("previous_value")
+  newValue      Json?    @map("new_value")
+  changedBy     String?  @db.Uuid @map("changed_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([key, createdAt])
+  @@map("settings_revisions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// EXPLOITATIONS & PARCELLES
+// ─────────────────────────────────────────────────────────────
+
+model Farm {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  name           String
+  slug           String   @unique
+  /// Ancien slug conservé pour redirection (PUB-02)
+  previousSlugs  String[] @default([]) @map("previous_slugs")
+  description    String?
+  countryCode    String   @map("country_code") @db.Char(2)
+  province       String?
+  territory      String?
+  sector         String?
+  village        String?
+
+  /// Position exacte (privée) — GeoJSON { type: 'Point', coordinates: [lng, lat] }
+  location                Json?
+  latitude                Float?
+  longitude               Float?
+  /// Position publique approximative (MAP-04) — calculée côté serveur
+  publicLatitude          Float? @map("public_latitude")
+  publicLongitude         Float? @map("public_longitude")
+  publicLocationPrecision String @default("approximate") @map("public_location_precision")
+
+  totalAreaHa Float?  @map("total_area_ha")
+  workers     Int?
+  capacity    String?
+  foundedYear Int?    @map("founded_year")
+
+  /// { "phone": "private", "email": "private", "location": "approximate" } (PROF-02)
+  visibility Json    @default("{}")
+  isPublic   Boolean @default(false) @map("is_public")
+  viewCount  Int     @default(0) @map("view_count")
+
+  verificationStatus VerificationLevel? @map("verification_status")
+  verifiedAt         DateTime?          @map("verified_at")
+  verifiedBy         String?            @map("verified_by")
+
+  source    Source    @default(declared)
+  createdBy String?   @map("created_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  version   Int       @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plots        Plot[]
+  crops        FarmCrop[]
+  productions  Production[]
+  media        Media[]
+
+  @@index([countryCode, province])
+  @@index([latitude, longitude])
+  @@index([isPublic, deletedAt])
+  @@index([organizationId])
+  @@map("farms")
+}
+
+model FarmCrop {
+  farmId String @map("farm_id")
+  cropId String @map("crop_id")
+
+  farm Farm @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  crop Crop @relation(fields: [cropId], references: [id], onDelete: Cascade)
+
+  @@id([farmId, cropId])
+  @@map("farm_crops")
+}
+
+model Plot {
+  id             String       @id
+  organizationId String       @map("organization_id")
+  farmId         String       @map("farm_id")
+  name           String
+  areaHa         Float?       @map("area_ha")
+  geometryType   GeometryType @default(POINT) @map("geometry_type")
+  /// GeoJSON Point ou Polygon
+  geometry       Json
+  /// Centroïde pour filtrage bbox / index
+  latitude       Float?
+  longitude      Float?
+
+  currentCropId String?    @map("current_crop_id")
+  plantingDate  DateTime?  @map("planting_date")
+  status        PlotStatus @default(FALLOW)
+
+  source    Source    @default(declared)
+  createdBy String?   @map("created_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  version   Int       @default(1)
+
+  organization    Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  farm            Farm              @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  currentCrop     Crop?             @relation(fields: [currentCropId], references: [id])
+  histories       PlotCropHistory[]
+  productions     Production[]
+  media           Media[]
+  soilAssessments SoilAssessment[]
+  soilDiagnostics SoilDiagnostic[]
+
+  recommendations  CropRecommendation[]
+  alerts           ThresholdAlert[]
+  predictions      SoilPrediction[]
+  interpolatedMaps InterpolatedMap[]
+  seasonFeedback   SeasonFeedback[]
+  imports          GeospatialImport[]
+
+  @@index([organizationId, farmId])
+  @@index([farmId, deletedAt])
+  @@index([latitude, longitude])
+  @@map("plots")
+}
+
+/// PLOT-03 — historique cultural (base du module Soil)
+model PlotCropHistory {
+  id             String    @id
+  organizationId String    @map("organization_id")
+  plotId         String    @map("plot_id")
+  season         String
+  year           Int
+  cropId         String    @map("crop_id")
+  plantedAt      DateTime? @map("planted_at")
+  harvestedAt    DateTime? @map("harvested_at")
+  declaredYield  Float?    @map("declared_yield")
+  unit           String?
+  notes          String?
+  source         Source    @default(declared)
+  createdBy      String?   @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  plot Plot @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  crop Crop @relation(fields: [cropId], references: [id])
+
+  @@index([plotId, year, season])
+  @@map("plot_crop_history")
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRODUCTIONS
+// ─────────────────────────────────────────────────────────────
+
+model Production {
+  id             String    @id
+  organizationId String    @map("organization_id")
+  farmId         String    @map("farm_id")
+  plotId         String?   @map("plot_id")
+  cropId         String    @map("crop_id")
+  harvestedAt    DateTime  @map("harvested_at")
+  season         String
+  quantity       Float
+  unit           String
+  quantityKg     Float?    @map("quantity_kg")
+  quality        String?
+  destination    String?
+  source         Source    @default(declared)
+  createdBy      String?   @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  farm         Farm         @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  plot         Plot?        @relation(fields: [plotId], references: [id])
+  crop         Crop         @relation(fields: [cropId], references: [id])
+
+  @@index([organizationId, cropId, harvestedAt])
+  @@index([plotId, harvestedAt])
+  @@map("productions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// COOPÉRATIVES
+// ─────────────────────────────────────────────────────────────
+
+model Cooperative {
+  id             String    @id
+  organizationId String    @unique @map("organization_id")
+  legalStatus    String?   @map("legal_status")
+  foundedYear    Int?      @map("founded_year")
+  description    String?
+  province       String?
+  territory      String?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      CooperativeMember[]
+
+  @@map("cooperatives")
+}
+
+model CooperativeMember {
+  id                   String           @id @default(cuid())
+  cooperativeId        String           @map("cooperative_id")
+  memberUserId         String           @map("member_user_id") @db.Uuid
+  memberOrganizationId String?          @map("member_organization_id")
+  status               MembershipStatus @default(INVITED)
+  joinedAt             DateTime?        @map("joined_at")
+  invitedBy            String?          @map("invited_by")
+  /// Portée du consentement : ['profile','plots','productions']
+  consentScopes        String[]         @default([]) @map("consent_scopes")
+  consentRecordedAt    DateTime?        @map("consent_recorded_at")
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+
+  cooperative Cooperative @relation(fields: [cooperativeId], references: [id], onDelete: Cascade)
+
+  @@unique([cooperativeId, memberUserId])
+  @@index([memberUserId])
+  @@map("cooperative_members")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MÉDIAS & DOCUMENTS
+// ─────────────────────────────────────────────────────────────
+
+model Media {
+  id             String    @id
+  organizationId String    @map("organization_id")
+  farmId         String?   @map("farm_id")
+  plotId         String?   @map("plot_id")
+  /// V2 — photos d'annonce marketplace
+  listingId      String?   @map("listing_id")
+  kind           MediaKind @default(PHOTO)
+  storageKey     String    @map("storage_key")
+  url            String?
+  mimeType       String    @map("mime_type")
+  sizeBytes      Int?      @map("size_bytes")
+  width          Int?
+  height         Int?
+  caption        String?
+  position       Int       @default(0)
+  createdBy      String?   @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  farm         Farm?        @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  plot         Plot?        @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  listing      Listing?     @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([farmId, position])
+  @@index([plotId, position])
+  @@index([listingId, position])
+  @@map("media")
+}
+
+model Document {
+  id              String          @id
+  organizationId  String          @map("organization_id")
+  name            String
+  category        String?
+  storageKey      String          @map("storage_key")
+  mimeType        String          @map("mime_type")
+  sizeBytes       Int?            @map("size_bytes")
+  sha256          String?
+  confidentiality Confidentiality @default(PRIVATE)
+  uploadedBy      String?         @map("uploaded_by")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  deletedAt       DateTime?       @map("deleted_at")
+
+  organization  Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  verifications VerificationDocument[]
+
+  @@index([organizationId, category])
+  @@map("documents")
+}
+
+// ─────────────────────────────────────────────────────────────
+// VÉRIFICATION & MODÉRATION
+// ─────────────────────────────────────────────────────────────
+
+model Verification {
+  id             String             @id
+  subjectType    String             @map("subject_type")
+  subjectId      String             @map("subject_id")
+  organizationId String             @map("organization_id")
+  level          VerificationLevel
+  status         VerificationStatus @default(PENDING)
+  reason         String?
+  reviewedBy     String?            @map("reviewed_by")
+  reviewedAt     DateTime?          @map("reviewed_at")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+
+  documents VerificationDocument[]
+
+  @@index([status, createdAt])
+  @@index([subjectType, subjectId])
+  @@map("verifications")
+}
+
+model VerificationDocument {
+  verificationId String @map("verification_id")
+  documentId     String @map("document_id")
+
+  verification Verification @relation(fields: [verificationId], references: [id], onDelete: Cascade)
+  document     Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([verificationId, documentId])
+  @@map("verification_documents")
+}
+
+model Report {
+  id          String       @id
+  reporterId  String       @map("reporter_id") @db.Uuid
+  subjectType String       @map("subject_type")
+  subjectId   String       @map("subject_id")
+  reason      String
+  details     String?
+  status      ReportStatus @default(OPEN)
+  moderatorId String?      @map("moderator_id")
+  decision    String?
+  decidedAt   DateTime?    @map("decided_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  @@index([status, createdAt])
+  @@map("reports")
+}
+
+// ─────────────────────────────────────────────────────────────
+// JOURNAL D'AUDIT (append-only) — SEC-09
+// ─────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id") @db.Uuid
+  actingFor  String?  @map("acting_for") @db.Uuid
+  action     String
+  resource   String
+  resourceId String?  @map("resource_id")
+  ip         String?
+  device     String?
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor Profile? @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([resource, resourceId, createdAt])
+  @@index([actorId, createdAt])
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// AUTH APPLICATIVE (OTP, jetons)
+// ─────────────────────────────────────────────────────────────
+
+model OtpCode {
+  id         String     @id @default(cuid())
+  identifier String
+  userId     String?    @map("user_id") @db.Uuid
+  codeHash   String     @map("code_hash")
+  purpose    OtpPurpose @default(PHONE_VERIFICATION)
+  attempts   Int        @default(0)
+  expiresAt  DateTime   @map("expires_at")
+  consumedAt DateTime?  @map("consumed_at")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([identifier, purpose, createdAt])
+  @@map("otp_codes")
+}
+
+model Token {
+  id         String       @id @default(cuid())
+  userId     String?      @map("user_id") @db.Uuid
+  identifier String?
+  tokenHash  String       @map("token_hash")
+  purpose    TokenPurpose
+  expiresAt  DateTime     @map("expires_at")
+  consumedAt DateTime?    @map("consumed_at")
+  metadata   Json?
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  @@index([tokenHash])
+  @@index([identifier, purpose])
+  @@map("tokens")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SOIL & CROP INTELLIGENCE — S1 (CDC §11 / V1 §6)
+// ─────────────────────────────────────────────────────────────
+
+model SoilAssessment {
+  id             String    @id
+  organizationId String    @map("organization_id")
+  plotId         String    @map("plot_id")
+  assessedAt     DateTime  @map("assessed_at")
+  countryCode    String    @map("country_code") @db.Char(2)
+  notes          String?
+  source         Source    @default(declared)
+  createdBy      String?   @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot         Plot            @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  parameters   SoilParameter[]
+
+  @@index([plotId, assessedAt])
+  @@map("soil_assessments")
+}
+
+/// Chaque paramètre porte sa provenance, sa méthode et sa confiance (SOIL-01)
+model SoilParameter {
+  id           String     @id @default(cuid())
+  assessmentId String     @map("assessment_id")
+  key          String
+  value        String
+  numericValue Float?     @map("numeric_value")
+  unit         String?
+  source       Source     @default(declared)
+  method       String?
+  confidence   Confidence @default(low)
+  measuredAt   DateTime?  @map("measured_at")
+  labReportId  String?    @map("lab_report_id")
+
+  assessment SoilAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+  @@map("soil_parameters")
+}
+
+// #############################################################
+// V2 — AGRIKONNECT MARKET
+// Marketplace, demandes d'achat, matching, commandes, stocks,
+// transport, messagerie, notifications, facturation, avis.
+//
+// Note d'architecture : les identifiants de tenant (organizationId,
+// buyerOrgId, sellerOrgId…) sont des références indexées sans contrainte
+// FK. Cela découple les modules métier du noyau V1 et évite qu'une
+// suppression d'organisation efface des enregistrements transactionnels.
+// L'appartenance est vérifiée côté service (assertOwnership).
+// #############################################################
+
+enum ListingType {
+  PRODUCE
+  ANIMAL
+  PROCESSED
+  EQUIPMENT
+  INPUT
+  SERVICE
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  RESERVED
+  SOLD_OUT
+  EXPIRED
+  ARCHIVED
+  HIDDEN
+}
+
+enum PurchaseRequestStatus {
+  OPEN
+  MATCHED
+  CLOSED
+  CANCELLED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  EXPIRED
+}
+
+/// Machine à états stricte (CDC V2 §5.5 / §8.4)
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PROCESSING
+  READY
+  IN_TRANSIT
+  DELIVERED
+  COMPLETED
+  REJECTED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  DECLARED_UNPAID
+  DECLARED_PAID
+}
+
+enum InventoryMovementType {
+  IN
+  OUT
+  LOSS
+  TRANSFER
+  INVENTORY
+  RESERVATION
+  RELEASE
+}
+
+enum ShipmentStatus {
+  REQUESTED
+  OFFERED
+  ASSIGNED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum ConversationStatus {
+  OPEN
+  ARCHIVED
+  BLOCKED
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+  SMS
+}
+
+/// État de remise d'un SMS, tel que rapporté par le fournisseur.
+///
+/// Les valeurs suivent celles de l'API Twilio (`queued`, `sent`, `delivered`,
+/// `undelivered`, `failed`, …) mises en majuscules, plus `QUEUED_LOCALLY` pour
+/// l'état avant acceptation par le fournisseur. **`ACCEPTED` ne veut pas dire
+/// « reçu »** : c'est la distinction que le suivi de remise existe pour faire.
+enum SmsDeliveryStatus {
+  /// Créé en base, pas encore soumis au fournisseur.
+  QUEUED_LOCALLY
+  /// Accepté par le fournisseur : en file chez lui, pas encore remis.
+  QUEUED
+  SENT
+  /// Remis au terminal, d'après l'accusé du réseau.
+  DELIVERED
+  /// Le réseau a répondu qu'il n'a pas pu remettre.
+  UNDELIVERED
+  FAILED
+  /// État inconnu : le fournisseur a renvoyé une valeur non reconnue.
+  /// On ne la devine pas, on la conserve et on la signale.
+  UNKNOWN
+}
+
+/// Consentement explicite à recevoir des SMS pour un usage donné.
+///
+/// Nécessaire parce que l'identifiant d'expéditeur alphanumérique est **à sens
+/// unique** : le destinataire ne peut pas répondre « STOP ». La désinscription
+/// doit donc exister dans l'application, et son historique doit être prouvable.
+enum SmsConsentStatus {
+  GRANTED
+  WITHDRAWN
+}
+
+/// Raison pour laquelle un SMS n'a pas été envoyé.
+enum SmsSkipReason {
+  /// Aucun consentement pour cet usage.
+  NO_CONSENT
+  /// Consentement retiré.
+  CONSENT_WITHDRAWN
+  /// Plafond de SMS par agriculteur et par jour atteint.
+  DAILY_LIMIT
+  /// Alertes SMS désactivées dans les préférences.
+  PREFERENCE_DISABLED
+  /// Pas de numéro de téléphone exploitable.
+  NO_PHONE
+  /// Numéro jamais confirmé par son titulaire.
+  ///
+  /// Une alerte partie vers un numéro non confirmé peut atteindre un inconnu
+  /// (faute de frappe à l'inscription, numéro réattribué). Le canal étant à
+  /// sens unique en RDC, il n'y a aucun « STOP » possible : la vérification
+  /// préalable est la seule protection.
+  PHONE_UNVERIFIED
+  /// Envoi retenu par la fenêtre de silence (heures diurnes).
+  ///
+  /// Une alerte arrivée de nuit est reportée, pas perdue : le lot suivant la
+  /// reprend. La raison est comptée séparément pour qu'un volume retenu la nuit
+  /// ne se confonde pas avec un refus de consentement.
+  QUIET_HOURS
+}
+
+enum InvoiceType {
+  QUOTE
+  PROFORMA
+  INVOICE
+  RECEIPT
+  DELIVERY_NOTE
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  HIDDEN
+  FLAGGED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_BUYER
+  RESOLVED_SELLER
+  WITHDRAWN
+}
+
+/// Idempotence des créations sensibles (CDC §13.2)
+model IdempotencyKey {
+  id             String   @id @default(cuid())
+  key            String
+  scope          String
+  userId         String?
+  requestHash    String?
+  responseStatus Int?
+  responseBody   Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+  expiresAt      DateTime @map("expires_at")
+
+  @@unique([key, scope])
+  @@index([expiresAt])
+  @@map("idempotency_keys")
+}
+
+model Listing {
+  id              String        @id
+  organizationId  String        @map("organization_id")
+  type            ListingType
+  cropId          String?       @map("crop_id")
+  title           String
+  description     String?
+  quantity        Float
+  unit            String
+  quality         String?
+  indicativePrice Float?        @map("indicative_price")
+  currency        String        @default("USD")
+  countryCode     String        @map("country_code") @db.Char(2)
+  province        String?
+  latitude        Float?
+  longitude       Float?
+  availableFrom   DateTime?     @map("available_from")
+  availableTo     DateTime?     @map("available_to")
+  certifications  String[]
+  conditions      String?
+  status          ListingStatus @default(DRAFT)
+  source          Source        @default(declared)
+  expiresAt       DateTime?     @map("expires_at")
+  createdBy       String?       @map("created_by")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  deletedAt       DateTime?     @map("deleted_at")
+  version         Int           @default(1)
+
+  media Media[]
+
+  @@index([status, cropId, countryCode])
+  @@index([organizationId, status])
+  @@index([latitude, longitude])
+  @@map("listings")
+}
+
+model PurchaseRequest {
+  id               String                @id
+  buyerOrgId       String                @map("buyer_org_id")
+  cropId           String                @map("crop_id")
+  title            String
+  description      String?
+  quantity         Float
+  unit             String
+  quality          String?
+  budgetPrice      Float?                @map("budget_price")
+  currency         String                @default("USD")
+  deliveryCountry  String                @map("delivery_country") @db.Char(2)
+  deliveryProvince String?               @map("delivery_province")
+  neededBy         DateTime?             @map("needed_by")
+  conditions       String?
+  status           PurchaseRequestStatus @default(OPEN)
+  createdBy        String?               @map("created_by")
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+  deletedAt        DateTime?             @map("deleted_at")
+  version          Int                   @default(1)
+
+  @@index([status, cropId, neededBy])
+  @@index([buyerOrgId, status])
+  @@map("purchase_requests")
+}
+
+model Offer {
+  id          String      @id
+  requestId   String?     @map("request_id")
+  listingId   String?     @map("listing_id")
+  sellerOrgId String      @map("seller_org_id")
+  price       Float
+  currency    String      @default("USD")
+  quantity    Float
+  unit        String
+  conditions  String?
+  status      OfferStatus @default(PENDING)
+  validUntil  DateTime?   @map("valid_until")
+  createdBy   String?     @map("created_by")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@index([requestId, status])
+  @@index([listingId, status])
+  @@index([sellerOrgId])
+  @@map("offers")
+}
+
+model Order {
+  id            String        @id
+  number        String
+  buyerOrgId    String        @map("buyer_org_id")
+  sellerOrgId   String        @map("seller_org_id")
+  listingId     String?       @map("listing_id")
+  requestId     String?       @map("request_id")
+  offerId       String?       @map("offer_id")
+  /// Conditions figées à la création (CDC V2 P2 : snapshot)
+  snapshot      Json
+  status        OrderStatus   @default(PENDING)
+  paymentStatus PaymentStatus @default(DECLARED_UNPAID)
+  delivery      Json?
+  totalAmount   Float?        @map("total_amount")
+  currency      String        @default("USD")
+  placedBy      String?       @map("placed_by")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  deletedAt     DateTime?     @map("deleted_at")
+  version       Int           @default(1)
+
+  events   OrderEvent[]
+  dispute  Dispute?
+  invoices Invoice[]
+  reviews  Review[]
+
+  @@unique([number])
+  @@index([buyerOrgId, status])
+  @@index([sellerOrgId, status])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+model OrderEvent {
+  id         String       @id @default(cuid())
+  orderId    String       @map("order_id")
+  from       OrderStatus? @map("from_status")
+  to         OrderStatus  @map("to_status")
+  actorId    String?      @map("actor_id")
+  actorOrgId String?      @map("actor_org_id")
+  reason     String?
+  at         DateTime     @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, at])
+  @@map("order_events")
+}
+
+model InventoryItem {
+  id                String    @id
+  organizationId    String    @map("organization_id")
+  label             String
+  cropId            String?   @map("crop_id")
+  unit              String
+  lowStockThreshold Float?    @map("low_stock_threshold")
+  expiresAt         DateTime? @map("expires_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  movements InventoryMovement[]
+
+  @@index([organizationId, label])
+  @@map("inventory_items")
+}
+
+/// Journal d'événements : le solde est DÉRIVÉ, jamais stocké en dur (STK-01)
+model InventoryMovement {
+  id             String                @id
+  organizationId String                @map("organization_id")
+  itemId         String                @map("item_id")
+  type           InventoryMovementType
+  quantity       Float
+  unit           String
+  refType        String?               @map("ref_type")
+  refId          String?               @map("ref_id")
+  reason         String?
+  createdBy      String?               @map("created_by")
+  at             DateTime              @default(now())
+  createdAt      DateTime              @default(now()) @map("created_at")
+
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, itemId, at])
+  @@index([refType, refId])
+  @@map("inventory_movements")
+}
+
+model TransportRequest {
+  id               String         @id
+  orderId          String         @map("order_id")
+  requesterOrgId   String         @map("requester_org_id")
+  pickup           Json?
+  dropoff          Json?
+  status           ShipmentStatus @default(REQUESTED)
+  transporterOrgId String?        @map("transporter_org_id")
+  proof            Json?
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  offers TransportOffer[]
+
+  @@index([orderId, status])
+  @@index([transporterOrgId, status])
+  @@map("transport_requests")
+}
+
+model TransportOffer {
+  id               String      @id
+  requestId        String      @map("request_id")
+  transporterOrgId String      @map("transporter_org_id")
+  price            Float
+  currency         String      @default("USD")
+  etaDays          Int?        @map("eta_days")
+  status           OfferStatus @default(PENDING)
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  request TransportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, status])
+  @@map("transport_offers")
+}
+
+model Conversation {
+  id                String             @id
+  subjectType       String?            @map("subject_type")
+  subjectId         String?            @map("subject_id")
+  participantOrgIds String[]           @map("participant_org_ids")
+  status            ConversationStatus @default(OPEN)
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+
+  messages Message[]
+
+  @@index([status, updatedAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id
+  conversationId String   @map("conversation_id")
+  senderId       String   @map("sender_id")
+  senderOrgId    String   @map("sender_org_id")
+  body           String
+  attachments    String[]
+  readBy         String[] @map("read_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Notification {
+  id        String              @id
+  userId    String              @map("user_id")
+  type      String
+  title     String
+  body      String?
+  channel   NotificationChannel @default(IN_APP)
+  payload   Json?
+  dedupeKey String?             @map("dedupe_key")
+  readAt    DateTime?           @map("read_at")
+  createdAt DateTime            @default(now()) @map("created_at")
+
+  @@unique([dedupeKey])
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id      String              @id @default(cuid())
+  userId  String              @map("user_id")
+  type    String
+  channel NotificationChannel
+  enabled Boolean             @default(true)
+
+  @@unique([userId, type, channel])
+  @@map("notification_preferences")
+}
+
+model Invoice {
+  id             String      @id
+  organizationId String      @map("organization_id")
+  number         String
+  sequence       Int
+  type           InvoiceType
+  orderId        String?     @map("order_id")
+  lines          Json
+  currency       String      @default("USD")
+  fxRate         Json?       @map("fx_rate")
+  totalAmount    Float       @map("total_amount")
+  issuerOrgId    String      @map("issuer_org_id")
+  recipientOrgId String?     @map("recipient_org_id")
+  pdfKey         String?     @map("pdf_key")
+  issuedAt       DateTime    @default(now()) @map("issued_at")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@unique([organizationId, number])
+  @@index([orderId])
+  @@map("invoices")
+}
+
+model Review {
+  id          String       @id
+  orderId     String       @map("order_id")
+  authorOrgId String       @map("author_org_id")
+  targetOrgId String       @map("target_org_id")
+  rating      Int
+  comment     String?
+  response    String?
+  status      ReviewStatus @default(PUBLISHED)
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, authorOrgId])
+  @@index([targetOrgId, status])
+  @@map("reviews")
+}
+
+model Dispute {
+  id            String        @id
+  orderId       String        @unique @map("order_id")
+  openedByOrgId String        @map("opened_by_org_id")
+  reason        String
+  evidence      String[]
+  status        DisputeStatus @default(OPEN)
+  moderatorId   String?       @map("moderator_id")
+  decision      String?
+  decidedAt     DateTime?     @map("decided_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@map("disputes")
+}
+
+// #############################################################
+// V3 — AGRIKONNECT INTELLIGENCE
+// Offline/sync, IA encadrée, météo, prix, traçabilité,
+// certifications, IoT, satellite/drone, laboratoire.
+// #############################################################
+
+enum AiAnalysisType {
+  CHAT
+  PLANT_PHOTO
+  DOCUMENT
+}
+
+enum AiAnalysisStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  ESCALATED
+}
+
+enum LotStatus {
+  OPEN
+  CLOSED
+  RECALLED
+}
+
+enum LotEventType {
+  HARVEST
+  STORAGE
+  PROCESSING
+  TRANSPORT
+  DELIVERY
+  /// TRC-02 — rappel de lot : événement dédié, jamais confondu avec « OTHER ».
+  RECALL
+  OTHER
+}
+
+enum CertificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum DeviceStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+enum PriceSourceType {
+  AGENT
+  PARTNER
+  DECLARED_AGGREGATE
+}
+
+/// Idempotence de la synchronisation offline (SYNC-02)
+model SyncOperation {
+  id             String   @id @default(cuid())
+  opId           String   @unique @map("op_id")
+  userId         String   @map("user_id")
+  organizationId String   @map("organization_id")
+  collection     String
+  operation      String
+  entityId       String   @map("entity_id")
+  payload        Json?
+  result         String   @default("APPLIED")
+  conflict       Json?
+  appliedAt      DateTime @default(now()) @map("applied_at")
+
+  @@index([organizationId, appliedAt])
+  @@index([collection, appliedAt])
+  @@map("sync_operations")
+}
+
+model AiAnalysis {
+  id             String           @id
+  organizationId String           @map("organization_id")
+  userId         String           @map("user_id")
+  type           AiAnalysisType
+  status         AiAnalysisStatus @default(PENDING)
+  plotId         String?          @map("plot_id")
+  prompt         String?
+  promptVersion  String?          @map("prompt_version")
+  provider       String?
+  model          String?
+  output         Json?
+  confidence     Confidence?
+  disclaimer     String?
+  escalatedTo    String?          @map("escalated_to")
+  escalatedAt    DateTime?        @map("escalated_at")
+  feedback       String?
+  consentGiven   Boolean          @default(false) @map("consent_given")
+  tokensUsed     Int?             @map("tokens_used")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  @@index([organizationId, createdAt])
+  @@index([status, createdAt])
+  @@map("ai_analyses")
+}
+
+model WeatherData {
+  id          String     @id
+  plotId      String?    @map("plot_id")
+  countryCode String     @map("country_code") @db.Char(2)
+  latitude    Float
+  longitude   Float
+  observedAt  DateTime   @map("observed_at")
+  source      String
+  payload     Json
+  confidence  Confidence @default(medium)
+  createdAt   DateTime   @default(now()) @map("created_at")
+
+  @@index([plotId, observedAt])
+  @@map("weather_data")
+}
+
+model MarketPrice {
+  id          String          @id
+  cropId      String          @map("crop_id")
+  market      String
+  city        String?
+  countryCode String          @map("country_code") @db.Char(2)
+  price       Float
+  currency    String
+  unit        String
+  observedAt  DateTime        @map("observed_at")
+  source      PriceSourceType @default(AGENT)
+  sourceLabel String?         @map("source_label")
+  createdAt   DateTime        @default(now()) @map("created_at")
+
+  @@index([cropId, market, observedAt])
+  @@index([countryCode, observedAt])
+  @@map("market_prices")
+}
+
+model TraceabilityLot {
+  id             String    @id
+  code           String    @unique
+  organizationId String    @map("organization_id")
+  plotId         String?   @map("plot_id")
+  cropId         String    @map("crop_id")
+  productionId   String?   @map("production_id")
+  quantityKg     Float?    @map("quantity_kg")
+  status         LotStatus @default(OPEN)
+  publicFields   Json?     @map("public_fields")
+  createdBy      String?   @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  events LotEvent[]
+
+  @@index([organizationId, createdAt])
+  @@map("traceability_lots")
+}
+
+/// Append-only : aucune modification, aucune suppression (CDC V3 §8.5)
+model LotEvent {
+  id       String       @id
+  lotId    String       @map("lot_id")
+  type     LotEventType
+  actorId  String?      @map("actor_id")
+  location Json?
+  details  String?
+  source   Source       @default(declared)
+  at       DateTime     @default(now())
+
+  lot TraceabilityLot @relation(fields: [lotId], references: [id], onDelete: Cascade)
+
+  @@index([lotId, at])
+  @@map("lot_events")
+}
+
+model Certification {
+  id             String              @id
+  organizationId String              @map("organization_id")
+  type           String
+  issuer         String
+  reference      String?
+  issuedAt       DateTime?           @map("issued_at")
+  expiresAt      DateTime?           @map("expires_at")
+  documentId     String?             @map("document_id")
+  status         CertificationStatus @default(PENDING)
+  verifiedBy     String?             @map("verified_by")
+  verifiedAt     DateTime?           @map("verified_at")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  deletedAt      DateTime?           @map("deleted_at")
+
+  @@index([organizationId, status])
+  @@index([expiresAt])
+  @@map("certifications")
+}
+
+model IotDevice {
+  id             String       @id
+  organizationId String       @map("organization_id")
+  plotId         String?      @map("plot_id")
+  label          String
+  serialNumber   String?      @map("serial_number")
+  keyHash        String       @map("key_hash")
+  keyRotatedAt   DateTime?    @map("key_rotated_at")
+  status         DeviceStatus @default(ACTIVE)
+  lastSeenAt     DateTime?    @map("last_seen_at")
+  thresholds     Json?
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  readings  SensorReading[]
+  anomalies SensorAnomaly[]
+  /// Alertes de silence produites par le job de supervision.
+  alerts    ThresholdAlert[]
+
+  @@index([organizationId, status])
+  @@map("iot_devices")
+}
+
+model SensorReading {
+  id        String   @id
+  deviceId  String   @map("device_id")
+  metric    String
+  value     Float
+  unit      String?
+  quality   String?
+  at        DateTime
+  createdAt DateTime @default(now()) @map("created_at")
+
+  /// Profondeur de la mesure en cm : sans elle, une mesure de sonde et une
+  /// mesure de surface sont indiscernables (CDC §5 « Mesure »).
+  depthCm        Float?      @map("depth_cm")
+  /// GeoJSON Point de la mesure ; null quand la sonde n'est pas géolocalisée.
+  position       Json?
+  /// Confiance portée par la source : élevée pour sonde et GPR, moyenne pour
+  /// drone, faible pour le satellite en sous-sol (CDC §4).
+  confidence     Confidence?
+  source         Source?
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode    @default(REAL)
+  /// Dénormalisés depuis le capteur pour l'index composé et le filtrage par
+  /// parcelle sans jointure.
+  organizationId String?     @map("organization_id")
+  plotId         String?     @map("plot_id")
+
+  device    IotDevice       @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  anomalies SensorAnomaly[]
+
+  @@index([deviceId, at])
+  @@index([metric, at])
+  @@index([plotId, metric, depthCm, at])
+  @@map("sensor_readings")
+}
+
+model SatelliteObservation {
+  id         String     @id
+  plotId     String     @map("plot_id")
+  provider   String
+  index      String     @default("NDVI")
+  value      Float
+  observedAt DateTime   @map("observed_at")
+  cloudCover Float?     @map("cloud_cover")
+  confidence Confidence @default(medium)
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode       DataMode   @default(REAL)
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([plotId, observedAt])
+  @@map("satellite_observations")
+}
+
+model DroneSurvey {
+  id             String   @id
+  plotId         String   @map("plot_id")
+  organizationId String   @map("organization_id")
+  operatorOrgId  String?  @map("operator_org_id")
+  type           String
+  storageKey     String?  @map("storage_key")
+  reportKey      String?  @map("report_key")
+  flownAt        DateTime @map("flown_at")
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode @default(REAL)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([plotId, flownAt])
+  @@map("drone_surveys")
+}
+
+model LabResult {
+  id              String   @id
+  organizationId  String   @map("organization_id")
+  plotId          String   @map("plot_id")
+  labPartnerOrgId String?  @map("lab_partner_org_id")
+  sampleId        String   @map("sample_id")
+  sampledAt       DateTime @map("sampled_at")
+  parameters      Json
+  reportKey       String?  @map("report_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([plotId, sampledAt])
+  @@index([sampleId])
+  @@map("lab_results")
+}
+
+// #############################################################
+// V4 — AGRIKONNECT INVEST
+// Projets, investisseurs, data room, due diligence,
+// reporting, impact, financement. Aucune activité financière réglementée.
+// #############################################################
+
+enum ProjectStatus {
+  DRAFT
+  SUBMITTED
+  IN_REVIEW
+  PUBLISHED
+  IN_DISCUSSION
+  CLOSED
+  ARCHIVED
+}
+
+enum DataRoomRequestStatus {
+  PENDING
+  GRANTED
+  REJECTED
+  REVOKED
+  EXPIRED
+}
+
+enum DueDiligenceStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  VERIFIED
+  ISSUE
+  NOT_APPLICABLE
+}
+
+enum FundingRequestStatus {
+  DRAFT
+  TRANSMITTED
+  ACKNOWLEDGED
+  CLOSED
+}
+
+model Project {
+  id                  String        @id
+  organizationId      String        @map("organization_id")
+  title               String
+  slug                String        @unique
+  sector              String
+  countryCode         String        @map("country_code") @db.Char(2)
+  province            String?
+  description         String?
+  existingAreaHa      Float?        @map("existing_area_ha")
+  targetAreaHa        Float?        @map("target_area_ha")
+  currentProduction   Json?
+  projectedProduction Json?
+  fundingNeed         Json?
+  ownContribution     Json?         @map("own_contribution")
+  durationMonths      Int?          @map("duration_months")
+  milestones          Json?
+  team                Json?
+  market              String?
+  risks               Json?
+  impact              Json?
+  /// Statut de provenance champ par champ (PRJ-03)
+  fieldStatus         Json          @map("field_status")
+  linkedData          Json          @map("linked_data")
+  status              ProjectStatus @default(DRAFT)
+  createdBy           String?       @map("created_by")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  deletedAt           DateTime?     @map("deleted_at")
+  version             Int           @default(1)
+
+  documents       ProjectDocument[]
+  accessRequests  DataRoomAccessRequest[]
+  dueDiligence    DueDiligenceItem[]
+  progressReports ProgressReport[]
+  impactReports   ImpactReport[]
+  fundingRequests FundingRequest[]
+
+  @@index([status, sector, countryCode])
+  @@index([organizationId, status])
+  @@map("projects")
+}
+
+model ProjectDocument {
+  id              String          @id
+  projectId       String          @map("project_id")
+  name            String
+  category        String
+  storageKey      String          @map("storage_key")
+  sha256          String?
+  confidentiality Confidentiality @default(PRIVATE)
+  downloadAllowed Boolean         @default(false) @map("download_allowed")
+  uploadedBy      String?         @map("uploaded_by")
+  uploadedAt      DateTime        @default(now()) @map("uploaded_at")
+  deletedAt       DateTime?       @map("deleted_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, category])
+  @@map("project_documents")
+}
+
+/// COOP-10 — offre groupée bâtie sur la disponibilité déclarée des membres.
+/// La répartition est stockée telle que calculée : elle est auditable et reproductible.
+enum GroupOfferStatus {
+  PROPOSED
+  CONFIRMED
+  CANCELLED
+}
+
+model GroupOffer {
+  id            String           @id
+  cooperativeId String           @map("cooperative_id")
+  cropId        String           @map("crop_id")
+  title         String
+  quantity      Float
+  unit          String
+  quality       String?
+  pricePerUnit  Float?           @map("price_per_unit")
+  currency      String           @default("USD")
+  countryCode   String           @map("country_code") @db.Char(2)
+  status        GroupOfferStatus @default(PROPOSED)
+  /// [{ memberOrganizationId, memberName, quantity, share, productionIds[], consentRecordedAt }]
+  split         Json
+  basis         Json
+  listingId     String?          @map("listing_id")
+  createdBy     String?          @map("created_by")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+
+  @@index([cooperativeId, status])
+  @@map("group_offers")
+}
+
+/// INV-02 — suivi de projet par un investisseur (choix explicite, révocable)
+model ProjectFollow {
+  id             String   @id
+  projectId      String   @map("project_id")
+  userId         String   @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@map("project_follows")
+}
+
+/// PRJ-04 / INV-03 — demande de mise en relation, consentement des deux parties
+enum ContactRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model ProjectContactRequest {
+  id              String               @id
+  projectId       String               @map("project_id")
+  requesterUserId String               @map("requester_user_id") @db.Uuid
+  requesterOrgId  String?              @map("requester_org_id")
+  message         String
+  status          ContactRequestStatus @default(PENDING)
+  decidedBy       String?              @map("decided_by")
+  decidedAt       DateTime?            @map("decided_at")
+  expiresAt       DateTime             @map("expires_at")
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  @@unique([projectId, requesterUserId])
+  @@index([status, expiresAt])
+  @@map("project_contact_requests")
+}
+
+model InvestorProfile {
+  id             String    @id
+  userId         String    @unique @map("user_id")
+  organizationId String?   @map("organization_id")
+  displayName    String    @map("display_name")
+  sectors        String[]
+  countries      String[]
+  ticketMin      Float?    @map("ticket_min")
+  ticketMax      Float?    @map("ticket_max")
+  currency       String    @default("USD")
+  preferences    Json?
+  mfaEnabled     Boolean   @default(false) @map("mfa_enabled")
+  verifiedAt     DateTime? @map("verified_at")
+  verifiedBy     String?   @map("verified_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([verifiedAt])
+  @@map("investor_profiles")
+}
+
+/// Demande d'accès : la data room est FERMÉE par défaut (DR-01)
+model DataRoomAccessRequest {
+  id            String                @id
+  projectId     String                @map("project_id")
+  granteeUserId String                @map("grantee_user_id")
+  granteeOrgId  String?               @map("grantee_org_id")
+  scope         Json
+  status        DataRoomRequestStatus @default(PENDING)
+  conditions    String?
+  decidedBy     String?               @map("decided_by")
+  decidedAt     DateTime?             @map("decided_at")
+  expiresAt     DateTime?             @map("expires_at")
+  createdAt     DateTime              @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@index([granteeUserId, status])
+  @@map("data_room_access_requests")
+}
+
+/// Journal append-only des consultations (DR-01)
+model DataRoomAccessLog {
+  id         String   @id @default(cuid())
+  projectId  String   @map("project_id")
+  documentId String?  @map("document_id")
+  userId     String   @map("user_id")
+  action     String
+  ip         String?
+  device     String?
+  at         DateTime @default(now())
+
+  @@index([projectId, at])
+  @@index([userId, at])
+  @@map("data_room_access_logs")
+}
+
+model DueDiligenceItem {
+  id                   String             @id
+  projectId            String             @map("project_id")
+  category             String
+  label                String
+  status               DueDiligenceStatus @default(NOT_STARTED)
+  evidence             String[]
+  professionalName     String?            @map("professional_name")
+  professionalCapacity String?            @map("professional_capacity")
+  scope                String?
+  comment              String?
+  reviewedAt           DateTime?          @map("reviewed_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, category])
+  @@map("due_diligence_items")
+}
+
+model ProgressReport {
+  id          String   @id
+  projectId   String   @map("project_id")
+  period      String
+  production  Json?
+  progress    String?
+  expenses    Json?
+  photos      String[]
+  publishedAt DateTime @default(now()) @map("published_at")
+  createdBy   String?  @map("created_by")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, publishedAt])
+  @@map("progress_reports")
+}
+
+model ImpactReport {
+  id          String   @id
+  projectId   String   @map("project_id")
+  period      String
+  indicators  Json
+  source      Source   @default(declared)
+  publishedAt DateTime @default(now()) @map("published_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, publishedAt])
+  @@map("impact_reports")
+}
+
+model FundingRequest {
+  id              String               @id
+  projectId       String               @map("project_id")
+  partnerOrgId    String?              @map("partner_org_id")
+  partnerName     String?              @map("partner_name")
+  consentId       String               @map("consent_id")
+  consentAt       DateTime             @map("consent_at")
+  contentSnapshot Json?                @map("content_snapshot")
+  status          FundingRequestStatus @default(DRAFT)
+  transmittedAt   DateTime?            @map("transmitted_at")
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, status])
+  @@map("funding_requests")
+}
+
+model ManagementZone {
+  id             String   @id
+  plotId         String   @map("plot_id")
+  organizationId String   @map("organization_id")
+  methodVersion  String   @map("method_version")
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode @default(REAL)
+  computedAt     DateTime @default(now()) @map("computed_at")
+  sources        Json
+  zones          Json
+
+  @@index([plotId, computedAt])
+  @@map("management_zones")
+}
+
+model PrecisionReport {
+  id             String    @id
+  plotId         String    @map("plot_id")
+  organizationId String    @map("organization_id")
+  generatedAt    DateTime  @default(now()) @map("generated_at")
+  pdfKey         String?   @map("pdf_key")
+  ruleSetVersion String?   @map("rule_set_version")
+  methodVersion  String?   @map("method_version")
+  validatedBy    String?   @map("validated_by")
+  validatedAt    DateTime? @map("validated_at")
+
+  @@index([plotId, generatedAt])
+  @@map("precision_reports")
+}
+
+// #############################################################
+// V5 — AGRIKONNECT GLOBAL
+// Appels d'offres internationaux, export, API publique,
+// produits de données agrégés (seuil de k-anonymat).
+// #############################################################
+
+enum TenderStatus {
+  OPEN
+  CLOSED
+  AWARDED
+  CANCELLED
+}
+
+enum ExportOrderStatus {
+  DRAFT
+  CONFIRMED
+  IN_CONTROL
+  CERTIFIED
+  IN_TRANSIT
+  DELIVERED
+  CLOSED
+  CANCELLED
+}
+
+enum ApiKeyStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum DataProductStatus {
+  DRAFT
+  PUBLISHED
+  RETIRED
+}
+
+model Tender {
+  id                 String       @id
+  buyerOrgId         String       @map("buyer_org_id")
+  title              String
+  description        String?
+  cropId             String?      @map("crop_id")
+  quantity           Float
+  unit               String
+  quality            String?
+  destinationCountry String       @map("destination_country") @db.Char(2)
+  certifications     String[]
+  deadline           DateTime?
+  status             TenderStatus @default(OPEN)
+  createdBy          String?      @map("created_by")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+
+  responses TenderResponse[]
+
+  @@index([status, cropId, deadline])
+  @@map("tenders")
+}
+
+model TenderResponse {
+  id          String      @id
+  tenderId    String      @map("tender_id")
+  sellerOrgId String      @map("seller_org_id")
+  quantity    Float
+  unit        String
+  price       Float
+  currency    String      @default("USD")
+  conditions  String?
+  status      OfferStatus @default(PENDING)
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  tender Tender @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@index([tenderId, status])
+  @@map("tender_responses")
+}
+
+model ExportOrder {
+  id                    String            @id
+  reference             String            @unique
+  sellerOrgId           String            @map("seller_org_id")
+  buyerOrgId            String?           @map("buyer_org_id")
+  tenderId              String?           @map("tender_id")
+  status                ExportOrderStatus @default(DRAFT)
+  incoterm              String?
+  destinationCountry    String            @map("destination_country") @db.Char(2)
+  logisticsPartnerOrgId String?           @map("logistics_partner_org_id")
+  steps                 Json?
+  totalAmount           Float?            @map("total_amount")
+  currency              String            @default("USD")
+  fxRate                Json?             @map("fx_rate")
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+
+  documents ExportDocument[]
+
+  @@index([sellerOrgId, status])
+  @@index([destinationCountry, status])
+  @@map("export_orders")
+}
+
+model ExportDocument {
+  id            String   @id
+  exportOrderId String   @map("export_order_id")
+  type          String
+  name          String
+  storageKey    String?  @map("storage_key")
+  issuedAt      DateTime @default(now()) @map("issued_at")
+
+  exportOrder ExportOrder @relation(fields: [exportOrderId], references: [id], onDelete: Cascade)
+
+  @@index([exportOrderId, type])
+  @@map("export_documents")
+}
+
+model ApiClient {
+  id                String       @id
+  organizationId    String       @map("organization_id")
+  name              String
+  contactEmail      String?      @map("contact_email")
+  scopes            String[]
+  status            ApiKeyStatus @default(ACTIVE)
+  /// Contrat de finalité (API-03)
+  dataPurpose       String?      @map("data_purpose")
+  purposeApprovedAt DateTime?    @map("purpose_approved_at")
+  approvedBy        String?      @map("approved_by")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  keys ApiKey[]
+
+  @@index([status])
+  @@map("api_clients")
+}
+
+model ApiKey {
+  id         String       @id
+  clientId   String       @map("client_id")
+  label      String
+  prefix     String
+  keyHash    String       @map("key_hash")
+  status     ApiKeyStatus @default(ACTIVE)
+  lastUsedAt DateTime?    @map("last_used_at")
+  revokedAt  DateTime?    @map("revoked_at")
+  expiresAt  DateTime?    @map("expires_at")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  client ApiClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([prefix])
+  @@index([clientId, status])
+  @@map("api_keys")
+}
+
+model ApiUsage {
+  id       String   @id
+  clientId String   @map("client_id")
+  keyId    String?  @map("key_id")
+  route    String
+  status   Int
+  at       DateTime @default(now())
+
+  @@index([clientId, at])
+  @@map("api_usage")
+}
+
+// ─────── SOIL & CROP INTELLIGENCE — S2 / S3 (V2 §6, V3 §6) ───────
+
+enum RuleSetStatus {
+  draft
+  validated
+  retired
+}
+
+enum SuitabilityLevel {
+  HIGH
+  MEDIUM
+  LOW
+  INSUFFICIENTLY_DOCUMENTED
+}
+
+enum RotationPlanStatus {
+  PROPOSED
+  ACCEPTED
+  REJECTED
+}
+
+/// SOIL-04 — bibliothèque de règles agronomiques versionnée et validée
+model AgronomicRuleSet {
+  id          String        @id
+  version     String
+  zone        String
+  countryCode String        @map("country_code") @db.Char(2)
+  cropSlug    String?       @map("crop_slug")
+  status      RuleSetStatus @default(draft)
+  rules       Json
+  validatedBy String[]      @map("validated_by")
+  validatedAt DateTime?     @map("validated_at")
+  notes       String?
+  createdBy   String?       @map("created_by")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@unique([version, zone, cropSlug])
+  @@index([status, countryCode, zone])
+  @@map("agronomic_rule_sets")
+}
+
+/// S2 §6.4 — activation progressive des recommandations par zone / culture.
+/// Désactivée par défaut : aucune recommandation hors zone validée.
+model ZoneFeatureFlag {
+  id         String   @id
+  key        String
+  scope      String
+  scopeValue String   @map("scope_value")
+  enabled    Boolean  @default(false)
+  reason     String?
+  updatedBy  String?  @map("updated_by")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([key, scope, scopeValue])
+  @@index([key, enabled])
+  @@map("zone_feature_flags")
+}
+
+/// SOIL-05 — compatibilité culture/parcelle (traçable, reproductible)
+model CropSuitability {
+  id             String           @id
+  organizationId String           @map("organization_id")
+  plotId         String           @map("plot_id")
+  cropId         String           @map("crop_id")
+  ruleSetVersion String           @map("rule_set_version")
+  level          SuitabilityLevel
+  reasons        Json
+  usedData       Json             @map("used_data")
+  missingData    Json             @map("missing_data")
+  confidence     Confidence       @default(low)
+  disclaimer     String
+  generatedAt    DateTime         @default(now()) @map("generated_at")
+
+  @@index([plotId, cropId, generatedAt])
+  @@index([organizationId, generatedAt])
+  @@map("crop_suitabilities")
+}
+
+/// SOIL-06 — rotation pluriannuelle proposée
+model RotationPlan {
+  id             String             @id
+  organizationId String             @map("organization_id")
+  plotId         String             @map("plot_id")
+  horizonYears   Int                @map("horizon_years")
+  ruleSetVersion String             @map("rule_set_version")
+  steps          Json
+  alternatives   Json?
+  status         RotationPlanStatus @default(PROPOSED)
+  disclaimer     String?
+  createdBy      String?            @map("created_by")
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  @@index([plotId, createdAt])
+  @@map("rotation_plans")
+}
+
+/// SOIL-07 — plan agricole pluriannuel (calendrier + points de contrôle)
+model FarmingPlan {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  plotId         String   @map("plot_id")
+  rotationPlanId String?  @map("rotation_plan_id")
+  horizonYears   Int      @map("horizon_years")
+  calendar       Json
+  checkpoints    Json
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([plotId, createdAt])
+  @@map("farming_plans")
+}
+
+/// SOIL-14 — estimation de rendement en fourchette (jamais un chiffre garanti)
+model YieldEstimate {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  plotId         String   @map("plot_id")
+  cropId         String   @map("crop_id")
+  lowKg          Float    @map("low_kg")
+  highKg         Float    @map("high_kg")
+  pointKg        Float    @map("point_kg")
+  uncertaintyPct Float    @map("uncertainty_pct")
+  assumptions    Json
+  sources        Json
+  method         String
+  ruleSetVersion String?  @map("rule_set_version")
+  disclaimer     String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([plotId, createdAt])
+  @@map("yield_estimates")
+}
+
+// ─────── CANAUX COMPLÉMENTAIRES — USSD / WHATSAPP (V3 §5.5) ───────
+
+enum ChannelType {
+  USSD
+  WHATSAPP
+}
+
+model ChannelSession {
+  id             String      @id
+  channel        ChannelType
+  phone          String
+  state          String?
+  menu           String?
+  profileId      String?     @map("profile_id") @db.Uuid
+  organizationId String?     @map("organization_id")
+  lastAt         DateTime    @default(now()) @map("last_at")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  @@index([channel, phone])
+  @@map("channel_sessions")
+}
+
+model ChannelMessage {
+  id         String      @id
+  channel    ChannelType
+  direction  String
+  phone      String
+  body       String?
+  payload    Json?
+  providerId String?     @map("provider_id")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@index([channel, phone, createdAt])
+  @@map("channel_messages")
+}
+
+// ─────── AUTHENTIFICATION RENFORCÉE — MFA TOTP (V4 NFR-01) ───────
+
+model MfaSecret {
+  id                String    @id
+  userId            String    @unique @map("user_id") @db.Uuid
+  secretHash        String    @map("secret_hash")
+  method            String    @default("TOTP")
+  confirmedAt       DateTime? @map("confirmed_at")
+  lastUsedAt        DateTime? @map("last_used_at")
+  backupCodesHashes String[]  @default([]) @map("backup_codes_hashes")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  @@map("mfa_secrets")
+}
+
+/// GLB-03 — Taux de change datés et sourcés (aucune conversion sans source)
+model FxRate {
+  id          String   @id
+  base        String   @db.Char(3)
+  quote       String   @db.Char(3)
+  rate        Float
+  /// Date de la cotation (jamais la date de saisie)
+  asOf        DateTime @map("as_of")
+  source      String
+  sourceLabel String?  @map("source_label")
+  createdBy   String?  @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([base, quote, asOf])
+  @@index([base, quote, asOf])
+  @@map("fx_rates")
+}
+
+model DataProduct {
+  id           String            @id
+  slug         String            @unique
+  name         String
+  description  String?
+  /// Seuil minimal d'agrégation (k-anonymat) — CDC V5 §6.4
+  minGroupSize Int               @default(10) @map("min_group_size")
+  fields       Json
+  status       DataProductStatus @default(DRAFT)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  aggregates Aggregate[]
+
+  @@index([status])
+  @@map("data_products")
+}
+
+model DataContract {
+  id           String    @id
+  clientId     String    @map("client_id")
+  productId    String    @map("product_id")
+  purposes     String[]
+  restrictions String?
+  signedAt     DateTime  @default(now()) @map("signed_at")
+  expiresAt    DateTime? @map("expires_at")
+
+  @@index([clientId, productId])
+  @@map("data_contracts")
+}
+
+/// Agrégats versionnés : méthode, couverture, part déclarée/mesurée
+model Aggregate {
+  id          String   @id
+  productId   String   @map("product_id")
+  key         String
+  period      String
+  value       Json
+  /// Part de données déclarées vs mesurées vs estimées
+  composition Json
+  groupCount  Int      @map("group_count")
+  ruleVersion String   @map("rule_version")
+  computedAt  DateTime @default(now()) @map("computed_at")
+
+  product DataProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, key, period, ruleVersion])
+  @@index([productId, period])
+  @@map("aggregates")
+}
+
+/// Diagnostic de sol produit par le moteur géospatial Python (geoai/).
+/// `inputs` ne contient jamais les matrices de pixels : seulement la requête
+/// (identifiants, sources utilisées, paramètres) pour rester auditable.
+model SoilDiagnostic {
+  id              String    @id
+  organizationId  String    @map("organization_id")
+  plotId          String    @map("plot_id")
+  countryCode     String?   @map("country_code") @db.Char(2)
+  engine          String
+  engineVersion   String    @map("engine_version")
+  methodVersion   String    @map("method_version")
+  inputs          Json
+  result          Json
+  confidence      Float?
+  confidenceLevel String?   @map("confidence_level")
+  sourcesUsed     String[]  @default([]) @map("sources_used")
+  source          Source    @default(derived)
+  createdBy       String?   @map("created_by")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot         Plot         @relation(fields: [plotId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, plotId])
+  @@index([plotId, createdAt])
+  @@map("soil_diagnostics")
+}
+
+// #############################################################
+// GÉOSPATIAL DÉCISIONNEL — recommandation culturale, surveillance,
+// IA (interpolation, prévision, anomalies, GPR, zones de gestion).
+//
+// Conventions identiques au reste du schéma : id ULID, organizationId,
+// source, createdBy, deletedAt (soft delete), version.
+//
+// Règle CDC non négociable : **un satellite ne mesure pas le sous-sol**.
+// La confiance d'une mesure est donc portée par `SensorReading.confidence`
+// et `Source` distingue explicitement sonde, laboratoire, GPR, drone,
+// satellite et déclaratif. Aucune valeur n'est inventée : quand les données
+// manquent, `CropRecommendation.status` reste INSUFFICIENT_DATA plutôt que
+// de produire un classement.
+// #############################################################
+
+enum RecommendationStatus {
+  /// En cours de validité sur sa période.
+  ACTIVE
+  /// Remplacée par une nouvelle proposition **acceptée** par l'agriculteur.
+  SUPERSEDED
+  /// Nouvelle proposition refusée par l'agriculteur.
+  REJECTED
+  /// Période écoulée.
+  COMPLETED
+  /// Données insuffisantes : aucun classement produit (jamais de recommandation devinée).
+  INSUFFICIENT_DATA
+  /// Proposition de remplacement produite par le job d'alertes, en attente de
+  /// décision. L'ancienne recommandation reste `ACTIVE` tant que celle-ci n'est
+  /// pas acceptée : l'agriculteur ne perd jamais sa référence en cours de route.
+  PENDING
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum AlertStatus {
+  NEW
+  READ
+  HANDLED
+}
+
+enum AnomalyReason {
+  /// Valeur hors plage physique du paramètre.
+  OUT_OF_RANGE
+  /// Saut temporellement impossible.
+  IMPOSSIBLE_JUMP
+  /// Valeur figée (capteur bloqué).
+  FROZEN_VALUE
+  /// Écart statistique (MAD / Isolation Forest).
+  STATISTICAL_OUTLIER
+  /// Capteur silencieux : aucun signal depuis le délai configuré.
+  SILENT
+}
+
+enum AnomalyStatus {
+  NEW
+  CONFIRMED
+  DISMISSED
+}
+
+enum ModelKind {
+  INTERPOLATION
+  FORECAST
+  ANOMALY
+  ZONES
+  GPR
+  RECOMMENDATION
+}
+
+enum ModelStatus {
+  TESTING
+  PRODUCTION
+  RETIRED
+}
+
+enum ImportKind {
+  GPR
+  DRONE_IMAGE
+  SATELLITE
+  LAB_FILE
+}
+
+enum ImportStatus {
+  RECEIVED
+  PROCESSING
+  COMPLETED
+  ERROR
+}
+
+/// Origine d'une valeur géospatiale. `SIMULATED` est refusé à l'écriture en
+/// production (voir `src/shared/dataMode.js`) : une valeur générée ne doit
+/// jamais pouvoir passer pour une mesure d'équipement réel.
+enum DataMode {
+  /// Mesure d'un équipement physique réellement connecté.
+  REAL
+  /// Équipement enregistré mais pas encore en service : aucune mesure produite.
+  CONFIGURATION
+  /// Valeur générée en l'absence de matériel. Toujours étiquetée comme telle.
+  SIMULATED
+}
+
+/// Recommandation culturale pour une période demandée (CDC §5, §7).
+/// Le score est **explicable** : `scores` conserve la décomposition par critère.
+model CropRecommendation {
+  id             String               @id
+  organizationId String               @map("organization_id")
+  plotId         String               @map("plot_id")
+  periodStart    DateTime             @map("period_start")
+  periodEnd      DateTime             @map("period_end")
+  requestedDays  Int                  @map("requested_days")
+  status         RecommendationStatus @default(ACTIVE)
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode             @default(REAL)
+
+  /// Liste de cultures classées : [{ cropId, score, breakdown, eliminated, reason }].
+  scores                Json
+  /// Mesures ayant servi de référence, avec leur source et leur confiance.
+  referenceMeasurements Json  @map("reference_measurements")
+  /// Seuils de surveillance dérivés de la recommandation (CDC §8).
+  thresholds            Json
+  /// Décomposition règles / modèle appris, visible par l'agriculteur.
+  decomposition         Json?
+  /// Explication en langage naturel + les nombres qui la justifient.
+  explanation           Json?
+
+  ruleSetVersion      String?  @map("rule_set_version")
+  modelVersionId      String?  @map("model_version_id")
+  confidence          Float?
+  /// Sources sur lesquelles s'appuie la recommandation (toujours affichées).
+  sources             String[] @default([])
+  /// Motif explicite quand les données sont insuffisantes.
+  insufficiencyReason String?  @map("insufficiency_reason")
+
+  createdBy String?   @map("created_by")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  version   Int       @default(1)
+
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot           Plot             @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  modelVersion   AiModelVersion?  @relation(fields: [modelVersionId], references: [id])
+  /// Alertes déclenchées par les seuils de cette recommandation.
+  alerts         ThresholdAlert[] @relation("AlertRecommendation")
+  /// Alertes pour lesquelles cette recommandation est la proposition de remplacement.
+  replacesAlerts ThresholdAlert[] @relation("AlertReplacement")
+  seasonFeedback SeasonFeedback[]
+
+  @@index([organizationId, plotId, status])
+  @@index([plotId, periodEnd])
+  @@map("crop_recommendations")
+}
+
+/// Origine d'une alerte : ce qui a déclenché la comparaison au seuil.
+enum AlertSourceType {
+  /// Une mesure réelle (sonde, analyse) est sortie de la plage.
+  MEASUREMENT
+  /// Une **prévision** annonce un franchissement à venir : alerte préventive.
+  FORECAST
+  /// Un capteur n'a rien transmis depuis le seuil de silence (supervision).
+  SENSOR_SILENCE
+}
+
+/// Alerte de franchissement de seuil (CDC §8).
+///
+/// `episodeKey` garantit **une alerte par paramètre et par épisode** : la clé
+/// est unique par organisation, donc un second franchissement du même paramètre
+/// sur la même recommandation met à jour l'alerte existante au lieu d'en créer
+/// une nouvelle. La re-notification, elle, est espacée dans le temps
+/// (`lastNotifiedAt` + délai) : l'agriculteur n'est pas submergé de SMS.
+model ThresholdAlert {
+  id                          String          @id
+  organizationId              String          @map("organization_id")
+  /// Nullable : un capteur silencieux peut ne pas encore être rattaché à une parcelle.
+  plotId                      String?         @map("plot_id")
+  recommendationId            String?         @map("recommendation_id")
+  /// Grandeur surveillée. Pour un capteur silencieux : `sensorSilence`, dont la
+  /// « valeur de référence » est le seuil de silence et la valeur observée le
+  /// nombre d'heures depuis la dernière remontée.
+  parameter                   String
+  sourceType                  AlertSourceType @default(MEASUREMENT) @map("source_type")
+  referenceValue              Float           @map("reference_value")
+  observedValue               Float?          @map("observed_value")
+  deviation                   Float?
+  severity                    AlertSeverity   @default(WARNING)
+  status                      AlertStatus     @default(NEW)
+  /// Clé de dédoublonnage : paramètre + épisode (ex. `ph:rec_01HXYZ`).
+  episodeKey                  String          @map("episode_key")
+  channelsSent                String[]        @default([]) @map("channels_sent")
+  /// Première notification de l'épisode.
+  notifiedAt                  DateTime?       @map("notified_at")
+  /// Dernière notification : base du délai avant re-notification.
+  lastNotifiedAt              DateTime?       @map("last_notified_at")
+  /// Escalade à deux niveaux.
+  ///
+  /// Niveau 1 : l'exploitant de la parcelle, notifié au déclenchement. Niveau 2,
+  /// après `ALERT_ESCALATION_DELAY_MINUTES` sans traitement : le rôle
+  /// d'encadrement (`ALERT_ESCALATION_ROLES`).
+  ///
+  /// `escalatedAt` est la marque d'idempotence : sans elle, chaque passage de la
+  /// tâche relancerait le niveau 2 indéfiniment. `escalationLevel` reste dans la
+  /// base plutôt que d'être déduit, pour qu'un audit puisse dire quel niveau a
+  /// été atteint sans rejouer l'historique.
+  escalationLevel             Int             @default(1) @map("escalation_level")
+  escalatedAt                 DateTime?       @map("escalated_at")
+  notificationCount           Int             @default(0) @map("notification_count")
+  /// Date de la mesure ou de la prévision qui a déclenché l'alerte.
+  observedAt                  DateTime?       @map("observed_at")
+  /// Alerte **préventive** issue d'une prévision : date estimée de franchissement.
+  predictedBreachAt           DateTime?       @map("predicted_breach_at")
+  predictive                  Boolean         @default(false)
+  confidence                  Float?
+  /// Capteur concerné, pour les alertes de silence.
+  deviceId                    String?         @map("device_id")
+  /// Proposition de remplacement générée pour la période restante (`PENDING`).
+  replacementRecommendationId String?         @map("replacement_recommendation_id")
+  message                     String?
+  createdAt                   DateTime        @default(now()) @map("created_at")
+  updatedAt                   DateTime        @updatedAt @map("updated_at")
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot           Plot?               @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  device         IotDevice?          @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  recommendation CropRecommendation? @relation("AlertRecommendation", fields: [recommendationId], references: [id], onDelete: SetNull)
+  replacement    CropRecommendation? @relation("AlertReplacement", fields: [replacementRecommendationId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, episodeKey])
+  @@index([organizationId, status])
+  @@index([plotId, createdAt])
+  @@index([organizationId, sourceType, status])
+  /// La tâche d'escalade filtre sur (organisation, niveau, statut) : sans cet
+  /// index, chaque passage balayerait toutes les alertes de l'organisation.
+  /// Déclaré ici pour rester aligné avec la migration
+  /// `20261028000003_alert_escalation`, qui le crée déjà.
+  /// Le nom explicite doit rester celui de la migration
+  /// `20261028000003_alert_escalation` : sans `map:`, Prisma calcule un nom par
+  /// défaut différent et signale une dérive en permanence.
+  @@index([organizationId, escalationLevel, status], map: "threshold_alerts_org_level_status_idx")
+  @@map("threshold_alerts")
+}
+
+/// Prévision d'un paramètre du sol avec intervalle de confiance (CDC §16).
+/// `baselineMae` conserve la persistance de la dernière valeur : la prévision
+/// n'est exploitable que si elle fait mieux (CDC phase 7).
+model SoilPrediction {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  plotId         String   @map("plot_id")
+  parameter      String
+  depthCm        Float?   @map("depth_cm")
+  horizonDays    Int      @map("horizon_days")
+  /// [{ at, value, low, high }]
+  values         Json
+  mae            Float?
+  rmse           Float?
+  /// Référence à battre : persistance de la dernière valeur.
+  baselineMae    Float?   @map("baseline_mae")
+  beatsBaseline  Boolean? @map("beats_baseline")
+  modelVersionId String?  @map("model_version_id")
+  computedAt     DateTime @default(now()) @map("computed_at")
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode @default(REAL)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot         Plot            @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  modelVersion AiModelVersion? @relation(fields: [modelVersionId], references: [id])
+
+  @@index([plotId, parameter, computedAt])
+  @@index([organizationId, computedAt])
+  @@map("soil_predictions")
+}
+
+/// Carte interpolée + carte d'incertitude (CDC §16, phase 6).
+/// Refusée en amont si moins de 3 sondes : `sondesUsed` le prouve.
+model InterpolatedMap {
+  id             String   @id
+  organizationId String   @map("organization_id")
+  plotId         String   @map("plot_id")
+  parameter      String
+  depthCm        Float?   @map("depth_cm")
+  method         String
+  gridSize       Int      @map("grid_size")
+  values         Json
+  uncertainty    Json
+  sondesUsed     Int      @map("sondes_used")
+  /// Erreur mesurée en laissant une sonde de côté à tour de rôle.
+  leaveOneOutMae Float?   @map("leave_one_out_mae")
+  /// Sondes dont la mesure s'écarte de la prédiction de leurs voisines,
+  /// **chacune avec son motif chiffré** (CDC phase 6) : résidu, incertitude
+  /// locale, seuil appliqué. Une aberration sans motif n'est pas vérifiable.
+  outliers       Json?
+  /// Diagnostic du calcul : sondes utilisées et rejetées (avec motif), points
+  /// confondus moyennés, variogramme ajusté, sources. Sert de socle à
+  /// l'explication : tout nombre cité doit provenir d'ici ou de `values`.
+  diagnostics    Json?
+  modelVersionId String?  @map("model_version_id")
+  computedAt     DateTime @default(now()) @map("computed_at")
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode @default(REAL)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot         Plot            @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  modelVersion AiModelVersion? @relation(fields: [modelVersionId], references: [id])
+
+  @@index([plotId, parameter, computedAt])
+  @@map("interpolated_maps")
+}
+
+/// Anomalie de capteur avec son **motif** (CDC §16).
+/// Distingue un vrai changement du sol d'une panne, pour éviter les fausses alertes.
+model SensorAnomaly {
+  id             String        @id
+  organizationId String        @map("organization_id")
+  deviceId       String        @map("device_id")
+  readingId      String?       @map("reading_id")
+  reason         AnomalyReason
+  severity       AlertSeverity @default(WARNING)
+  status         AnomalyStatus @default(NEW)
+  details        Json
+  /// Clé de dédoublonnage par épisode, comme pour `ThresholdAlert` : une mesure
+  /// ne porte qu'une anomalie, et relancer la détection ne crée pas de doublon.
+  /// Préfixée par le motif (`sensorAnomaly:<readingId>`).
+  episodeKey     String        @map("episode_key")
+  detectedAt     DateTime      @default(now()) @map("detected_at")
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode      @default(REAL)
+  reviewedBy     String?       @map("reviewed_by")
+  reviewedAt     DateTime?     @map("reviewed_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  device       IotDevice      @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  reading      SensorReading? @relation(fields: [readingId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, episodeKey])
+  @@index([deviceId, detectedAt])
+  @@index([organizationId, status])
+  @@map("sensor_anomalies")
+}
+
+/// Rendement réel saisi en fin de saison (CDC §5, §16).
+/// C'est la donnée d'entraînement de la recommandation apprise : sans elle,
+/// la phase 7 attend une à deux saisons.
+model SeasonFeedback {
+  id               String    @id
+  organizationId   String    @map("organization_id")
+  plotId           String    @map("plot_id")
+  cropId           String    @map("crop_id")
+  recommendationId String?   @map("recommendation_id")
+  season           String
+  year             Int
+  periodStart      DateTime  @map("period_start")
+  periodEnd        DateTime  @map("period_end")
+  actualYieldKg    Float     @map("actual_yield_kg")
+  areaHa           Float?    @map("area_ha")
+  unit             String?
+  observations     String?
+  source           Source    @default(declared)
+  createdBy        String?   @map("created_by")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+  version          Int       @default(1)
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot           Plot                @relation(fields: [plotId], references: [id], onDelete: Cascade)
+  crop           Crop                @relation(fields: [cropId], references: [id])
+  recommendation CropRecommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+
+  @@index([plotId, year, season])
+  @@index([organizationId, cropId])
+  @@map("season_feedback")
+}
+
+/// Registre des modèles d'IA (CDC §5, §16).
+/// Un modèle n'est promu en PRODUCTION que s'il bat le moteur à règles :
+/// `metrics` et `baselineMetrics` sont conservés côte à côte pour le prouver.
+model AiModelVersion {
+  id                 String      @id
+  organizationId     String?     @map("organization_id")
+  name               String
+  kind               ModelKind
+  version            String
+  trainedAt          DateTime?   @map("trained_at")
+  datasetDescription String      @map("dataset_description")
+  metrics            Json
+  /// Métriques du moteur à règles sur le même découpage : la comparaison est la
+  /// condition de promotion (jamais de promotion sans preuve).
+  baselineMetrics    Json?       @map("baseline_metrics")
+  beatsBaseline      Boolean?    @map("beats_baseline")
+  status             ModelStatus @default(TESTING)
+  artifactKey        String?     @map("artifact_key")
+  trainedBy          String?     @map("trained_by")
+  promotedBy         String?     @map("promoted_by")
+  promotedAt         DateTime?   @map("promoted_at")
+  createdAt          DateTime    @default(now()) @map("created_at")
+  updatedAt          DateTime    @updatedAt @map("updated_at")
+
+  organization     Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recommendations  CropRecommendation[]
+  predictions      SoilPrediction[]
+  interpolatedMaps InterpolatedMap[]
+
+  @@unique([name, version])
+  @@index([kind, status])
+  @@map("ai_model_versions")
+}
+
+/// Fichier importé (GPR SEG-Y, image drone) traité **hors requête HTTP** (CDC §11).
+model GeospatialImport {
+  id             String       @id
+  organizationId String       @map("organization_id")
+  plotId         String?      @map("plot_id")
+  deviceId       String?      @map("device_id")
+  kind           ImportKind
+  format         String
+  /// Nom d'origine **assaini** (`src/shared/fileMagic.js#assainirNom`). Ne sert
+  /// qu'à l'affichage : la clé de stockage est construite côté serveur et ne
+  /// contient jamais ce nom.
+  filename       String?
+  storageKey     String       @map("storage_key")
+  sizeBytes      Int          @map("size_bytes")
+  /// SHA-256 calculé à la réception, avant stockage. Sert au refus de doublon.
+  checksum       String?
+  status         ImportStatus @default(RECEIVED)
+  /// Voir `src/shared/dataMode.js` : `SIMULATED` est refusé à l'écriture en production.
+  mode           DataMode     @default(REAL)
+  errorMessage   String?      @map("error_message")
+  result         Json?
+  startedAt      DateTime?    @map("started_at")
+  completedAt    DateTime?    @map("completed_at")
+  createdBy      String?      @map("created_by")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plot         Plot?        @relation(fields: [plotId], references: [id], onDelete: SetNull)
+
+  /// Refus de doublon exact **au niveau de la base**, pas seulement dans le
+  /// service : deux dépôts identiques arrivant en même temps passeraient tous
+  /// deux le contrôle applicatif. Portée à l'organisation — le même relevé
+  /// déposé par deux organisations distinctes reste légitime.
+  @@unique([organizationId, checksum])
+  @@index([organizationId, status])
+  @@index([plotId, createdAt])
+  @@map("geospatial_imports")
+}
+
+// #############################################################
+// RÉFÉRENTIEL AGRONOMIQUE — plages par culture et par paramètre.
+//
+// Ce référentiel vit en base, pas dans le code : un agronome doit pouvoir le
+// renseigner, le corriger et le valider sans redéploiement. Chaque plage porte
+// son statut, sa source et, une fois validée, qui l'a validée et quand.
+//
+// Règle : une plage sans source fiable n'est pas créée. Le moteur traite alors
+// le critère comme « non évalué » plutôt que de s'appuyer sur une estimation.
+// #############################################################
+
+enum RangeStatus {
+  /// Valeur issue d'une référence générique ou d'un import : non validée
+  /// localement. Les recommandations qui s'en servent sont « indicatives ».
+  PROVISIONAL
+  /// Validée par un agronome : `validatedBy` et `validatedAt` sont renseignés.
+  VALIDATED
+  /// Retirée du référentiel actif, conservée pour l'historique.
+  RETIRED
+}
+
+/// Nature de la provenance d'une plage.
+///
+/// Trois valeurs seulement, toutes humaines ou expérimentales : une plage issue
+/// d'un agronome, d'une publication, ou mesurée sur le pilote. Un type non
+/// déclaré reste `null` plutôt que de recevoir une valeur par défaut inventée.
+enum RangeSourceType {
+  /// Fourchette établie par un agronome.
+  AGRONOMIST
+  /// Fourchette issue d'une publication citable.
+  PUBLICATION
+  /// Fourchette mesurée sur le pilote.
+  PILOT
+}
+
+model CropAgronomicRange {
+  id             String  @id
+  /// `null` = référentiel plateforme. Renseigné = référentiel propre à une
+  /// organisation (une coopérative peut avoir ses propres plages validées).
+  organizationId String? @map("organization_id")
+
+  cropSlug       String  @map("crop_slug")
+  /// Nom scientifique de la culture, tel qu'il figure au tableau de référence.
+  /// Facultatif : le moteur apparie sur `cropSlug`, jamais sur ce champ.
+  scientificName String? @map("scientific_name")
+  /// Clé de paramètre alignée sur `SoilParameter.key` / `SensorReading.metric`
+  /// (voir `RANGE_KEYS` dans `src/modules/recommendation/agronomicRanges.js`).
+  parameterKey   String  @map("parameter_key")
+  minValue       Float   @map("min_value")
+  maxValue       Float   @map("max_value")
+  /// Borne basse de la plage **tolérée**, plus large que la plage idéale.
+  /// `null` = non renseignée : le moteur retombe alors sur un verdict binaire
+  /// (dans la plage idéale ou non), sans inventer de limite.
+  toleratedMin   Float?  @map("tolerated_min")
+  /// Borne haute de la plage tolérée. Même règle que `toleratedMin`.
+  toleratedMax   Float?  @map("tolerated_max")
+  unit           String
+
+  status RangeStatus @default(PROVISIONAL)
+
+  /// Référence citable de la fourchette. `null` quand aucune source fiable
+  /// n'existe : dans ce cas la plage ne doit pas être créée.
+  sourceReference String?          @map("source_reference")
+  /// Nature de la provenance. `null` = non déclarée : aucune valeur par défaut
+  /// n'est attribuée, ce serait une invention.
+  sourceType      RangeSourceType? @map("source_type")
+  /// Précision obligatoire selon le paramètre. Pour une température issue d'un
+  /// référentiel générique, il s'agit de la température de l'AIR, pas de celle
+  /// du sol : le texte doit le dire, sinon la valeur est mal interprétée.
+  sourceNote      String?          @map("source_note")
+  /// Zone concernée par la fourchette (province, bassin, type de sol…).
+  /// `null` = fourchette non circonscrite.
+  zone            String?
+
+  /// Étiquette du lot. `production` par défaut ; les jeux de test utilisent une
+  /// autre étiquette et ne peuvent donc jamais polluer le référentiel de prod.
+  /// Le moteur ne lit que l'étiquette portée par `AGRONOMIC_DATASET`.
+  datasetLabel String @default("production") @map("dataset_label")
+
+  validatedBy String?   @map("validated_by")
+  validatedAt DateTime? @map("validated_at")
+  createdBy   String?   @map("created_by")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+  version     Int       @default(1)
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([cropSlug, parameterKey, datasetLabel, organizationId])
+  @@index([cropSlug, status])
+  @@index([datasetLabel, status])
+  @@index([organizationId, cropSlug])
+  @@map("crop_agronomic_ranges")
+}
+
+/// Consentement SMS par utilisateur et par usage.
+///
+/// **Le canal est à sens unique** (identifiant alphanumérique en RDC : le
+/// destinataire ne peut pas répondre). Un « STOP » par SMS est donc impossible
+/// et ne peut pas être le mécanisme de désinscription : celui-ci vit dans
+/// l'application, et cette table en garde la preuve horodatée.
+model SmsConsent {
+  id             String           @id
+  organizationId String           @map("organization_id")
+  userId         String           @map("user_id")
+  /// Usage couvert : `ALERT` (alertes agronomiques), `OTP` (codes), …
+  purpose        String
+  status         SmsConsentStatus @default(GRANTED)
+  /// Où et comment le consentement a été donné : `IN_APP`, `IMPORT`, …
+  /// Sans cette trace, on ne peut pas dire sur quoi repose l'envoi.
+  method         String           @default("IN_APP")
+  grantedAt      DateTime         @default(now()) @map("granted_at")
+  withdrawnAt    DateTime?        @map("withdrawn_at")
+  /// Version du texte de consentement présenté. Un texte modifié doit faire
+  /// l'objet d'un nouveau consentement, pas d'une reconduction implicite.
+  noticeVersion  String?          @map("notice_version")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, userId, purpose])
+  @@index([organizationId, status])
+  @@map("sms_consents")
+}
+
+/// Un SMS soumis à un fournisseur, avec son suivi de remise.
+///
+/// Trois raisons d'exister, toutes liées au fait que le SMS est le canal
+/// **primaire** et **payant** du déploiement :
+///  - **prouver la remise** : `ACCEPTED` par le fournisseur n'est pas « reçu » ;
+///    seul l'accusé du réseau le dit, et il arrive plus tard, par webhook ;
+///  - **tenir les garde-fous de coût** : le plafond quotidien se compte sur
+///    cette table, pas sur une estimation ;
+///  - **ne jamais perdre un échec** : un SMS non remis doit rester consultable,
+///    sinon l'alerte disparaît sans laisser de trace.
+model SmsMessage {
+  id             String  @id
+  organizationId String  @map("organization_id")
+  /// `null` quand le destinataire n'est pas un utilisateur de la plateforme.
+  userId         String? @map("user_id")
+  /// Numéro au format E.164. Donnée personnelle : non journalisée.
+  phone          String
+  /// Texte tel qu'envoyé. Conservé pour la recette de remise, pas pour l'audit.
+  body           String
+  /// Identifiant d'expéditeur utilisé (alphanumérique en RDC).
+  senderId       String  @map("sender_id")
+  /// Usage : `ALERT`, `OTP`, … Le plafond de coût s'applique par usage.
+  purpose        String  @default("ALERT")
+
+  provider          String            @default("twilio")
+  /// Identifiant du message chez le fournisseur : la clé de rapprochement du
+  /// webhook de statut. `null` tant que l'envoi n'a pas été accepté.
+  providerMessageId String?           @unique @map("provider_message_id")
+  status            SmsDeliveryStatus @default(QUEUED_LOCALLY)
+  /// Dernière valeur brute reçue du fournisseur, même non reconnue.
+  rawStatus         String?           @map("raw_status")
+  /// Segments facturés. **Un message Unicode coûte plus de segments** qu'un
+  /// message ASCII de même longueur : c'est mesuré, pas supposé.
+  segments          Int               @default(1)
+  encoding          String?
+  characterCount    Int?              @map("character_count")
+  /// Identifiant du lot : regroupe les SMS d'une même exécution du job d'alertes.
+  batchId           String?           @map("batch_id")
+  /// Alerte à l'origine de l'envoi, le cas échéant.
+  alertId           String?           @map("alert_id")
+
+  /// Consentement sur lequel l'envoi s'est appuyé, recopié au moment de l'envoi.
+  consentSnapshot Json?     @map("consent_snapshot")
+  errorCode       String?   @map("error_code")
+  errorMessage    String?   @map("error_message")
+  /// Historique des statuts reçus : `{ status, rawStatus, at, source }[]`.
+  statusHistory   Json?     @map("status_history")
+  sentAt          DateTime? @map("sent_at")
+  /// Dernier accusé reçu. Sert au délai de renotification.
+  lastStatusAt    DateTime? @map("last_status_at")
+
+  /// `SIMULATED` en test : un faux fournisseur ne doit pas être confondu avec
+  /// une remise réelle. Voir `src/shared/dataMode.js`.
+  mode      DataMode  @default(REAL)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  version   Int       @default(1)
+
+  @@index([organizationId, userId, purpose, createdAt])
+  @@index([organizationId, batchId])
+  @@index([organizationId, status])
+  @@map("sms_messages")
+}
+
+/// Journal d'exécution d'un lot d'alertes SMS.
+///
+/// Le coût est la contrainte qui a fait choisir le SMS comme canal primaire :
+/// il doit donc être **compté**, pas estimé. Une ligne par exécution du job,
+/// avec ce qui a été envoyé et ce qui a été retenu — et pourquoi.
+model SmsBatchLog {
+  id              String    @id
+  organizationId  String    @map("organization_id")
+  batchId         String    @unique @map("batch_id")
+  /// Destinataires candidats avant tout garde-fou.
+  candidates      Int       @default(0)
+  sent            Int       @default(0)
+  /// Retenus par un garde-fou, détaillés par raison.
+  skipped         Int       @default(0)
+  failed          Int       @default(0)
+  /// `{ NO_CONSENT: 3, DAILY_LIMIT: 1, … }` : la raison importe autant que le
+  /// nombre, pour distinguer « pas de consentement » de « plafond atteint ».
+  skippedByReason Json?     @map("skipped_by_reason")
+  totalSegments   Int       @default(0) @map("total_segments")
+  startedAt       DateTime  @default(now()) @map("started_at")
+  finishedAt      DateTime? @map("finished_at")
+  mode            DataMode  @default(REAL)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, startedAt])
+  @@map("sms_batch_logs")
+}

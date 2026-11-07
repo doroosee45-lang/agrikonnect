@@ -1,0 +1,88 @@
+import { z } from 'zod';
+
+const phone = z
+  .string()
+  .regex(/^\+\d{8,15}$/, 'Le téléphone doit être au format international (ex. +243812345678)');
+
+const password = z
+  .string()
+  .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+  .max(128, 'Le mot de passe est trop long');
+
+/**
+ * AUTH-01 — types de compte ouvrables en libre-service.
+ *
+ * Le CDC V1 ouvre l'inscription aux producteurs ; V2 → V4 y ajoutent les
+ * acteurs commerciaux (acheteur, fournisseur, transporteur), les experts
+ * (agronome) et les investisseurs. Les rôles de gouvernance (ADMIN,
+ * MODERATOR, VERIFIER, LAB_PARTNER, API_CLIENT) ne s'obtiennent JAMAIS par
+ * inscription : ils sont attribués par un administrateur (SEC-03).
+ */
+export const SELF_SERVICE_ACCOUNT_TYPES = [
+  'FARMER',
+  'COOPERATIVE_ADMIN',
+  'AGRICULTURAL_COMPANY',
+  'SUPPORT_AGENT',
+  'BUYER',
+  'SUPPLIER',
+  'TRANSPORTER',
+  'AGRONOMIST',
+  'INVESTOR',
+];
+
+const accountType = z.enum(SELF_SERVICE_ACCOUNT_TYPES);
+
+/** AUTH-01 : inscription en étapes (type de compte → identité → pro → localisation). */
+export const registerSchema = z
+  .object({
+    accountType,
+    firstName: z.string().trim().min(2, 'Prénom requis').max(60),
+    lastName: z.string().trim().min(2, 'Nom requis').max(60),
+    email: z.string().trim().toLowerCase().email('Email invalide').optional(),
+    phone: phone.optional(),
+    password,
+    locale: z.enum(['fr', 'en']).default('fr'),
+    countryCode: z.string().trim().length(2, 'Code pays à 2 lettres requis').toUpperCase(),
+    whatsapp: phone.optional(),
+    /** Uniquement pour accountType = COOPERATIVE_ADMIN */
+    cooperativeName: z.string().trim().min(2).max(120).optional(),
+    /** AUTH-07 : inscription assistée par un agent terrain */
+    consentReference: z.string().trim().max(120).optional(),
+  })
+  .refine((data) => data.email || data.phone, {
+    message: 'Un email ou un téléphone est requis',
+    path: ['email'],
+  });
+
+export const loginSchema = z.object({
+  identifier: z.string().trim().min(3, 'Email ou téléphone requis'),
+  password: z.string().min(1, 'Mot de passe requis'),
+  /** NFR-01 — second facteur exigé dès que la MFA est active (TOTP ou code de secours). */
+  mfaCode: z.string().trim().min(6).max(14).optional(),
+});
+
+export const refreshSchema = z.object({
+  refreshToken: z.string().min(10, 'refreshToken requis'),
+});
+
+export const verifyPhoneSchema = z.object({
+  phone: phone.optional(),
+  code: z.string().regex(/^\d{4,8}$/, 'Code invalide'),
+});
+
+export const sendOtpSchema = z.object({
+  phone,
+});
+
+export const verifyEmailSchema = z.object({
+  tokenHash: z.string().min(10),
+});
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email('Email invalide'),
+});
+
+export const resetPasswordSchema = z.object({
+  tokenHash: z.string().min(10),
+  password,
+});

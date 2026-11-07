@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "AgriKonnect Africa",
+    "slug": "agrikonnect-africa",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "agrikonnect",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F6F7F2",
+    "primaryColor": "#174D35",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "africa.agrikonnect.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "AgriKonnect utilise la caméra pour photographier vos parcelles et vos lots (traçabilité).",
+        "NSPhotoLibraryUsageDescription": "AgriKonnect accède à vos photos pour joindre des preuves aux lots et aux diagnostics.",
+        "NSLocationWhenInUseUsageDescription": "La localisation sert à délimiter vos parcelles et à afficher les marchés proches."
+      }
+    },
+    "android": {
+      "package": "africa.agrikonnect.mobile",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#174D35",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-image",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#174D35"
+        }
+      ]
+    ],
+    "extra": {
+      "apiBaseUrl": "http://localhost:4000/api/v1",
+      "realtimeUrl": "http://localhost:4000"
+    }
+  }
+}

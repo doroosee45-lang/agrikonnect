@@ -1,0 +1,5 @@
+# Moteur géospatial et pédologique — dépendances scientifiques
+# Python 3.11+ (testé sur 3.13)
+numpy>=1.26,<3        # algèbre de pixels, statistiques robustes, régressions
+scipy>=1.11,<2        # filtrage/optimisations (utilisé par les modules avancés)
+Pillow>=10,<13        # décodage PNG/JPEG des photos de parcelle et orthophotos drone
