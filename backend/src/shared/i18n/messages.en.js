@@ -321,6 +321,7 @@ export const MESSAGES_EN = [
   ["identifiant de message fournisseur requis", "provider message identifier required"],
   ["Identifiant invalide", "Invalid identifier"],
   ["Identifiants incorrects", "Incorrect credentials"],
+  ["Adresse e-mail non vérifiée : ouvre le lien reçu par e-mail ou demandes-en un nouveau.", "Email address not verified: open the link you received by email or request a new one."],
   ["Import appliqué", "Import applied"],
   ["Import simulé", "Simulated import"],
   ["Import traité", "Import processed"],

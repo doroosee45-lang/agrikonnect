@@ -8,6 +8,7 @@ import 'dotenv/config';
 import { z } from 'zod';
 
 import { verifierConfigMessagerie } from './messagingConfig.js';
+import { verifierUrlWebPublique } from './publicWebUrl.js';
 
 /**
  * Validation stricte des variables d'environnement.
@@ -431,6 +432,19 @@ if (rapportMessagerie.erreurs.length > 0) {
     '\n👉 Complète .env, ou reviens à SMS_PROVIDER=console / EMAIL_PROVIDER=console '
     + 'pour un démarrage local sans fournisseur.\n',
   );
+  process.exit(1);
+}
+
+/*
+ * Adresse du site web : en production, une valeur locale ou absente enverrait
+ * les liens de confirmation d'e-mail vers `localhost`. Le démarrage est refusé
+ * plutôt que d'émettre un seul lien inutilisable (voir `publicWebUrl.js`).
+ */
+const rapportUrlWeb = verifierUrlWebPublique(raw);
+if (rapportUrlWeb.erreurs.length > 0) {
+  console.error('\n❌ Adresse publique du site invalide pour la production :\n');
+  for (const erreur of rapportUrlWeb.erreurs) console.error(`   • ${erreur}`);
+  console.error('\n👉 Renseigne PUBLIC_WEB_URL avec l\'adresse https du site web.\n');
   process.exit(1);
 }
 

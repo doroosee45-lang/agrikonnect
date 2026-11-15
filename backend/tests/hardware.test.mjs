@@ -136,6 +136,8 @@ const childEnv = (extra) => ({
   DATABASE_URL: 'postgresql://essai:essai@127.0.0.1:1/aucune',
   SUPABASE_URL: 'http://127.0.0.1:1',
   SUPABASE_ANON_KEY: 'valeur-factice-de-test',
+  // En production, env.js exige une adresse web publique en https (publicWebUrl.js).
+  PUBLIC_WEB_URL: 'https://agrikonnectweb.onrender.com',
   ...extra,
 });
 
