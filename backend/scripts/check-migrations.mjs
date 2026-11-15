@@ -21,7 +21,7 @@ import EmbeddedPostgres from 'embedded-postgres';
 import { execFileSync } from 'node:child_process';
 
 const PORT = 55478;
-fs.rmSync('/tmp/agrikon-mig-pg', { recursive: true, force: true });
+fs.rmSync('/tmp/agrikon-mig-pg', { recursive: true, force: true, maxRetries: 10, retryDelay: 250 });
 
 const pgServer = new EmbeddedPostgres({
   databaseDir: '/tmp/agrikon-mig-pg',
@@ -29,6 +29,7 @@ const pgServer = new EmbeddedPostgres({
   password: 'postgres',
   port: PORT,
   persistent: false,
+  initdbFlags: ['--encoding=UTF8', '--no-locale'],
 });
 
 await pgServer.initialise();
@@ -37,6 +38,23 @@ await pgServer.start();
 const url = `postgresql://postgres:postgres@localhost:${PORT}/postgres`;
 const client = new pg.Client({ connectionString: url });
 await client.connect();
+await client.query(`
+DO $ensure_roles$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'anon'
+  ) THEN
+    EXECUTE 'CREATE ROLE anon NOLOGIN';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_catalog.pg_roles WHERE rolname = 'authenticated'
+  ) THEN
+    EXECUTE 'CREATE ROLE authenticated NOLOGIN';
+  END IF;
+END;
+$ensure_roles$;
+`);
 
 const dir = 'prisma/migrations';
 const folders = fs
@@ -46,6 +64,7 @@ const folders = fs
   .sort();
 
 let applied = 0;
+let rlsOk = false;
 try {
   for (const folder of folders) {
     const file = path.join(dir, folder, 'migration.sql');
@@ -55,14 +74,43 @@ try {
     applied += 1;
     console.log(`  ✓ ${folder}`);
   }
+  const rlsTables = await client.query(`
+    SELECT c.relname AS table_name, c.relrowsecurity AS rls_enabled
+    FROM pg_class AS c
+    JOIN pg_namespace AS n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.relkind IN ('r', 'p')
+    ORDER BY c.relname
+  `);
+  const rlsMissing = rlsTables.rows
+    .filter((table) => table.rls_enabled !== true)
+    .map((table) => table.table_name);
+
+  rlsOk = rlsTables.rows.length > 0 && rlsMissing.length === 0;
+  if (rlsOk) {
+    console.log(`  ✓ RLS_CHECK_RESULT : ${rlsTables.rows.length} table(s) protégée(s).`);
+  } else {
+    console.error(
+      `  ❌ RLS_CHECK_RESULT : RLS absente sur ${rlsMissing.join(', ') || 'aucune table public trouvée'}.`,
+    );
+  }
   console.log(`\n${applied} migration(s) appliquée(s) sans erreur.`);
 } finally {
   await client.end();
 }
 
 const drift = execFileSync(
-  './node_modules/.bin/prisma',
-  ['migrate', 'diff', '--from-url', `${url}?schema=public`, '--to-schema-datamodel', 'prisma/schema.prisma', '--script'],
+  process.execPath,
+  [
+    path.resolve('node_modules/prisma/build/index.js'),
+    'migrate',
+    'diff',
+    '--from-url',
+    `${url}?schema=public`,
+    '--to-schema-datamodel',
+    'prisma/schema.prisma',
+    '--script',
+  ],
   { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 },
 ).trim();
 
@@ -75,7 +123,24 @@ if (isEmpty) {
   console.log(`❌ DRIFT détecté :\n${drift}`);
 }
 
-await pgServer.stop();
+if (process.platform === 'win32') {
+  const pgCtl = path.resolve(
+    'node_modules',
+    '@embedded-postgres',
+    'windows-x64',
+    'native',
+    'bin',
+    'pg_ctl.exe',
+  );
+  execFileSync(
+    pgCtl,
+    ['-D', path.resolve('/tmp/agrikon-mig-pg'), '-m', 'fast', '-w', '-t', '90', 'stop'],
+    { timeout: 120_000, stdio: 'inherit' },
+  );
+  fs.rmSync('/tmp/agrikon-mig-pg', { recursive: true, force: true, maxRetries: 10, retryDelay: 250 });
+} else {
+  await pgServer.stop();
+}
 
 /*
  * `process.exit()`, et non `process.exitCode = 1`.
@@ -86,4 +151,4 @@ await pgServer.stop();
  * si de rien n'était — une dérive de schéma pouvait donc passer inaperçue.
  * `process.exit()` tranche immédiatement et n'est plus modifiable.
  */
-process.exit(isEmpty ? 0 : 1);
+process.exit(isEmpty && rlsOk ? 0 : 1);

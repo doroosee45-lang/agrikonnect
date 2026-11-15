@@ -274,6 +274,7 @@ model Membership {
 
   @@unique([userId, organizationId])
   @@index([organizationId, status])
+  @@index([roles], type: Gin, map: "memberships_roles_idx")
   @@map("memberships")
 }
 
@@ -708,6 +709,7 @@ model AuditLog {
 
   @@index([resource, resourceId, createdAt])
   @@index([actorId, createdAt])
+  @@index([action, createdAt], map: "audit_logs_action_created_at_idx")
   @@map("audit_logs")
 }
 
@@ -3068,4 +3070,29 @@ model SmsBatchLog {
 
   @@index([organizationId, startedAt])
   @@map("sms_batch_logs")
+}
+
+enum BlogPostStatus {
+  DRAFT
+  PUBLISHED
+
+  @@map("blog_post_status")
+}
+
+/// Article éditorial, visible publiquement uniquement lorsqu’il est publié.
+model BlogPost {
+  id          String         @id @default(uuid()) @db.Uuid
+  slug        String         @unique @db.VarChar(160)
+  title       String         @db.VarChar(200)
+  summary     String         @db.VarChar(500)
+  imageUrl    String         @map("image_url") @db.Text
+  authorName  String         @map("author_name") @db.VarChar(160)
+  content     String         @db.Text
+  status      BlogPostStatus @default(DRAFT)
+  publishedAt DateTime?      @map("published_at") @db.Timestamp(3)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamp(3)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamp(3)
+
+  @@index([status, publishedAt], map: "blog_posts_status_published_at_idx")
+  @@map("blog_posts")
 }
