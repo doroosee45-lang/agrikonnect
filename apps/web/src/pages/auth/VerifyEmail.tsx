@@ -113,7 +113,7 @@ export default function AuthVerifyEmail() {
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="vous@exemple.com"
+                placeholder={t('ui.emailPlaceholder')}
                 autoComplete="email"
               />
 

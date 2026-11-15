@@ -74,7 +74,7 @@ export default function Register() {
           <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>{t('ui.rejoignezLaPlateformeDeTracabiliteAgricole')}</Text>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: 12 }}>
               <Input
                 label={t('ui.prenom')}
                 type="text"
@@ -84,7 +84,7 @@ export default function Register() {
                 autoComplete="given-name"
               />
               <Input
-                label={t('ui.nom')}
+                label={t('ui.lastName')}
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
