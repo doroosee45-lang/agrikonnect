@@ -11,7 +11,7 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export function Input({ label, error, hint, optionalLabel, style, ...props }: InputProps) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 0 }}>
       <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>
         {label}
         {optionalLabel ? (
@@ -20,6 +20,11 @@ export function Input({ label, error, hint, optionalLabel, style, ...props }: In
       </span>
       <input
         style={{
+          // Largeur native d'un <input> (~20 caractères) : sans ces trois règles,
+          // il déborde de sa colonne dans une grille étroite.
+          width: '100%',
+          minWidth: 0,
+          boxSizing: 'border-box',
           height: 44,
           padding: '0 14px',
           fontSize: 15,
