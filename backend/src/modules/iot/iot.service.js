@@ -10,7 +10,7 @@ import { resolveId } from '../../shared/ids.js';
 import { sha256 } from '../../shared/crypto.js';
 import { assertOwnership } from '../../middleware/tenant.js';
 import { audit } from '../../shared/audit.js';
-import { hardware } from '../../config/hardware.js';
+import { hardware, hasNoHardware } from '../../config/hardware.js';
 import { notifyMany } from '../../shared/events.js';
 import { env } from '../../config/env.js';
 import { assertDataModeAllowed, dataModeLabel } from '../../shared/dataMode.js';
@@ -125,6 +125,9 @@ export const revoke = async (deviceId, { reason }, req) => {
 
 /** IOT-02 — ingestion des mesures (authentifiée par la clé d'appareil). */
 export const ingest = async ({ deviceKey, readings }, req) => {
+  // `HARDWARE_MODE=NONE` : aucun matériel n'est déclaré sur ce déploiement.
+  if (hasNoHardware) throw ApiError.forbidden('Aucun matériel déclaré sur ce déploiement : mesures refusées.');
+
   const keyHash = sha256(deviceKey);
   const device = await prisma.iotDevice.findFirst({ where: { keyHash } });
 

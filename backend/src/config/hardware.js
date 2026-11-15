@@ -135,8 +135,11 @@ const hardwareSchema = z.object({
    *
    * `REAL` : du matériel physique est connecté. Le démarrage exige alors que
    * les champs obligatoires soient renseignés (voir `assertHardwareConfigReady`).
+   *
+   * `NONE` : aucun matériel n'est branché et rien n'est simulé. Autorisé en
+   * production ; l'ingestion de mesures est alors refusée.
    */
-  mode: z.enum(['SIMULATION', 'REAL']),
+  mode: z.enum(['SIMULATION', 'REAL', 'NONE']),
 
   loraWan: z.object({
     /** Serveur réseau : ChirpStack dans ce déploiement. */
@@ -435,13 +438,33 @@ const plausibility = {
   },
 };
 
+/**
+ * Mode effectif : celui du fichier, sauf si l'exploitant déclare
+ * `HARDWARE_MODE=NONE` (aucun matériel branché).
+ *
+ * Seul `NONE` (ou `SIMULATION`, valeur du fichier) est accepté depuis
+ * l'environnement : le passage en `REAL` reste une décision écrite dans ce
+ * fichier, avec ses fiches techniques, jamais un simple réglage de déploiement.
+ * Une valeur inconnue arrête le démarrage plutôt que d'être ignorée.
+ */
+export function resolveHardwareMode(fileMode, envValue) {
+  const value = (envValue ?? '').trim();
+  if (value === '') return fileMode;
+  if (value === 'NONE' || value === 'SIMULATION') return value;
+  throw new Error(
+    `HARDWARE_MODE invalide : « ${value} ». Valeurs acceptées : NONE, SIMULATION. `
+    + 'Le mode REAL se déclare dans src/config/hardware.js.',
+  );
+}
+
 const rawConfig = {
   /**
    * Aucun matériel physique n'est connecté à ce jour : le mode est
    * `SIMULATION`. Passer à `REAL` exige de renseigner les champs obligatoires
-   * contrôlés par `assertHardwareConfigReady`.
+   * contrôlés par `assertHardwareConfigReady`. Un déploiement sans matériel
+   * (production comprise) déclare `HARDWARE_MODE=NONE`.
    */
-  mode: 'SIMULATION',
+  mode: resolveHardwareMode('SIMULATION', process.env.HARDWARE_MODE),
 
   loraWan: {
     networkServer: 'ChirpStack',
@@ -878,6 +901,9 @@ export const hardware = Object.freeze(parsed.data);
 
 /** Le fichier est-il en mode matériel réel ? */
 export const isRealHardware = hardware.mode === 'REAL';
+
+/** Aucun matériel déclaré : les mesures d'appareil sont refusées. */
+export const hasNoHardware = hardware.mode === 'NONE';
 
 /* ─────────── Champs obligatoires en mode matériel réel ─────────── */
 
