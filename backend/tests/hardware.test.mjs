@@ -125,6 +125,52 @@ test('Matériel : HARDWARE_MODE=NONE autorise la production sans matériel, et r
   });
 });
 
+/**
+ * Environnement minimal d'un processus enfant : aucune valeur réelle, aucune
+ * connexion (la base pointe vers un port fermé ; rien ne doit l'atteindre).
+ */
+const childEnv = (extra) => ({
+  PATH: process.env.PATH,
+  SystemRoot: process.env.SystemRoot,
+  DOTENV_CONFIG_PATH: path.join(backendRoot, 'tests', '__aucun_fichier__.env'),
+  DATABASE_URL: 'postgresql://essai:essai@127.0.0.1:1/aucune',
+  SUPABASE_URL: 'http://127.0.0.1:1',
+  SUPABASE_ANON_KEY: 'valeur-factice-de-test',
+  ...extra,
+});
+
+test('Matériel : HARDWARE_MODE=NONE laisse vraiment démarrer la production', async () => {
+  // Même chemin que `src/server.js`, mais le mode vient de l'environnement du processus.
+  const script =
+    "import { assertHardwareConfigReady, hardware } from './src/config/hardware.js';"
+    + 'const r = assertHardwareConfigReady({ isProd: true });'
+    + 'console.log(JSON.stringify({ r, mode: hardware.mode }));';
+  const { stdout } = await execFileAsync('node', ['--input-type=module', '-e', script], {
+    cwd: backendRoot,
+    env: childEnv({ NODE_ENV: 'production', HARDWARE_MODE: 'NONE' }),
+  });
+  assert.deepEqual(JSON.parse(stdout.trim()), { r: { mode: 'NONE', missing: [] }, mode: 'NONE' });
+});
+
+test('Matériel : en mode NONE, l’ingestion de mesures est refusée avant tout accès base', async () => {
+  const script =
+    "import { ingest } from './src/modules/iot/iot.service.js';"
+    + "try { await ingest({ deviceKey: 'cle-essai', readings: [{ metric: 'soil_moisture', value: 1 }] }, {});"
+    + ' console.log("ACCEPTE"); process.exit(0); }'
+    + ' catch (e) { console.log(JSON.stringify({ status: e.status, code: e.code, message: e.message })); process.exit(0); }';
+  const { stdout } = await execFileAsync('node', ['--input-type=module', '-e', script], {
+    cwd: backendRoot,
+    env: childEnv({ NODE_ENV: 'production', HARDWARE_MODE: 'NONE', JOBS_ENABLED: 'false' }),
+    timeout: 60_000,
+  });
+  assert.doesNotMatch(stdout, /ACCEPTE/);
+  const line = stdout.trim().split('\n').pop();
+  const err = JSON.parse(line);
+  assert.equal(err.status, 403, `refus attendu avant la base, reçu : ${line}`);
+  assert.equal(err.code, 'FORBIDDEN');
+  assert.match(err.message, /Aucun matériel déclaré/);
+});
+
 /* ─────────── Champs obligatoires en mode matériel réel ─────────── */
 
 test('Matériel : un champ obligatoire manquant en mode réel arrête le démarrage', () => {
