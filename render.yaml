@@ -1,0 +1,104 @@
+# Blueprint Render — AGRIKONNECT AFRICA, version officielle (branche `main`).
+#
+# Deux services, une seule version : l'API (Express + Prisma) et le site web
+# (React + Vite, fichiers statiques). L'application mobile (Expo) n'est pas
+# hébergée ici : son build pointe vers la même API via EXPO_PUBLIC_API_BASE_URL.
+#
+# Secrets : AUCUNE valeur dans ce fichier. Les variables `sync: false` se
+# saisissent dans le tableau de bord Render (Environment), jamais dans le dépôt.
+#
+# Base de données : aucune migration, aucun seed, aucun SQL n'est lancé par le
+# build ou le démarrage. Le schéma Supabase est géré à part.
+#
+# Déploiement : manuel (`autoDeploy: false`) tant que l'API pointe vers la base
+# de production — un push sur `main` ne redéploie pas tout seul.
+
+services:
+  # ─── API ─────────────────────────────────────────────────────────
+  - type: web
+    name: agrikonnect-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: false
+    rootDir: backend
+    # Dépendances d'exécution seules ; client Prisma généré avec la version verrouillée (5.22.0).
+    buildCommand: npm ci --omit=dev && npx --yes prisma@5.22.0 generate
+    # = `npm start` de backend/package.json. Le serveur écoute sur $PORT (fourni par Render) et 0.0.0.0.
+    startCommand: node src/server.js
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # Aucun matériel branché : démarrage autorisé en production, ingestion de mesures refusée (403).
+      - key: HARDWARE_MODE
+        value: NONE
+      - key: SIMULATION_ENABLED
+        value: "false"
+      # Premiers essais d'authentification sur la base de production : pas de tâches
+      # planifiées (expirations, purges, relances SMS) ni de Socket.IO. À repasser à
+      # "true" une fois les essais validés — ce sont des fonctions de l'application officielle.
+      - key: JOBS_ENABLED
+        value: "false"
+      - key: REALTIME_ENABLED
+        value: "false"
+      - key: LOG_LEVEL
+        value: info
+      # Origine du site web ci-dessous ; à corriger si Render attribue une autre adresse.
+      - key: CORS_ORIGIN
+        value: https://agrikonnect-web.onrender.com
+      - key: PUBLIC_WEB_URL
+        value: https://agrikonnect-web.onrender.com
+      # ── Secrets et réglages à saisir dans Render ──
+      # Connexion Postgres (pooler Supabase) utilisée par Prisma.
+      - key: DATABASE_URL
+        sync: false
+      # Connexion directe : déclarée par prisma/schema.prisma (directUrl).
+      - key: DIRECT_URL
+        sync: false
+      # Projet Supabase (Auth + Storage).
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      # Clé service : côté serveur uniquement (Auth admin, URL signées).
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      # Chiffrement des secrets TOTP (obligatoire en production). Doit être la clé
+      # avec laquelle les secrets MFA existants ont été chiffrés, sinon ils deviennent illisibles.
+      - key: MFA_ENCRYPTION_KEY
+        sync: false
+      # Chiffrement des réglages sensibles ; vide = repli sur SUPABASE_SERVICE_ROLE_KEY.
+      - key: SETTINGS_SECRET_KEY
+        sync: false
+      # console | twilio | africastalking | webhook — et console | resend | sendgrid | webhook.
+      - key: SMS_PROVIDER
+        sync: false
+      - key: EMAIL_PROVIDER
+        sync: false
+
+  # ─── Site web ────────────────────────────────────────────────────
+  - type: web
+    name: agrikonnect-web
+    runtime: static
+    branch: main
+    autoDeploy: false
+    rootDir: apps/web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Lues au build (Vite) : le site appelle l'API officielle ci-dessus.
+      - key: VITE_API_BASE_URL
+        value: https://agrikonnect-api.onrender.com/api/v1
+      - key: VITE_REALTIME_URL
+        value: https://agrikonnect-api.onrender.com
+    routes:
+      # Application monopage : toute route inconnue sert index.html.
+      - type: rewrite
+        source: /*
+        destination: /index.html
