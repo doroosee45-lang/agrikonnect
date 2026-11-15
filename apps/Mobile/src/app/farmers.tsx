@@ -27,6 +27,7 @@ const PAGE_SIZE = 12;
 
 /** Annuaire public des producteurs : recherche, filtre par pays, pagination. */
 export default function Farmers() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
@@ -51,25 +52,25 @@ export default function Farmers() {
     <PublicShell active="farmers">
       <PageHeader
         index={1}
-        eyebrow="Annuaire"
-        title="Les producteurs du réseau"
-        subtitle="Fiches publiques : surface déclarée, cultures, statut de vérification. Les coordonnées restent masquées tant que le producteur ne les publie pas."
+        eyebrow={t('ui.annuaire')}
+        title={t('ui.lesProducteursDuReseau')}
+        subtitle={t('ui.fichesPubliquesSurfaceDeclareeCulturesStatut')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <Reveal variant="up">
           <View style={styles.filters}>
             <Input
-              label="Rechercher"
+              label={t('common.search')}
               value={search}
               onChangeText={setSearch}
-              placeholder="Nom de l’exploitation"
+              placeholder={t('ui.nomDeLExploitation')}
               icon="search-outline"
               autoCorrect={false}
             />
             {countries.length > 0 ? (
               <ChipRow>
-                <FilterChip label="Tous les pays" active={country === null} onPress={() => setCountry(null)} />
+                <FilterChip label={t('ui.tousLesPays')} active={country === null} onPress={() => setCountry(null)} />
                 {countries.map((code) => (
                   <FilterChip
                     key={code}
@@ -89,8 +90,8 @@ export default function Farmers() {
           <ErrorState error={error} onRetry={() => void refetch()} />
         ) : farms.length === 0 ? (
           <EmptyState
-            title="Aucun profil ne correspond"
-            description="Modifiez la recherche ou le filtre de pays. Les fiches apparaissent dès qu’un producteur publie son profil."
+            title={t('ui.aucunProfilNeCorrespond')}
+            description={t('ui.modifiezLaRechercheOuLeFiltre')}
             icon="search-outline"
           />
         ) : (
@@ -106,14 +107,12 @@ export default function Farmers() {
             <Card tone="paper" style={styles.pager}>
               <View style={styles.pagerText}>
                 <Ionicons name="layers-outline" size={15} color={COLORS.slateGray} />
-                <Text preset="caption" color={COLORS.slateGray}>
-                  {formatNumber(farms.length, locale)} affichés sur {formatNumber(total, locale)} profils publics
-                  {isFetching ? ' · mise à jour…' : ''}
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.affichesSurProfilsPublics', { length: formatNumber(farms.length, locale), total: formatNumber(total, locale) })}{isFetching ? t('ui.miseAJour_1368b') : ''}
                 </Text>
               </View>
               {farms.length < total ? (
                 <Button
-                  label="Charger plus"
+                  label={t('ui.chargerPlus')}
                   onPress={() => setLimit((value) => value + PAGE_SIZE)}
                   variant="outline"
                   size="sm"

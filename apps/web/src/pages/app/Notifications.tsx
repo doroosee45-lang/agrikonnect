@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Notifications() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -38,17 +39,15 @@ export default function Notifications() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Notifications"
-        description="Connectez-vous pour consulter vos alertes et gérer vos préférences."
+        title={t('ui.notifications')}
+        description={t('ui.connectezVousPourConsulterVosAlertes')}
         icon="🔔"
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
           <div>
-            <Text preset="h1" style={{ marginBottom: 8 }}>
-              Notifications
-            </Text>
+            <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.notifications')}</Text>
             <Text preset="bodyMd" color={COLORS.slateGray}>
-              {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est à jour'}
+              {unreadCount > 0 ? t(unreadCount > 1 ? 'ui.unreadCountOther' : 'ui.unreadCountOne', { unreadCount }) : t('ui.toutEstAJour')}
             </Text>
           </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -58,10 +57,10 @@ export default function Notifications() {
               donne donc l'accès ici, à l'endroit où l'on parle déjà des alertes.
             */}
             <Link to="/app/sms-consent">
-              <Button label="Alertes par SMS" variant="outline" size="sm" />
+              <Button label={t('ui.alertesParSms')} variant="outline" size="sm" />
             </Link>
             {unreadCount > 0 ? (
-              <Button label="Tout marquer comme lu" onClick={() => readAll.mutate()} variant="outline" size="sm" loading={readAll.isPending} />
+              <Button label={t('ui.toutMarquerCommeLu')} onClick={() => readAll.mutate()} variant="outline" size="sm" loading={readAll.isPending} />
             ) : null}
           </div>
         </div>
@@ -71,7 +70,7 @@ export default function Notifications() {
         ) : notifications.isError ? (
           <ErrorState error={notifications.error} onRetry={() => void notifications.refetch()} />
         ) : items.length === 0 ? (
-          <EmptyState title="Aucune notification" description="Vos alertes apparaîtront ici." icon="🔔" />
+          <EmptyState title={t('ui.aucuneNotification')} description={t('ui.vosAlertesApparaitrontIci')} icon="🔔" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {items.map((item, index) => (
@@ -88,7 +87,7 @@ export default function Notifications() {
                       <Text preset="bodyMd" color={COLORS.textPrimary} style={{ fontWeight: item.readAt ? 400 : 600 }}>
                         {item.title}
                       </Text>
-                      {!item.readAt ? <Chip label="nouveau" tone="forest" size="sm" /> : null}
+                      {!item.readAt ? <Chip label={t('ui.nouveau_cafe5')} tone="forest" size="sm" /> : null}
                       <Chip label={item.type} tone="neutral" size="sm" />
                     </div>
                     {item.body ? (
@@ -101,7 +100,7 @@ export default function Notifications() {
                     </Text>
                   </div>
                   {!item.readAt ? (
-                    <Button label="Marquer lu" onClick={() => read.mutate(item.id)} variant="ghost" size="sm" loading={read.isPending && read.variables === item.id} />
+                    <Button label={t('ui.marquerLu')} onClick={() => read.mutate(item.id)} variant="ghost" size="sm" loading={read.isPending && read.variables === item.id} />
                   ) : null}
                 </Card>
               </motion.div>

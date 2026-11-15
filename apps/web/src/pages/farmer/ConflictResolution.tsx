@@ -11,6 +11,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** FARMER — litiges sur commandes (ORD-08 → ORD-12). */
 export default function FarmerConflictResolution() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
 
@@ -25,20 +26,16 @@ export default function FarmerConflictResolution() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Litiges" description="Litiges ouverts sur vos commandes." icon="⚖️">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Litiges
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Un litige bloque le paiement jusqu'à résolution. Chaque étape est horodatée.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.litiges')} description={t('ui.litigesOuvertsSurVosCommandes')} icon="⚖️">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.litiges')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.unLitigeBloqueLePaiementJusqu')}</Text>
 
         {query.isLoading ? (
           <LoadingState count={2} height={110} />
         ) : query.isError ? (
           <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
         ) : disputed.length === 0 ? (
-          <EmptyState title="Aucun litige" description="Aucun litige n'est ouvert sur vos commandes." icon="⚖️" />
+          <EmptyState title={t('ui.aucunLitige')} description={t('ui.aucunLitigeNEstOuvertSur')} icon="⚖️" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {disputed.map((order, index) => (

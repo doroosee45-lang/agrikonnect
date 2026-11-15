@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerReviews() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const me = useQuery({ queryKey: queryKeys.me, queryFn: () => authApi.me().then((r) => r.data), enabled: isAuthenticated, retry: false });
@@ -26,24 +27,24 @@ export default function FarmerReviews() {
   const items = reputation?.reviews ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Avis" subtitle="Avis laissés par vos partenaires." />
+      <FarmerHeader title={t('ui.avis')} subtitle={t('ui.avisLaissesParVosPartenaires')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Avis" icon="star-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.avis')} icon="star-outline">
           {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : (
             <>
               {reputation ? (
                 <Card tone="white" style={styles.card}>
-                  <Text preset="h3">{reputation.average !== null ? `${reputation.average.toFixed(1)} / 5` : 'Pas encore noté'}</Text>
+                  <Text preset="h3">{reputation.average !== null ? `${reputation.average.toFixed(1)} / 5` : t('ui.pasEncoreNote')}</Text>
                   <Text preset="caption" color={COLORS.slateGray}>{reputation.count} avis</Text>
                 </Card>
               ) : null}
-              {items.length === 0 ? <EmptyState title="Aucun avis" description="Les avis de vos partenaires apparaîtront ici." icon="star-outline" /> : (
+              {items.length === 0 ? <EmptyState title={t('ui.aucunAvis')} description={t('ui.lesAvisDeVosPartenairesApparaitront')} icon="star-outline" /> : (
                 <View style={styles.list}>
                   {items.map((review, index) => (
                     <Reveal key={review.id} index={index} variant="up">
                       <Card tone="white" style={styles.row}>
                         <View style={styles.rowBody}>
-                          <Text preset="bodySm">{review.comment ?? 'Aucun commentaire'}</Text>
+                          <Text preset="bodySm">{review.comment ?? t('ui.aucunCommentaire')}</Text>
                           <Text preset="caption" color={COLORS.slateGray}>{formatDate(review.createdAt, locale)}</Text>
                         </View>
                         <Chip label={`${review.rating}/5`} tone="neutral" size="sm" />

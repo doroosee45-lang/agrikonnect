@@ -39,6 +39,7 @@ const monthLabel = (month: number) => MONTHS[Math.min(11, Math.max(0, month - 1)
  * plan n'est inventé.
  */
 export default function PlotFarmingPlan() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -79,36 +80,27 @@ export default function PlotFarmingPlan() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <PlotScreenHeader title="Plan agricole" plotName={plot.data?.name} plotId={id} />
+      <PlotScreenHeader title={t('ui.planAgricole')} plotName={plot.data?.name} plotId={id} />
 
       <Section bare contentStyle={styles.section}>
         <Card tone="pale" style={styles.disclaimer}>
           <Ionicons name="information-circle-outline" size={16} color={COLORS.info} />
-          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-            Calendrier indicatif construit sur les fenêtres culturales documentées. Les dates réelles dépendent
-            de la météo et des conditions de la parcelle.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.calendrierIndicatifConstruitSurLesFenetres')}</Text>
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Construire un plan
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.construireUnPlan')}</Text>
 
-          <Text preset="caption" color={COLORS.textPrimary}>
-            Adosser à une rotation <Text preset="caption" color={COLORS.slateGray}>(facultatif)</Text>
+          <Text preset="caption" color={COLORS.textPrimary}>{t('ui.adosserAUneRotation')}{' '}<Text preset="caption" color={COLORS.slateGray}>{t('ui.facultatif')}</Text>
           </Text>
           {(rotations.data?.items ?? []).length === 0 ? (
-            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-              Aucune rotation proposée pour cette parcelle. Un plan peut être construit sans rotation, à partir du
-              calendrier du jeu de règles.
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.aucuneRotationProposeePourCetteParcelle')}</Text>
           ) : (
             <ChipRow>
               {(rotations.data?.items ?? []).slice(0, 6).map((plan) => (
                 <FilterChip
                   key={plan.id}
-                  label={`${plan.horizonYears} an(s) · ${plan.status}`}
+                  label={t('ui.anS', { horizonYears: plan.horizonYears, status: plan.status })}
                   active={rotationPlanId === plan.id}
                   onPress={() => setRotationPlanId(plan.id === rotationPlanId ? null : plan.id)}
                 />
@@ -117,7 +109,7 @@ export default function PlotFarmingPlan() {
           )}
 
           <Input
-            label="Horizon (années)"
+            label={t('ui.horizonAnnees')}
             value={horizon}
             onChangeText={setHorizon}
             placeholder="3"
@@ -129,7 +121,7 @@ export default function PlotFarmingPlan() {
           {error ? <ErrorState error={error} showRequestId /> : null}
 
           <Button
-            label="Construire le plan"
+            label={t('ui.construireLePlan')}
             onPress={() => propose.mutate()}
             variant="primary"
             fullWidth
@@ -143,8 +135,8 @@ export default function PlotFarmingPlan() {
           <ErrorState error={plans.error} onRetry={() => void plans.refetch()} />
         ) : items.length === 0 ? (
           <EmptyState
-            title="Aucun plan agricole"
-            description="Construisez un plan pour obtenir le calendrier des opérations, année par année."
+            title={t('ui.aucunPlanAgricole')}
+            description={t('ui.construisezUnPlanPourObtenirLe')}
             icon="calendar-outline"
           />
         ) : (
@@ -162,24 +154,18 @@ export default function PlotFarmingPlan() {
                   <Card tone="white" style={styles.card}>
                     <View style={styles.head}>
                       <View style={styles.headText}>
-                        <Text preset="h3" color={COLORS.textPrimary}>
-                          Plan sur {plan.horizonYears} an(s)
-                        </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          jeu de règles {plan.calendar?.ruleSetVersion ?? '—'} · créé le {formatDate(plan.createdAt, locale)}
-                          {plan.rotationPlanId ? ' · adossé à une rotation' : ''}
+                        <Text preset="h3" color={COLORS.textPrimary}>{t('ui.planSurAnS', { horizonYears: plan.horizonYears })}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.jeuDeReglesCreeLe', { value: plan.calendar?.ruleSetVersion ?? '—', createdAt: formatDate(plan.createdAt, locale) })}{plan.rotationPlanId ? t('ui.adosseAUneRotation') : ''}
                         </Text>
                       </View>
-                      <Chip label={`${(plan.calendar?.entries ?? []).length} opérations`} tone="neutral" size="sm" />
+                      <Chip label={t('ui.operations_6b61a', { length: (plan.calendar?.entries ?? []).length })} tone="neutral" size="sm" />
                     </View>
 
                     {[...byYear.keys()]
                       .sort((a, b) => a - b)
                       .map((year) => (
                         <View key={`${plan.id}-year-${year}`} style={styles.yearBlock}>
-                          <Text preset="caption" color={COLORS.forestGreen}>
-                            Année {year}
-                          </Text>
+                          <Text preset="caption" color={COLORS.forestGreen}>{t('ui.annee_69aa1', { year })}</Text>
                           <View style={styles.entries}>
                             {(byYear.get(year) ?? []).map((entry, entryIndex) => (
                               <View key={`${plan.id}-${year}-${entryIndex}`} style={styles.entry}>
@@ -207,15 +193,9 @@ export default function PlotFarmingPlan() {
 
                     {(plan.checkpoints?.items ?? []).length > 0 ? (
                       <View style={styles.block}>
-                        <Text preset="caption" color={COLORS.textPrimary}>
-                          Points de contrôle
-                        </Text>
+                        <Text preset="caption" color={COLORS.textPrimary}>{t('ui.pointsDeControle')}</Text>
                         {(plan.checkpoints?.items ?? []).map((checkpoint, checkpointIndex) => (
-                          <Text key={`${plan.id}-cp-${checkpointIndex}`} preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                            • année {checkpoint.year} · {checkpoint.activity} · {monthLabel(checkpoint.window.startMonth)} →{' '}
-                            {monthLabel(checkpoint.window.endMonth)}
-                            {checkpoint.metric ? ` · ${checkpoint.metric}` : ''}
-                          </Text>
+                          <Text key={`${plan.id}-cp-${checkpointIndex}`} preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.annee_84017', { year: checkpoint.year, activity: checkpoint.activity, startMonth: monthLabel(checkpoint.window.startMonth), endMonth: monthLabel(checkpoint.window.endMonth), value: checkpoint.metric ? ` · ${checkpoint.metric}` : '' })}</Text>
                         ))}
                       </View>
                     ) : null}

@@ -26,6 +26,7 @@ import mediaRoutes from '../modules/media/media.routes.js';
 import verificationRoutes, { adminRouter as adminVerificationRoutes } from '../modules/verification/verification.routes.js';
 import reportsRoutes, { adminRouter as adminReportRoutes } from '../modules/reports/reports.routes.js';
 import publicRoutes from '../modules/public/public.routes.js';
+import { publicBlogRoutes, adminBlogRoutes } from '../modules/blog/blog.routes.js';
 import adminRoutes from '../modules/admin/admin.routes.js';
 import dashboardRoutes from '../modules/dashboard/dashboard.routes.js';
 import countriesRoutes from '../modules/countries/countries.routes.js';
@@ -90,6 +91,7 @@ router.get('/health', (_req, res) => {
 
 // ─── Public (aucune authentification) ─────────────────────────
 router.use('/public', publicRoutes);
+router.use('/public/blog-posts', publicBlogRoutes);
 router.use('/public', publicLotsRoutes); // fiche lot via QR — publicFields uniquement
 router.use('/countries', countriesRoutes);
 // ─── API publique de données — clé d'API (V5) ─────────────────
@@ -189,6 +191,7 @@ router.use('/channels', channelsWebhookRoutes);
 router.use('/investment', investmentHubRoutes);
 router.use('/admin/reports', adminReportRoutes);
 router.use('/admin', adminRoutes);
+router.use('/admin/blog-posts', adminBlogRoutes);
 
 // ─── V5 §6 — chemins normalisés exigés par le CDC ─────────────
 // Monté en dernier : les routes existantes (/crops, /projects…) gardent la

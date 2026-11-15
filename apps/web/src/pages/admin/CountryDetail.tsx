@@ -3,28 +3,30 @@ import { useParams } from 'react-router-dom';
 import { DetailPage } from '@/components/pages';
 import { referenceApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
+import { useI18n } from '@/i18n';
 
 type Country = { code: string; name: string; defaultCurrency: string };
 
 /** ADMIN — détail d'un pays du référentiel. */
 export default function AdminCountryDetail() {
+  const { t } = useI18n();
   const { code } = useParams<{ code: string }>();
 
   return (
     <DetailPage<Country>
       title={(country) => country.name}
-      subtitle="Fiche pays du référentiel."
+      subtitle={t('ui.fichePaysDuReferentiel')}
       backHref="/admin/countries"
-      backLabel="Retour aux pays"
+      backLabel={t('ui.retourAuxPays')}
       queryKey={queryKeys.countries.one(code ?? '')}
       fetch={() => referenceApi.country(code ?? '').then((result) => result.data)}
       sections={(country) => [
         {
-          title: 'Identité',
+          title: t('ui.identite'),
           fields: [
-            { label: 'Code ISO', value: country.code },
-            { label: 'Nom', value: country.name },
-            { label: 'Devise par défaut', value: country.defaultCurrency },
+            { label: t('ui.codeIso'), value: country.code },
+            { label: t('ui.nom'), value: country.name },
+            { label: t('ui.deviseParDefaut'), value: country.defaultCurrency },
           ],
         },
       ]}

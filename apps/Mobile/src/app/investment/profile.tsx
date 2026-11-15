@@ -8,8 +8,10 @@ import { authApi } from '@/services/api/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function InvestmentProfile() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const me = useAuthStore((state) => state.user);
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
@@ -25,25 +27,25 @@ export default function InvestmentProfile() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Mon profil investisseur" subtitle="Vos informations personnelles." />
+      <AppHeader title={t('ui.monProfilInvestisseur')} subtitle={t('ui.vosInformationsPersonnelles')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Mon profil" icon="person-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.monProfil')} icon="person-outline">
           <Card tone="white" style={styles.card}>
-            <Text preset="bodySm">Email : {me?.email ?? '—'}</Text>
-            <Text preset="bodySm">Téléphone : {me?.phone ?? '—'}</Text>
+            <Text preset="bodySm">{t('ui.email_946f4', { value: me?.email ?? '—' })}</Text>
+            <Text preset="bodySm">{t('ui.telephone', { value: me?.phone ?? '—' })}</Text>
             <View style={styles.chips}>
-              <Chip label={me?.emailVerified ? 'email vérifié' : 'email non vérifié'} tone={me?.emailVerified ? 'success' : 'warning'} size="sm" />
-              <Chip label={me?.phoneVerified ? 'téléphone vérifié' : 'téléphone non vérifié'} tone={me?.phoneVerified ? 'success' : 'warning'} size="sm" />
+              <Chip label={me?.emailVerified ? t('ui.emailVerifie') : t('ui.emailNonVerifie')} tone={me?.emailVerified ? 'success' : 'warning'} size="sm" />
+              <Chip label={me?.phoneVerified ? t('ui.telephoneVerifie_4fdf8') : t('ui.telephoneNonVerifie')} tone={me?.phoneVerified ? 'success' : 'warning'} size="sm" />
             </View>
           </Card>
           <Card tone="white">
             <View style={styles.form}>
               <View style={styles.row2}>
-                <Input label="Prénom" value={firstName} onChangeText={setFirstName} />
-                <Input label="Nom" value={lastName} onChangeText={setLastName} />
+                <Input label={t('ui.prenom')} value={firstName} onChangeText={setFirstName} />
+                <Input label={t('ui.nom')} value={lastName} onChangeText={setLastName} />
               </View>
               {error ? <ErrorState error={error} /> : null}
-              <Button label="Enregistrer" onPress={() => save.mutate()} loading={save.isPending} />
+              <Button label={t('common.save')} onPress={() => save.mutate()} loading={save.isPending} />
             </View>
           </Card>
         </AuthGate>

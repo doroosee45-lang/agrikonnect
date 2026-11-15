@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function OrganizationTransport() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,18 +24,18 @@ export default function OrganizationTransport() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Transport" subtitle="Demandes logistiques de l\u2019organisation." />
+      <AppHeader title={t('ui.transport')} subtitle={t('ui.demandesLogistiquesDeLOrganisation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Transport" icon="car-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune demande" description="Les demandes de transport apparaîtront ici." icon="car-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.transport')} icon="car-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneDemande')} description={t('ui.lesDemandesDeTransportApparaitrontIci')} icon="car-outline" /> : (
             <View style={styles.list}>
               {items.map((request, index) => (
                 <Reveal key={request.id} index={index} variant="up">
                   <Card tone="white" style={styles.row}>
                     <View style={styles.rowBody}>
-                      <Text preset="bodyMedium">Transport rattaché à une commande</Text>
+                      <Text preset="bodyMedium">{t('ui.transportRattacheAUneCommande')}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {formatDate(request.createdAt, locale)} · {request.transporterOrgId ? 'transporteur assigné' : 'en attente d\u2019assignation'}
+                        {formatDate(request.createdAt, locale)} · {request.transporterOrgId ? t('ui.transporteurAssigne') : t('ui.enAttenteDAssignation')}
                       </Text>
                     </View>
                     <Chip label={request.status} tone="neutral" size="sm" />

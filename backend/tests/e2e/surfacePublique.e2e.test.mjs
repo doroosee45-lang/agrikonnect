@@ -51,6 +51,7 @@ const PUBLIQUES = new Set([
   'GET /docs/openapi.json',
   'GET /health',
   'GET /public/farms',
+  'GET /public/blog-posts',
   'GET /public/map',
   'GET /public/soil-stats',
 ]);

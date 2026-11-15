@@ -27,6 +27,7 @@ import { VERT } from '../theme/agrikonnect';
 
 /** Explorateur cartographique : points publics, filtre par pays, liste synchronisée. */
 export default function Explore() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 1000;
@@ -59,16 +60,16 @@ export default function Explore() {
     <PublicShell active="explore">
       <PageHeader
         index={1}
-        eyebrow="Carte"
-        title="Explorer le réseau"
-        subtitle="Les points affichés sont des exploitations publiques. Les coordonnées sont arrondies côté serveur : la localisation exacte n’est jamais publiée."
+        eyebrow={t('ui.carte')}
+        title={t('ui.explorerLeReseau')}
+        subtitle={t('ui.lesPointsAffichesSontDesExploitations')}
         compact
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <Reveal variant="up">
           <ChipRow>
-            <FilterChip label="Tous" active={country === null} onPress={() => setCountry(null)} icon="globe-outline" />
+            <FilterChip label={t('ui.tous')} active={country === null} onPress={() => setCountry(null)} icon="globe-outline" />
             {countries.map((code) => (
               <FilterChip
                 key={code}
@@ -109,17 +110,15 @@ export default function Explore() {
               <Text preset="overline" color={COLORS.livingGreen}>
                 {formatNumber(features.length, locale)} points
               </Text>
-              <Text preset="bodySm" color={COLORS.slateGray}>
-                Chargement par emprise, jamais le jeu complet.
-              </Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.chargementParEmpriseJamaisLeJeu')}</Text>
             </View>
 
             {isLoading ? (
               <LoadingState count={3} height={80} />
             ) : features.length === 0 ? (
               <EmptyState
-                title="Aucun point publié"
-                description="Aucune exploitation publique dans ce filtre pour le moment."
+                title={t('ui.aucunPointPublie')}
+                description={t('ui.aucuneExploitationPubliqueDansCeFiltre')}
                 icon="map-outline"
               />
             ) : (
@@ -145,7 +144,7 @@ export default function Explore() {
                         {feature.properties.countryCode}
                         {feature.properties.province ? ` · ${feature.properties.province}` : ''}
                         {feature.properties.totalAreaHa !== null
-                          ? ` · ${formatNumber(feature.properties.totalAreaHa, locale, 1)} ha`
+                          ? t('ui.ha', { totalAreaHa: formatNumber(feature.properties.totalAreaHa, locale, 1) })
                           : ''}
                       </Text>
                     </View>
@@ -160,10 +159,7 @@ export default function Explore() {
             )}
 
             <Card tone="ink" style={styles.legend}>
-              <Text preset="caption" color={DARK.textMuted} style={styles.lineHeight}>
-                Regroupement des points : {data?.meta.clustering ?? 'client'} — effectué par l’application,
-                pas par le serveur.
-              </Text>
+              <Text preset="caption" color={DARK.textMuted} style={styles.lineHeight}>{t('ui.regroupementDesPointsEffectueParL', { value: data?.meta.clustering ?? 'client' })}</Text>
             </Card>
           </Reveal>
         </View>

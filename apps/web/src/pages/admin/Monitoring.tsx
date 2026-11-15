@@ -5,6 +5,8 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme';
+import { useI18n, tr } from '@/i18n';
+import { bcpLocale } from '@/lib/format';
 
 type Dict = Record<string, unknown>;
 
@@ -20,7 +22,7 @@ const asNombre = (value: unknown): number | null => (typeof value === 'number' ?
 const formatDuree = (secondes: number): string => {
   const h = Math.floor(secondes / 3600);
   const m = Math.floor((secondes % 3600) / 60);
-  if (h > 0) return `${h} h ${m} min`;
+  if (h > 0) return tr('ui.hMin', { h, m });
   if (m > 0) return `${m} min`;
   return `${secondes} s`;
 };
@@ -36,7 +38,7 @@ const formatOctets = (value: unknown): string => {
 const formatDate = (value: unknown): string => {
   if (typeof value !== 'string' || !value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('fr-FR');
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(bcpLocale());
 };
 
 const NIVEAU_TONE: Record<string, 'success' | 'warning' | 'error'> = {
@@ -47,12 +49,13 @@ const NIVEAU_TONE: Record<string, 'success' | 'warning' | 'error'> = {
 
 const NIVEAU_LABEL: Record<string, string> = {
   ok: 'ok',
-  degrade: 'dégradé',
+  get degrade() { return tr('ui.degrade'); },
   incomplet: 'incomplet',
 };
 
 /** M5 U-M5-1/U-M5-3/U-M5-4 — services externes, santé technique et alertes (RG-M5-1 : état lu en direct). */
 export default function AdminMonitoring() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const services = useQuery({
@@ -88,14 +91,14 @@ export default function AdminMonitoring() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Supervision"
-        description="Services externes, santé technique et alertes — état lu en direct (RG-M5-1)."
+        title={t('ui.supervision')}
+        description={t('ui.servicesExternesSanteTechniqueEtAlertes')}
         icon="📡"
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-          <Text preset="h1">Supervision</Text>
+          <Text preset="h1">{t('ui.supervision')}</Text>
           <Button
-            label="Actualiser"
+            label={t('ui.actualiser')}
             variant="outline"
             size="sm"
             icon="⟳"
@@ -105,37 +108,26 @@ export default function AdminMonitoring() {
             }}
           />
         </div>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 4 }}>
-          Services externes, santé technique et alertes de supervision — évalués à chaque appel, jamais figés.
-        </Text>
-        <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 24 }}>
-          Dernière évaluation : {formatDate(etatServices.generatedAt ?? etatSante.generatedAt)} — actualisation
-          automatique toutes les 15 secondes.
-        </Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 4 }}>{t('ui.servicesExternesSanteTechniqueEtAlertes_f8d29')}</Text>
+        <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 24 }}>{t('ui.derniereEvaluationActualisationAutomatiqueToutes', { value: formatDate(etatServices.generatedAt ?? etatSante.generatedAt) })}</Text>
 
         <Card style={{ marginBottom: 24 }}>
           <CardBody>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <Chip label={`${asNombre(resume.total) ?? 0} services`} tone="neutral" />
               <Chip label={`${asNombre(resume.ok) ?? 0} ok`} tone="success" />
-              <Chip label={`${asNombre(resume.degrade) ?? 0} dégradés`} tone="warning" />
-              <Chip label={`${asNombre(resume.incomplet) ?? 0} incomplets`} tone="error" />
+              <Chip label={t('ui.degrades', { value: asNombre(resume.degrade) ?? 0 })} tone="warning" />
+              <Chip label={t('ui.countIncompleteMascPlural', { count: asNombre(resume.incomplet) ?? 0 })} tone="error" />
             </div>
           </CardBody>
         </Card>
 
-        <Text preset="h2" style={{ marginBottom: 12 }}>
-          Services externes
-        </Text>
+        <Text preset="h2" style={{ marginBottom: 12 }}>{t('ui.servicesExternes')}</Text>
         <div style={{ display: 'grid', gap: 12, marginBottom: 24 }}>
           {services.isLoading ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Chargement…
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('common.loading')}</Text>
           ) : listeServices.length === 0 ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Aucun service évalué.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucunServiceEvalue')}</Text>
           ) : (
             listeServices.map((item) => (
               <Card key={asText(item.service, 'service')}>
@@ -143,15 +135,11 @@ export default function AdminMonitoring() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <Text preset="h3">{asText(item.service)}</Text>
                     <Chip label={NIVEAU_LABEL[asText(item.niveau, '')] ?? asText(item.niveau)} tone={NIVEAU_TONE[asText(item.niveau, '')] ?? 'neutral'} />
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Mode : {asText(item.mode)}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.mode', { mode: asText(item.mode) })}</Text>
                   </div>
-                  <Text preset="bodySm">Conséquence : {asText(item.consequence)}</Text>
+                  <Text preset="bodySm">{t('ui.consequence', { consequence: asText(item.consequence) })}</Text>
                   {typeof item.pourRetablir === 'string' && item.pourRetablir ? (
-                    <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 6 }}>
-                      Marche à suivre : {item.pourRetablir}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 6 }}>{t('ui.marcheASuivre', { pourRetablir: item.pourRetablir })}</Text>
                   ) : null}
                 </CardBody>
               </Card>
@@ -159,43 +147,38 @@ export default function AdminMonitoring() {
           )}
         </div>
 
-        <Text preset="h2" style={{ marginBottom: 12 }}>
-          Santé technique
-        </Text>
+        <Text preset="h2" style={{ marginBottom: 12 }}>{t('ui.santeTechnique')}</Text>
         <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', marginBottom: 24 }}>
           <Card>
             <CardTitle>API</CardTitle>
             <CardBody>
-              <Text preset="bodySm">Disponibilité : {asNombre(apiInfo.uptimeSeconds) !== null ? formatDuree(asNombre(apiInfo.uptimeSeconds) as number) : '—'}</Text>
-              <Text preset="bodySm">Node.js : {asText(apiInfo.node)}</Text>
-              <Text preset="bodySm">Environnement : {asText(apiInfo.environment)}</Text>
+              <Text preset="bodySm">{t('ui.disponibilite', { value: asNombre(apiInfo.uptimeSeconds) !== null ? formatDuree(asNombre(apiInfo.uptimeSeconds) as number) : '—' })}</Text>
+              <Text preset="bodySm">{t('ui.nodeJs', { node: asText(apiInfo.node) })}</Text>
+              <Text preset="bodySm">{t('ui.environnement', { environment: asText(apiInfo.environment) })}</Text>
             </CardBody>
           </Card>
           <Card>
-            <CardTitle>Base de données</CardTitle>
+            <CardTitle>{t('ui.baseDeDonnees')}</CardTitle>
             <CardBody>
-              <Text preset="bodySm">
-                Connexion : {base.ok === true ? 'établie' : base.ok === false ? 'en échec' : '—'}
-                {asNombre(base.latencyMs) !== null ? ` · latence ${asNombre(base.latencyMs)} ms` : ''}
+              <Text preset="bodySm">{t('ui.connexion_18944')}{' '}{base.ok === true ? t('ui.etablie') : base.ok === false ? t('ui.enEchec') : '—'}
+                {asNombre(base.latencyMs) !== null ? t('ui.latenceMs', { latencyMs: asNombre(base.latencyMs) }) : ''}
               </Text>
               {typeof base.error === 'string' && base.error ? (
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Erreur : {base.error}
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.erreur', { error: base.error })}</Text>
               ) : null}
             </CardBody>
           </Card>
           <Card>
-            <CardTitle>Stockage</CardTitle>
+            <CardTitle>{t('ui.stockage')}</CardTitle>
             <CardBody>
-              <Text preset="bodySm">Pilote : {asText(stockage.driver)}</Text>
-              <Text preset="bodySm">Répertoire : {asText(stockage.dir)}</Text>
-              <Text preset="bodySm">Écriture : {stockage.writable === true ? 'autorisée' : 'refusée'}</Text>
-              <Text preset="bodySm">Espace libre : {formatOctets(stockage.freeBytes)} / {formatOctets(stockage.totalBytes)}</Text>
+              <Text preset="bodySm">{t('ui.pilote_abce1', { driver: asText(stockage.driver) })}</Text>
+              <Text preset="bodySm">{t('ui.repertoire', { dir: asText(stockage.dir) })}</Text>
+              <Text preset="bodySm">{t('ui.ecriture')}{' '}{stockage.writable === true ? t('ui.autorisee') : t('ui.refusee')}</Text>
+              <Text preset="bodySm">{t('ui.espaceLibre', { freeBytes: formatOctets(stockage.freeBytes), totalBytes: formatOctets(stockage.totalBytes) })}</Text>
             </CardBody>
           </Card>
           <Card>
-            <CardTitle>Temps réel</CardTitle>
+            <CardTitle>{t('ui.tempsReel')}</CardTitle>
             <CardBody>
               {Object.entries(tempsReel).map(([cle, valeur]) => (
                 <Text key={cle} preset="bodySm">
@@ -205,42 +188,36 @@ export default function AdminMonitoring() {
             </CardBody>
           </Card>
           <Card>
-            <CardTitle>Usage API (24 h)</CardTitle>
+            <CardTitle>{t('ui.usageApi24H')}</CardTitle>
             <CardBody>
-              <Text preset="bodySm">Appels API (24 h) : {asNombre(usage.apiCalls24h) ?? 0}</Text>
-              <Text preset="bodySm">Octets de ressources : {formatOctets(usage.resourceBytes)}</Text>
+              <Text preset="bodySm">{t('ui.appelsApi24H', { value: asNombre(usage.apiCalls24h) ?? 0 })}</Text>
+              <Text preset="bodySm">{t('ui.octetsDeRessources', { resourceBytes: formatOctets(usage.resourceBytes) })}</Text>
               {topRoutes.length > 0 ? (
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 6 }}>
-                  Routes les plus appelées : {topRoutes.map((r) => `${asText(r.route)} (${asNombre(r.calls) ?? 0})`).join(', ')}
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 6 }}>{t('ui.routesLesPlusAppelees', { value: topRoutes.map((r) => `${asText(r.route)} (${asNombre(r.calls) ?? 0})`).join(', ') })}</Text>
               ) : null}
             </CardBody>
           </Card>
           <Card>
-            <CardTitle>Tâches planifiées</CardTitle>
+            <CardTitle>{t('ui.tachesPlanifiees_8a786')}</CardTitle>
             <CardBody>
-              <Text preset="bodySm">Total : {asNombre(jobsResume.total) ?? 0}</Text>
-              <Text preset="bodySm">En cours : {asNombre(jobsResume.running) ?? 0}</Text>
-              <Text preset="bodySm">En pause : {asNombre(jobsResume.paused) ?? 0}</Text>
-              <Text preset="bodySm">En erreur : {asNombre(jobsResume.inError) ?? 0}</Text>
+              <Text preset="bodySm">{t('ui.total', { value: asNombre(jobsResume.total) ?? 0 })}</Text>
+              <Text preset="bodySm">{t('ui.enCours_b7ff9', { value: asNombre(jobsResume.running) ?? 0 })}</Text>
+              <Text preset="bodySm">{t('ui.enPause_5c570', { value: asNombre(jobsResume.paused) ?? 0 })}</Text>
+              <Text preset="bodySm">{t('ui.enErreur', { value: asNombre(jobsResume.inError) ?? 0 })}</Text>
             </CardBody>
           </Card>
         </div>
 
-        <Text preset="h2" style={{ marginBottom: 12 }}>
-          Alertes de supervision
-        </Text>
+        <Text preset="h2" style={{ marginBottom: 12 }}>{t('ui.alertesDeSupervision')}</Text>
         <div style={{ display: 'grid', gap: 12, marginBottom: 24 }}>
           {alertes.length === 0 ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Aucune alerte : tous les services et tâches sont dans leur état nominal.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucuneAlerteTousLesServicesEt')}</Text>
           ) : (
             alertes.map((alerte, index) => (
               <Card key={`${asText(alerte.service, 'alerte')}-${String(index)}`}>
                 <CardBody>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <Chip label={alerte.severity === 'error' ? 'erreur' : 'alerte'} tone={alerte.severity === 'error' ? 'error' : 'warning'} />
+                    <Chip label={alerte.severity === 'error' ? t('ui.erreur_c1f85') : t('ui.alerte')} tone={alerte.severity === 'error' ? 'error' : 'warning'} />
                     <Text preset="h3">{asText(alerte.service)}</Text>
                     <Text preset="caption" color={COLORS.slateGray}>
                       {asText(alerte.mode)}
@@ -248,9 +225,7 @@ export default function AdminMonitoring() {
                   </div>
                   <Text preset="bodySm">{asText(alerte.message)}</Text>
                   {typeof alerte.howToFix === 'string' && alerte.howToFix ? (
-                    <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 6 }}>
-                      Marche à suivre : {alerte.howToFix}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 6 }}>{t('ui.marcheASuivre_ec658', { howToFix: alerte.howToFix })}</Text>
                   ) : null}
                 </CardBody>
               </Card>

@@ -13,6 +13,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** APP — fil d'une conversation rattachée à un objet métier. */
 export default function AppConversation() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -41,11 +42,9 @@ export default function AppConversation() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Conversation" description="Fil de discussion." icon="💬">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.conversation')} description={t('ui.filDeDiscussion')} icon="💬">
         <div style={{ marginBottom: 24 }}>
-          <Link to="/app/messages" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour à la messagerie
-          </Link>
+          <Link to="/app/messages" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourALaMessagerie')}</Link>
         </div>
 
         <Card tone="white" style={{ display: 'flex', flexDirection: 'column', minHeight: 480 }}>
@@ -57,7 +56,7 @@ export default function AppConversation() {
             <>
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16, maxHeight: 460 }}>
                 {messages.length === 0 ? (
-                  <EmptyState title="Aucun message" description="Envoyez le premier message de cette conversation." icon="✉️" />
+                  <EmptyState title={t('ui.aucunMessage')} description={t('ui.envoyezLePremierMessageDeCette')} icon="✉️" />
                 ) : (
                   messages.map((message, index) => (
                     <motion.div
@@ -74,7 +73,7 @@ export default function AppConversation() {
                         <Text preset="caption" color={COLORS.slateGray}>
                           {formatRelative(message.createdAt, locale)}
                         </Text>
-                        {message.attachments.length > 0 ? <Chip label={`${message.attachments.length} pièce(s)`} tone="neutral" size="sm" /> : null}
+                        {message.attachments.length > 0 ? <Chip label={t('ui.pieceS', { length: message.attachments.length })} tone="neutral" size="sm" /> : null}
                       </div>
                     </motion.div>
                   ))
@@ -95,9 +94,9 @@ export default function AppConversation() {
                 style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}
               >
                 <div style={{ flex: 1 }}>
-                  <Input label="Message" value={draft} onChange={(event) => setDraft(event.target.value)} placeholder="Écrivez votre message…" maxLength={3000} />
+                  <Input label={t('ui.message')} value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={t('ui.ecrivezVotreMessage')} maxLength={3000} />
                 </div>
-                <Button label="Envoyer" type="submit" loading={send.isPending} disabled={!draft.trim()} />
+                <Button label={t('ui.envoyer')} type="submit" loading={send.isPending} disabled={!draft.trim()} />
               </form>
             </>
           )}

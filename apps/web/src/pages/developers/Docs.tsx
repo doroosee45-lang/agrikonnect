@@ -3,44 +3,42 @@ import { motion } from 'framer-motion';
 import { Card, Section, Text } from '@/components/ui';
 import { COLORS, DURATION, EASE } from '@/theme';
 import { VERT } from '../../theme/agrikonnect';
+import { useI18n, tr } from '@/i18n';
 
 const GROUPS = [
   {
-    title: 'Données publiques',
+    get title() { return tr('ui.donneesPubliques'); },
     endpoints: [
-      { method: 'GET', path: '/public/farms', description: 'Liste des exploitations publiées.' },
-      { method: 'GET', path: '/public/farms/:slug', description: 'Fiche publique d\'une exploitation.' },
-      { method: 'GET', path: '/public/map', description: 'Carte des exploitations publiées (GeoJSON).' },
-      { method: 'GET', path: '/public/lots/:code', description: 'Fiche publique d\'un lot de traçabilité.' },
-      { method: 'GET', path: '/public/soil-stats', description: 'Statistiques de sol agrégées (k-anonymité).' },
+      { method: 'GET', path: '/public/farms', get description() { return tr('ui.listeDesExploitationsPubliees'); } },
+      { method: 'GET', path: '/public/farms/:slug', get description() { return tr('ui.fichePubliqueDUneExploitation'); } },
+      { method: 'GET', path: '/public/map', get description() { return tr('ui.carteDesExploitationsPublieesGeojson'); } },
+      { method: 'GET', path: '/public/lots/:code', get description() { return tr('ui.fichePubliqueDUnLotDe'); } },
+      { method: 'GET', path: '/public/soil-stats', get description() { return tr('ui.statistiquesDeSolAgregeesKAnonymite'); } },
     ],
   },
   {
-    title: 'Références',
+    get title() { return tr('ui.references'); },
     endpoints: [
-      { method: 'GET', path: '/crops', description: 'Référentiel des cultures.' },
-      { method: 'GET', path: '/countries', description: 'Référentiel des pays.' },
+      { method: 'GET', path: '/crops', get description() { return tr('ui.referentielDesCultures'); } },
+      { method: 'GET', path: '/countries', get description() { return tr('ui.referentielDesPays'); } },
     ],
   },
   {
-    title: 'Prix et météo',
+    get title() { return tr('ui.prixEtMeteo'); },
     endpoints: [
-      { method: 'GET', path: '/prices', description: 'Prix de marché par culture et zone.' },
-      { method: 'GET', path: '/weather', description: 'Prévisions météorologiques.' },
+      { method: 'GET', path: '/prices', get description() { return tr('ui.prixDeMarcheParCultureEt'); } },
+      { method: 'GET', path: '/weather', get description() { return tr('ui.previsionsMeteorologiques'); } },
     ],
   },
 ];
 
 /** DEVELOPERS — référence des endpoints publics. */
 export default function DevelopersDocs() {
+  const { t } = useI18n();
   return (
     <Section>
-      <Text preset="h1" style={{ marginBottom: 8 }}>
-        Documentation
-      </Text>
-      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-        Endpoints accessibles avec une clé API. Les endpoints authentifiés ne sont pas exposés ici.
-      </Text>
+      <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.documentation')}</Text>
+      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.endpointsAccessiblesAvecUneCleApi')}</Text>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         {GROUPS.map((group, index) => (

@@ -12,6 +12,7 @@ import { RADIUS, SPACING } from '@/theme/space';
 
 /** Préférences de pays et de langue. Le choix de langue est local ; le référentiel pays vient du backend. */
 export default function PublicSiteCountryLanguage() {
+  const { t } = useI18n();
   const { locale, setLocale } = useI18n();
   const query = useQuery({
     queryKey: queryKeys.countries.all,
@@ -21,10 +22,10 @@ export default function PublicSiteCountryLanguage() {
   const countries = query.data ?? [];
   return (
     <PublicShell active="country-language">
-      <PageHeader index="12" eyebrow="Préférences" title="Pays et langue" subtitle="La langue s\u2019applique immédiatement à l\u2019interface ; le pays filtre les données affichées." />
+      <PageHeader index="12" eyebrow={t('ui.preferences')} title={t('ui.paysEtLangue')} subtitle={t('ui.laLangueSAppliqueImmediatementA')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <Card tone="white">
-          <Text preset="h3" style={styles.mb}>Langue de l\u2019interface</Text>
+          <Text preset="h3" style={styles.mb}>{t('ui.langueDeLInterface_2ceb3')}</Text>
           <View style={styles.chips}>
             {SUPPORTED_LOCALES.map((option) => {
               const active = locale === option.code;
@@ -36,7 +37,7 @@ export default function PublicSiteCountryLanguage() {
             })}
           </View>
         </Card>
-        <Text preset="h3">Pays disponibles</Text>
+        <Text preset="h3">{t('ui.paysDisponibles')}</Text>
         {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : (
           <View style={styles.list}>
             {countries.map((country, index) => (

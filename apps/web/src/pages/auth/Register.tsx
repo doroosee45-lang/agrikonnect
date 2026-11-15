@@ -6,20 +6,22 @@ import { Button, Card, Input, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
 import { getUserInitialRoute } from '@/lib/redirects';
+import { useI18n, tr } from '@/i18n';
 
 const ACCOUNT_TYPES = [
-  { value: 'FARMER', label: 'Producteur' },
-  { value: 'COOPERATIVE_ADMIN', label: 'Coopérative' },
-  { value: 'AGRICULTURAL_COMPANY', label: 'Société agricole' },
-  { value: 'BUYER', label: 'Acheteur' },
-  { value: 'SUPPLIER', label: 'Fournisseur' },
-  { value: 'TRANSPORTER', label: 'Transporteur' },
-  { value: 'AGRONOMIST', label: 'Agronome' },
-  { value: 'INVESTOR', label: 'Investisseur' },
-  { value: 'SUPPORT_AGENT', label: 'Agent d’appui' },
+  { value: 'FARMER', get label() { return tr('ui.producteur'); } },
+  { value: 'COOPERATIVE_ADMIN', get label() { return tr('ui.cooperative'); } },
+  { value: 'AGRICULTURAL_COMPANY', get label() { return tr('ui.societeAgricole'); } },
+  { value: 'BUYER', get label() { return tr('ui.acheteur'); } },
+  { value: 'SUPPLIER', get label() { return tr('ui.fournisseur'); } },
+  { value: 'TRANSPORTER', get label() { return tr('ui.transporteur'); } },
+  { value: 'AGRONOMIST', get label() { return tr('ui.agronome'); } },
+  { value: 'INVESTOR', get label() { return tr('ui.investisseur'); } },
+  { value: 'SUPPORT_AGENT', get label() { return tr('ui.agentDAppui'); } },
 ] as const;
 
 export default function Register() {
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
   const status = useAuthStore((state) => state.status);
@@ -50,12 +52,12 @@ export default function Register() {
     setError(null);
 
     try {
-      await register({ accountType, firstName, lastName, email, password, countryCode });
+      await register({ accountType, firstName, lastName, email, password, countryCode, locale }); // langue active (I18N-01)
       // La vérification d'adresse est la prochaine étape : l'écran dédié se
       // charge du renvoi du lien, l'adresse y est préremplie (?email=…).
       navigate('/auth/verify-email?email=' + encodeURIComponent(email));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'inscription');
+      setError(err instanceof Error ? err.message : t('ui.erreurLorsDeLInscription'));
     }
   };
 
@@ -68,17 +70,13 @@ export default function Register() {
         style={{ width: '100%', maxWidth: 480 }}
       >
         <Card tone="white" style={{ padding: 32 }}>
-          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>
-            Créer un compte
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>
-            Rejoignez la plateforme de traçabilité agricole africaine.
-          </Text>
+          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>{t('ui.creerUnCompte')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>{t('ui.rejoignezLaPlateformeDeTracabiliteAgricole')}</Text>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Input
-                label="Prénom"
+                label={t('ui.prenom')}
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -86,7 +84,7 @@ export default function Register() {
                 autoComplete="given-name"
               />
               <Input
-                label="Nom"
+                label={t('ui.nom')}
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -96,7 +94,7 @@ export default function Register() {
             </div>
 
             <Input
-              label="Email"
+              label={t('ui.email')}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -105,18 +103,18 @@ export default function Register() {
             />
 
             <Input
-              label="Mot de passe"
+              label={t('ui.motDePasse')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="new-password"
               minLength={8}
-              hint="Au moins 8 caractères"
+              hint={t('ui.auMoins8Caracteres')}
             />
 
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>Type de compte</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>{t('ui.typeDeCompte')}</span>
               <select
                 value={accountType}
                 onChange={(e) => setAccountType(e.target.value as typeof accountType)}
@@ -141,27 +139,23 @@ export default function Register() {
             </label>
 
             <Input
-              label="Code pays"
+              label={t('ui.codePays')}
               type="text"
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value.toUpperCase().slice(0, 2))}
               required
               maxLength={2}
-              hint="ISO 3166-1 alpha-2 (ex. CD, CI, SN)"
+              hint={t('ui.iso31661Alpha2Ex')}
             />
 
             {error ? (
               <div style={{ fontSize: 13, color: COLORS.error, textAlign: 'center' }}>{error}</div>
             ) : null}
 
-            <Button label="Créer mon compte" type="submit" loading={busy} fullWidth />
+            <Button label={t('ui.creerMonCompte')} type="submit" loading={busy} fullWidth />
           </form>
 
-          <div style={{ marginTop: 24, textAlign: 'center', fontSize: 14, color: COLORS.slateGray }}>
-            Déjà un compte ?{' '}
-            <Link to="/auth/login" style={{ color: COLORS.forestGreen, fontWeight: 600, textDecoration: 'none' }}>
-              Se connecter
-            </Link>
+          <div style={{ marginTop: 24, textAlign: 'center', fontSize: 14, color: COLORS.slateGray }}>{t('ui.dejaUnCompte')}{' '}<Link to="/auth/login" style={{ color: COLORS.forestGreen, fontWeight: 600, textDecoration: 'none' }}>{t('ui.seConnecter')}</Link>
           </div>
         </Card>
       </motion.div>

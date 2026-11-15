@@ -6,9 +6,11 @@ import { geoApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** ADMIN — règles de compatibilité culturales versionnées. */
 export default function AdminRules() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const methods = useQuery({
@@ -21,13 +23,9 @@ export default function AdminRules() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Règles" description="Règles de compatibilité et seuils du moteur." icon="📐">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Règles et méthodes
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Seuils, méthodes et priorité des sources exposés par le moteur géospatial.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.regles')} description={t('ui.reglesDeCompatibiliteEtSeuilsDu')} icon="📐">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.reglesEtMethodes')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.seuilsMethodesEtPrioriteDesSources')}</Text>
 
         {methods.isLoading ? (
           <LoadingState count={2} height={100} />
@@ -35,9 +33,7 @@ export default function AdminRules() {
           <ErrorState error={methods.error} onRetry={() => void methods.refetch()} showRequestId />
         ) : entries.length === 0 ? (
           <Card tone="white">
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Le moteur n'expose aucune règle pour le moment.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.leMoteurNExposeAucuneRegle')}</Text>
           </Card>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

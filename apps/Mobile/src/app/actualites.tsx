@@ -7,6 +7,7 @@ import { Button, Card, Chip, Reveal, Section, Text } from '@/components/ui';
 import { RELEASE_TRACK } from '@/lib/platform';
 import { COLORS, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Journal du réseau.
@@ -16,13 +17,14 @@ import { RADIUS, SPACING } from '@/theme/space';
  * opérationnels (prix, appels d’offres, projets) qui, eux, exigent un compte.
  */
 export default function Actualites() {
+  const { t } = useI18n();
   return (
     <PublicShell active="actualites">
       <PageHeader
         index={1}
-        eyebrow="Journal"
-        title="Ce que la plateforme sait faire aujourd’hui"
-        subtitle="Pas de communiqué sans substance : voici le périmètre livré, version par version, et les flux qui s’y rattachent."
+        eyebrow={t('ui.journal')}
+        title={t('ui.ceQueLaPlateformeSaitFaire')}
+        subtitle={t('ui.pasDeCommuniqueSansSubstanceVoici')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
@@ -40,7 +42,7 @@ export default function Actualites() {
                     <Text preset="h3" color={COLORS.textPrimary}>
                       {release.name}
                     </Text>
-                    <Chip label="Livré" tone="success" size="sm" icon="checkmark-circle" />
+                    <Chip label={t('ui.livre')} tone="success" size="sm" icon="checkmark-circle" />
                   </View>
                 </View>
                 <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
@@ -55,17 +57,12 @@ export default function Actualites() {
           <Card tone="pale" style={styles.note}>
             <Ionicons name="information-circle-outline" size={18} color={COLORS.forestGreen} />
             <View style={styles.noteText}>
-              <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                Les publications opérationnelles sont dans votre espace
-              </Text>
-              <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-                Relevés de prix, appels d’offres, dossiers de projet et annonces sont des données de travail :
-                elles sont réservées aux comptes actifs, avec leur source et leur date.
-              </Text>
+              <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.lesPublicationsOperationnellesSontDansVotre')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.relevesDePrixAppelsDOffres')}</Text>
               <View style={styles.noteActions}>
-                <Button label="Prix de marché" onPress={() => router.push('/prices')} variant="outline" size="sm" />
-                <Button label="Appels d’offres" onPress={() => router.push('/tenders')} variant="outline" size="sm" />
-                <Button label="Projets" onPress={() => router.push('/projets')} variant="outline" size="sm" />
+                <Button label={t('ui.prixDeMarche')} onPress={() => router.push('/prices')} variant="outline" size="sm" />
+                <Button label={t('ui.appelsDOffres')} onPress={() => router.push('/tenders')} variant="outline" size="sm" />
+                <Button label={t('ui.projets')} onPress={() => router.push('/projets')} variant="outline" size="sm" />
               </View>
             </View>
           </Card>

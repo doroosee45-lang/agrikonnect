@@ -6,6 +6,8 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme';
+import { useI18n, tr } from '@/i18n';
+import { bcpLocale } from '@/lib/format';
 
 type Dict = Record<string, unknown>;
 
@@ -21,18 +23,19 @@ const asNombre = (value: unknown): number | null => (typeof value === 'number' ?
 const formatDate = (value: unknown): string => {
   if (typeof value !== 'string' || !value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('fr-FR');
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(bcpLocale());
 };
 
 const messageErreur = (error: unknown): string => {
   const dict = asDict(error);
-  const base = typeof dict.message === 'string' && dict.message ? dict.message : 'Erreur inattendue';
+  const base = typeof dict.message === 'string' && dict.message ? dict.message : tr('ui.unexpectedError');
   const details = asDict(dict.details);
-  return details.mfaRequired === true ? `${base} — palier 2 : second facteur (MFA) requis.` : base;
+  return details.mfaRequired === true ? tr('ui.palier2SecondFacteurMfaRequis', { base }) : base;
 };
 
 /** M5 U-M5-2 — console des tâches planifiées : exécution manuelle audité (RG-M5-2), pause/reprise (palier 2). */
 export default function AdminJobs() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const queryClient = useQueryClient();
   const [motif, setMotif] = useState('');
@@ -55,9 +58,9 @@ export default function AdminJobs() {
       setErreur('');
       const sortie = asDict(result.data);
       if (sortie.skipped === true) {
-        setAvis(`Tâche « ${name} » non exécutée : ${asText(sortie.reason, 'déjà en cours')}`);
+        setAvis(t('ui.jobSkipped', { name, reason: asText(sortie.reason, t('ui.alreadyRunning')) }));
       } else {
-        setAvis(`Tâche « ${name} » exécutée en ${asNombre(sortie.durationMs) ?? 0} ms.`);
+        setAvis(t('ui.tacheExecuteeEnMs', { name, value: asNombre(sortie.durationMs) ?? 0 }));
       }
       void rafraichir();
     },
@@ -68,7 +71,7 @@ export default function AdminJobs() {
     mutationFn: (name: string) => adminApi.pauseJob(name),
     onSuccess: (_result, name) => {
       setErreur('');
-      setAvis(`Tâche « ${name} » mise en pause.`);
+      setAvis(t('ui.tacheMiseEnPause', { name }));
       void rafraichir();
     },
     onError: (caught) => setErreur(messageErreur(caught)),
@@ -78,7 +81,7 @@ export default function AdminJobs() {
     mutationFn: (name: string) => adminApi.resumeJob(name),
     onSuccess: (_result, name) => {
       setErreur('');
-      setAvis(`Tâche « ${name} » reprise.`);
+      setAvis(t('ui.tacheReprise', { name }));
       void rafraichir();
     },
     onError: (caught) => setErreur(messageErreur(caught)),
@@ -90,23 +93,20 @@ export default function AdminJobs() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Tâches planifiées"
-        description="Console des jobs : état, exécution manuelle audité (RG-M5-2), pause/reprise (palier 2)."
+        title={t('ui.tachesPlanifiees_8a786')}
+        description={t('ui.consoleDesJobsEtatExecutionManuelle')}
         icon="⚙️"
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
-          <Text preset="h1">Tâches planifiées</Text>
-          <Button label="Actualiser" variant="outline" size="sm" icon="⟳" onClick={() => void rafraichir()} />
+          <Text preset="h1">{t('ui.tachesPlanifiees_8a786')}</Text>
+          <Button label={t('ui.actualiser')} variant="outline" size="sm" icon="⟳" onClick={() => void rafraichir()} />
         </div>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>
-          Le déclenchement manuel est audité (admin.job.run) et verrouillé contre les doubles exécutions (RG-M5-2).
-          La pause et la reprise exigent le palier 2 (SUPER_ADMIN + MFA).
-        </Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>{t('ui.leDeclenchementManuelEstAuditeAdmin')}</Text>
 
         <div style={{ marginBottom: 16 }}>
           <Input
-            label="Motif (facultatif)"
-            placeholder="Ex. : purge demandée par l'exploitation"
+            label={t('ui.motifFacultatif')}
+            placeholder={t('ui.exPurgeDemandeeParLExploitation')}
             value={motif}
             onChange={(event) => setMotif(event.target.value)}
           />
@@ -131,13 +131,9 @@ export default function AdminJobs() {
 
         <div style={{ display: 'grid', gap: 12 }}>
           {jobs.isLoading ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Chargement…
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('common.loading')}</Text>
           ) : liste.length === 0 ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Aucune tâche planifiée exposée par l'API.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucuneTachePlanifieeExposeeParL')}</Text>
           ) : (
             liste.map((job) => {
               const name = asText(job.name, 'tâche');
@@ -146,54 +142,43 @@ export default function AdminJobs() {
                   <CardBody>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                       <Text preset="h3">{name}</Text>
-                      {job.running === true ? <Chip label="en cours" tone="gold" /> : null}
-                      {job.paused === true ? <Chip label="en pause" tone="warning" /> : null}
-                      {job.running !== true && job.paused !== true && job.lastOk === false ? <Chip label="en échec" tone="error" /> : null}
+                      {job.running === true ? <Chip label={t('ui.enCours')} tone="gold" /> : null}
+                      {job.paused === true ? <Chip label={t('ui.enPause')} tone="warning" /> : null}
+                      {job.running !== true && job.paused !== true && job.lastOk === false ? <Chip label={t('ui.enEchec')} tone="error" /> : null}
                       {job.running !== true && job.paused !== true && job.lastOk === true ? <Chip label="ok" tone="success" /> : null}
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Cadence : {asText(job.intervalHuman)}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.cadence', { intervalHuman: asText(job.intervalHuman) })}</Text>
                     </div>
                     {typeof job.description === 'string' && job.description ? (
                       <Text preset="bodySm" style={{ marginBottom: 6 }}>
                         {job.description}
                       </Text>
                     ) : null}
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Dernière exécution : {formatDate(job.lastRunAt)} · Durée : {asNombre(job.lastDurationMs) !== null ? `${asNombre(job.lastDurationMs)} ms` : '—'} ·
-                      Prochaine échéance : {formatDate(job.nextRunAt)}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.derniereExecutionDureeProchaineEcheance', { lastRunAt: formatDate(job.lastRunAt), value: asNombre(job.lastDurationMs) !== null ? `${asNombre(job.lastDurationMs)} ms` : '—', nextRunAt: formatDate(job.nextRunAt) })}</Text>
                     {asNombre(job.consecutiveFailures) !== null && (asNombre(job.consecutiveFailures) as number) > 0 ? (
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Échecs consécutifs : {asNombre(job.consecutiveFailures)}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.echecsConsecutifs', { consecutiveFailures: asNombre(job.consecutiveFailures) })}</Text>
                     ) : null}
                     {typeof job.lastError === 'string' && job.lastError ? (
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Dernière erreur : {job.lastError}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.derniereErreur', { lastError: job.lastError })}</Text>
                     ) : null}
                     {job.lastResult !== null && job.lastResult !== undefined ? (
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Résultat : {JSON.stringify(job.lastResult)}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.resultat', { lastResult: JSON.stringify(job.lastResult) })}</Text>
                     ) : null}
                     <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
                       <Button
-                        label="Exécuter"
+                        label={t('ui.executer')}
                         size="sm"
                         onClick={() => executer.mutate(name)}
                         disabled={executer.isPending || job.paused === true || job.running === true}
                       />
                       <Button
-                        label="Mettre en pause"
+                        label={t('ui.mettreEnPause')}
                         variant="outline"
                         size="sm"
                         onClick={() => mettreEnPause.mutate(name)}
                         disabled={mettreEnPause.isPending || job.paused === true}
                       />
                       <Button
-                        label="Reprendre"
+                        label={t('ui.reprendre')}
                         variant="outline"
                         size="sm"
                         onClick={() => reprendre.mutate(name)}

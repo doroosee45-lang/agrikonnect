@@ -28,11 +28,12 @@ const STATUS_TONE = {
 } as const;
 
 export default function FarmerExport() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<ExportOrderList['items'][number]>
-      title="Exportations"
-      subtitle="Dossiers d'exportation : incoterm, destination, conformité documentaire et change appliqué."
+      title={t('ui.exportations')}
+      subtitle={t('ui.dossiersDExportationIncotermDestinationConformit')}
       icon="🚢"
       queryKey={queryKeys.exports.list({ limit: 100 })}
       fetch={() => exportApi.list({ limit: 100 }).then((result) => result.data.items)}
@@ -41,31 +42,31 @@ export default function FarmerExport() {
       columns={[
         {
           key: 'reference',
-          label: 'Référence',
+          label: t('ui.reference'),
           render: (order) => <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{order.reference}</span>,
         },
         {
           key: 'status',
-          label: 'Statut',
+          label: t('ui.statut'),
           render: (order) => <Chip label={order.status} tone={STATUS_TONE[order.status]} size="sm" />,
         },
-        { key: 'destinationCountry', label: 'Destination', render: (order) => order.destinationCountry },
-        { key: 'incoterm', label: 'Incoterm', render: (order) => order.incoterm ?? '—' },
+        { key: 'destinationCountry', label: t('ui.destination'), render: (order) => order.destinationCountry },
+        { key: 'incoterm', label: t('ui.incoterm'), render: (order) => order.incoterm ?? '—' },
         {
           key: 'totalAmount',
-          label: 'Montant',
+          label: t('ui.montant'),
           render: (order) => (order.totalAmount !== null ? `${order.totalAmount} ${order.currency}` : '—'),
         },
         {
           key: 'documents',
-          label: 'Pièces',
+          label: t('ui.pieces'),
           render: (order) => `${order._count.documents}/4`,
         },
-        { key: 'createdAt', label: 'Créé le', render: (order) => formatDate(order.createdAt, locale) },
+        { key: 'createdAt', label: t('ui.creeLe'), render: (order) => formatDate(order.createdAt, locale) },
       ]}
-      emptyTitle="Aucun dossier d'exportation"
-      emptyDescription="Aucun dossier n'a été ouvert. Un dossier est distinct d'une commande : il porte la conformité documentaire et le change appliqué."
-      notice="Le taux de change affiché est celui figé à l'ouverture du dossier, pas le taux du jour."
+      emptyTitle={t('ui.aucunDossierDExportation')}
+      emptyDescription={t('ui.aucunDossierNAEteOuvert')}
+      notice={t('ui.leTauxDeChangeAfficheEst')}
     />
   );
 }

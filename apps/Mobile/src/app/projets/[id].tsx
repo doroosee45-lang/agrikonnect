@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function ProjetDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,21 +26,21 @@ export default function ProjetDetail() {
   const project = query.data as Record<string, unknown> | undefined;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={String(project?.title ?? '—')} subtitle="Fiche projet." />
+      <AppHeader title={String(project?.title ?? '—')} subtitle={t('ui.ficheProjet')} />
       <Section bare contentStyle={styles.section}>
-        {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !project ? <Text preset="body">Projet introuvable.</Text> : (
+        {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !project ? <Text preset="body">{t('ui.projetIntrouvable_85f8f')}</Text> : (
           <Card tone="white" style={styles.card}>
             <Text preset="h3">{String(project.title ?? '—')}</Text>
             <View style={styles.field}>
-              <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
               <Chip label={String(project.status ?? '—')} tone="neutral" size="sm" />
             </View>
             <View style={styles.field}>
-              <Text preset="caption" color={COLORS.slateGray}>Pays</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.pays')}</Text>
               <Text preset="bodySm">{String(project.countryCode ?? '—')}</Text>
             </View>
             <View style={styles.field}>
-              <Text preset="caption" color={COLORS.slateGray}>Créé le</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.creeLe')}</Text>
               <Text preset="bodySm">{project.createdAt ? formatDate(String(project.createdAt), locale) : '—'}</Text>
             </View>
           </Card>

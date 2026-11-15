@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 /**
  * Numéro au format E.164.
  *
@@ -43,8 +44,8 @@ export const phoneReadiness = (phone: string | null | undefined): PhoneReadiness
     blocker: valid
       ? null
       : present
-        ? 'Le numéro enregistré n’est pas au format international (+243…).'
-        : 'Aucun numéro de téléphone enregistré : les alertes SMS ne peuvent pas partir.',
+        ? tr('ui.leNumeroEnregistreNEstPas')
+        : tr('ui.aucunNumeroDeTelephoneEnregistreLes'),
   };
 };
 

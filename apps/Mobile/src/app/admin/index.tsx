@@ -30,6 +30,7 @@ import { SPACING } from '@/theme/space';
 
 /** Administration : tableau de bord, comptes, journal d'audit, tâches planifiées. */
 export default function Admin() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -69,21 +70,21 @@ export default function Admin() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Administration" subtitle="Pilotage, comptes, audit et tâches planifiées." />
+      <AppHeader title={t('ui.administration')} subtitle={t('ui.pilotageComptesAuditEtTachesPlanifiees')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Accès administrateur"
-          description="Connectez-vous avec un rôle administrateur pour accéder à cet espace."
+          title={t('ui.accesAdministrateur')}
+          description={t('ui.connectezVousAvecUnRoleAdministrateur')}
           icon="settings-outline"
         >
           <ChipRow>
             {([
-              { key: 'dashboard', label: 'Tableau de bord' },
-              { key: 'users', label: 'Comptes' },
-              { key: 'audit', label: 'Journal d’audit' },
-              { key: 'jobs', label: 'Tâches' },
+              { key: 'dashboard', label: t('ui.tableauDeBord') },
+              { key: 'users', label: t('ui.comptes') },
+              { key: 'audit', label: t('ui.journalDAudit_d7747') },
+              { key: 'jobs', label: t('ui.taches') },
             ] as const).map((item) => (
               <FilterChip key={item.key} label={item.label} active={tab === item.key} onPress={() => setTab(item.key)} />
             ))}
@@ -96,9 +97,7 @@ export default function Admin() {
               <ErrorState error={dashboard.error} onRetry={() => void dashboard.refetch()} />
             ) : (
               <Card tone="ink" style={styles.card}>
-                <Text preset="overline" color={COLORS.gold}>
-                  Vue d’ensemble
-                </Text>
+                <Text preset="overline" color={COLORS.gold}>{t('ui.vueDEnsemble_de0d9')}</Text>
                 <View style={styles.grid}>
                   {Object.entries((dashboard.data ?? {}) as Record<string, unknown>).map(([key, value]) => (
                     <View key={key} style={styles.stat}>
@@ -111,9 +110,7 @@ export default function Admin() {
                     </View>
                   ))}
                 </View>
-                <Text preset="caption" color="rgba(246, 247, 242, 0.65)" style={styles.lineHeight}>
-                  Compteurs servis par GET /admin/dashboard. Aucune donnée personnelle n’y figure.
-                </Text>
+                <Text preset="caption" color="rgba(246, 247, 242, 0.65)" style={styles.lineHeight}>{t('ui.compteursServisParGetAdminDashboard')}</Text>
               </Card>
             )
           ) : null}
@@ -124,7 +121,7 @@ export default function Admin() {
             ) : users.isError ? (
               <ErrorState error={users.error} onRetry={() => void users.refetch()} />
             ) : (users.data ?? []).length === 0 ? (
-              <EmptyState title="Aucun compte" description="Aucun utilisateur à afficher." icon="people-outline" />
+              <EmptyState title={t('ui.aucunCompte')} description={t('ui.aucunUtilisateurAAfficher')} icon="people-outline" />
             ) : (
               <View style={styles.list}>
                 {(users.data ?? []).map((row, index) => {
@@ -141,12 +138,12 @@ export default function Admin() {
                           <Text preset="caption" color={COLORS.slateGray}>
                             {String(user.firstName ?? '')} {String(user.lastName ?? '')}
                             {user.countryCode ? ` · ${String(user.countryCode)}` : ''}
-                            {user.createdAt ? ` · créé le ${formatDate(String(user.createdAt), locale)}` : ''}
+                            {user.createdAt ? t('ui.creeLe_65163', { createdAt: formatDate(String(user.createdAt), locale) }) : ''}
                           </Text>
                         </View>
                         <View style={styles.rowAside}>
                           <Chip label={status} tone={status === 'ACTIVE' ? 'success' : status === 'SUSPENDED' ? 'error' : 'warning'} size="sm" />
-                          <Button label="Gérer" onPress={() => router.push(`/admin/users/${id}`)} variant="ghost" size="sm" icon="options-outline" />
+                          <Button label={t('ui.gerer')} onPress={() => router.push(`/admin/users/${id}`)} variant="ghost" size="sm" icon="options-outline" />
                         </View>
                       </Card>
                     </Reveal>
@@ -162,7 +159,7 @@ export default function Admin() {
             ) : audit.isError ? (
               <ErrorState error={audit.error} onRetry={() => void audit.refetch()} />
             ) : (audit.data ?? []).length === 0 ? (
-              <EmptyState title="Journal vide" description="Aucune entrée d’audit sur la période." icon="time-outline" />
+              <EmptyState title={t('ui.journalVide')} description={t('ui.aucuneEntreeDAuditSurLa')} icon="time-outline" />
             ) : (
               <View style={styles.list}>
                 {(audit.data ?? []).map((row, index) => {
@@ -177,10 +174,10 @@ export default function Admin() {
                           </Text>
                           <Text preset="caption" color={COLORS.slateGray}>
                             {entry.at ? formatDate(String(entry.at), locale) : entry.createdAt ? formatDate(String(entry.createdAt), locale) : '—'}
-                            {entry.actorId ? ` · acteur ${String(entry.actorId)}` : ''}
+                            {entry.actorId ? t('ui.acteur_3c80c', { actorId: String(entry.actorId) }) : ''}
                           </Text>
                         </View>
-                        <Chip label="tracé" tone="neutral" size="sm" />
+                        <Chip label={t('ui.trace')} tone="neutral" size="sm" />
                       </Card>
                     </Reveal>
                   );
@@ -195,7 +192,7 @@ export default function Admin() {
             ) : jobs.isError ? (
               <ErrorState error={jobs.error} onRetry={() => void jobs.refetch()} />
             ) : (jobs.data ?? []).length === 0 ? (
-              <EmptyState title="Aucune tâche" description="Aucune tâche planifiée exposée." icon="cog-outline" />
+              <EmptyState title={t('ui.aucuneTache')} description={t('ui.aucuneTachePlanifieeExposee')} icon="cog-outline" />
             ) : (
               <View style={styles.list}>
                 {(jobs.data ?? []).map((row, index) => {
@@ -209,11 +206,11 @@ export default function Admin() {
                             {name}
                           </Text>
                           <Text preset="caption" color={COLORS.slateGray}>
-                            {job.schedule ? `planification ${String(job.schedule)}` : 'planification non exposée'}
-                            {job.lastRunAt ? ` · dernier run ${formatDate(String(job.lastRunAt), locale)}` : ''}
+                            {job.schedule ? `planification ${String(job.schedule)}` : t('ui.planificationNonExposee')}
+                            {job.lastRunAt ? t('ui.dernierRun', { lastRunAt: formatDate(String(job.lastRunAt), locale) }) : ''}
                           </Text>
                         </View>
-                        <Button label="Lancer" onPress={() => runJob.mutate(name)} variant="outline" size="sm" icon="play-outline" loading={runJob.isPending && runJob.variables === name} />
+                        <Button label={t('ui.lancer')} onPress={() => runJob.mutate(name)} variant="outline" size="sm" icon="play-outline" loading={runJob.isPending && runJob.variables === name} />
                       </Card>
                     </Reveal>
                   );
@@ -224,10 +221,7 @@ export default function Admin() {
 
           <Card tone="pale" style={styles.note}>
             <Ionicons name="lock-closed-outline" size={16} color={COLORS.info} />
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Toute action administrative est journalisée avec son auteur et son horodatage. Les suspensions de
-              compte doivent rester motivées et réversibles.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.touteActionAdministrativeEstJournaliseeAvec')}</Text>
           </Card>
         </AuthGate>
       </Section>

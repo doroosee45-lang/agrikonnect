@@ -19,6 +19,7 @@ import { SPACING } from '@/theme/space';
  * jamais remplacé par une valeur inventée.
  */
 export default function PricesIndex() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const query = useQuery({
     queryKey: queryKeys.prices.list({ limit: 100 }),
@@ -29,13 +30,13 @@ export default function PricesIndex() {
   const available = query.data?.available ?? true;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Prix des cultures" subtitle="Prix de marché sourcés et datés." />
+      <AppHeader title={t('ui.prixDesCultures')} subtitle={t('ui.prixDeMarcheSourcesEtDates')} />
       <Section bare contentStyle={styles.section}>
         {query.isLoading ? <LoadingState count={5} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !available ? (
           <Card tone="pale">
-            <Text preset="bodySm" color={COLORS.slateGray}>{query.data?.message ?? 'Prix indisponibles pour le moment.'}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray}>{query.data?.message ?? t('ui.prixIndisponiblesPourLeMoment')}</Text>
           </Card>
-        ) : items.length === 0 ? <EmptyState title="Aucun prix" description="Les prix de marché apparaîtront ici." icon="trending-up-outline" /> : (
+        ) : items.length === 0 ? <EmptyState title={t('ui.aucunPrix')} description={t('ui.lesPrixDeMarcheApparaitrontIci')} icon="trending-up-outline" /> : (
           <View style={styles.list}>
             {items.map((price, index) => (
               <Reveal key={price.id} index={index} variant="up">

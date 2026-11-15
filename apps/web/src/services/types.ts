@@ -2359,3 +2359,36 @@ export interface SeasonFeedbackComparison {
   /** Rappel obligatoire, à afficher tel quel à côté des deux valeurs. */
   scoreNote: string | null;
 }
+
+export type BlogPostStatus = 'DRAFT' | 'PUBLISHED';
+
+export interface BlogPostSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  content?: string;
+  imageUrl: string;
+  authorName: string;
+  publishedAt: string | null;
+}
+
+export interface BlogPost extends BlogPostSummary {
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminBlogPost extends BlogPost {
+  status: BlogPostStatus;
+}
+
+export interface BlogPostInput {
+  slug: string;
+  title: string;
+  summary: string;
+  imageUrl: string;
+  authorName: string;
+  content: string;
+  status?: BlogPostStatus;
+}

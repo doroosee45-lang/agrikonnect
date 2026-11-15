@@ -36,6 +36,7 @@ import { RADIUS, SPACING } from '@/theme/space';
  * substitution n'est fabriqué.
  */
 export default function PlotSatellite() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -68,7 +69,7 @@ export default function PlotSatellite() {
     mutationFn: () => geoApi.diagnose(id, {}),
     onSuccess: (result) => {
       setError(null);
-      setNotice(result.data.disclaimer ?? 'Diagnostic calculé.');
+      setNotice(result.data.disclaimer ?? t('ui.diagnosticCalcule'));
       void queryClient.invalidateQueries({ queryKey: queryKeys.soil.diagnosisLatest(id) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.soil.diagnosisHistory(id) });
     },
@@ -100,8 +101,8 @@ export default function PlotSatellite() {
       /** 200 = scène refusée (nuages, acquisition désactivée) : ce n'est pas une erreur. */
       setNotice(
         result.data.acquired
-          ? 'Scène satellite acquise.'
-          : `Acquisition refusée : ${result.data.reason ?? 'raison non précisée'}.`,
+          ? t('ui.sceneSatelliteAcquise')
+          : t('ui.acquisitionRefusedReason', { reason: result.data.reason ?? t('ui.reasonNotSpecified') }),
       );
       void queryClient.invalidateQueries({ queryKey: queryKeys.satellite.observations(id, { limit: 20 }) });
     },
@@ -116,7 +117,7 @@ export default function PlotSatellite() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <PlotScreenHeader title="Satellite & diagnostic" plotName={plot.data?.name} plotId={id} />
+      <PlotScreenHeader title={t('ui.satelliteDiagnostic')} plotName={plot.data?.name} plotId={id} />
 
       <Section bare contentStyle={styles.section}>
         <Card tone={health.data?.ready ? 'pale' : 'gold'} style={styles.engine}>
@@ -127,45 +128,33 @@ export default function PlotSatellite() {
           />
           <View style={styles.engineBody}>
             <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              {health.data?.note ?? 'État du moteur géospatial inconnu.'}
+              {health.data?.note ?? t('ui.etatDuMoteurGeospatialInconnu')}
             </Text>
             {health.data ? (
-              <Text preset="caption" color={COLORS.slateGray}>
-                {health.data.engine.engine}
-                {health.data.engine.version ? ` ${health.data.engine.version}` : ''} · méthode {health.data.methodVersion} ·{' '}
-                latence {formatNumber(health.data.engine.latencyMs, locale, 0)} ms
-                {health.data.engine.error ? ` · ${health.data.engine.error}` : ''}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.methodeLatenceMs', { engine: health.data.engine.engine, value: health.data.engine.version ? ` ${health.data.engine.version}` : '', methodVersion: health.data.methodVersion, latencyMs: formatNumber(health.data.engine.latencyMs, locale, 0), value2: health.data.engine.error ? ` · ${health.data.engine.error}` : '' })}</Text>
             ) : null}
           </View>
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Séries satellite
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.seriesSatellite')}</Text>
 
           {settings.data ? (
-            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-              Source {settings.data.provider} · rafraîchissement {settings.data.refreshHours} h · scènes rejetées au-delà
-              de {settings.data.cloudCoverRejectPct} % de couverture nuageuse
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.sourceRafraichissementHScenesRejeteesAu', { provider: settings.data.provider, refreshHours: settings.data.refreshHours, cloudCoverRejectPct: settings.data.cloudCoverRejectPct })}</Text>
           ) : null}
 
           {settings.data?.enabled === false ? (
-            <Text preset="caption" color={COLORS.warning} style={styles.lineHeight}>
-              L’acquisition satellite est désactivée : les séries ci-dessous sont historiques et ne se renouvellent pas.
-            </Text>
+            <Text preset="caption" color={COLORS.warning} style={styles.lineHeight}>{t('ui.lAcquisitionSatelliteEstDesactiveeLes')}</Text>
           ) : null}
 
           {/* Le rappel vient du serveur : un satellite ne mesure jamais le sous-sol. */}
           <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
             {settings.data?.subsoilCaveat ??
-              'Ces valeurs décrivent la surface (humidité, température, végétation), jamais le sous-sol. Le sous-sol ne vient que des sondes.'}
+              t('ui.cesValeursDecriventLaSurfaceHumidite')}
           </Text>
 
           <Button
-            label="Acquérir une scène"
+            label={t('ui.acquerirUneScene')}
             onPress={() => acquire.mutate()}
             variant="outline"
             fullWidth
@@ -178,8 +167,8 @@ export default function PlotSatellite() {
 
           {observations.data && observations.data.items.length === 0 ? (
             <EmptyState
-              title="Aucune observation satellite"
-              description="Aucune scène exploitable n'a été acquise pour cette parcelle. Une acquisition refusée n'est pas une erreur : la raison est indiquée."
+              title={t('ui.aucuneObservationSatellite')}
+              description={t('ui.aucuneSceneExploitableNAEte')}
               icon="cloud-outline"
             />
           ) : null}
@@ -191,13 +180,10 @@ export default function PlotSatellite() {
                   <Text preset="bodySm" color={COLORS.textPrimary}>
                     {observation.index} · {formatNumber(observation.value, locale, 2)}
                   </Text>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    {observation.provider} · {formatDate(observation.observedAt, locale)} · nuages{' '}
-                    {observation.cloudCover === null ? 'inconnu' : `${observation.cloudCover} %`}
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.nuages', { provider: observation.provider, observedAt: formatDate(observation.observedAt, locale), value: observation.cloudCover === null ? 'inconnu' : `${observation.cloudCover} %` })}</Text>
                 </View>
                 <Chip
-                  label={observation.mode === 'SIMULATED' ? 'SIMULÉ' : observation.confidence}
+                  label={observation.mode === 'SIMULATED' ? t('ui.simule') : observation.confidence}
                   tone={observation.mode === 'SIMULATED' ? 'warning' : 'neutral'}
                   size="sm"
                 />
@@ -209,9 +195,7 @@ export default function PlotSatellite() {
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Lancer un diagnostic
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.lancerUnDiagnostic')}</Text>
           {notice ? (
             <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
               {notice}
@@ -219,55 +203,44 @@ export default function PlotSatellite() {
           ) : null}
           {error ? <ErrorState error={error} showRequestId /> : null}
           <Button
-            label="Calculer le diagnostic"
+            label={t('ui.calculerLeDiagnostic')}
             onPress={() => run.mutate()}
             variant="primary"
             fullWidth
             loading={run.isPending}
             icon="planet-outline"
           />
-          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-            Le calcul fusionne les analyses de sol, les relevés de capteurs et les séries satellite disponibles sur
-            la parcelle. Le moteur peut mettre jusqu’à 20 secondes à répondre.
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.leCalculFusionneLesAnalysesDe')}</Text>
         </Card>
 
         {latest.isLoading ? (
           <LoadingState count={1} height={140} />
         ) : latest.isError ? (
           <EmptyState
-            title="Aucun diagnostic enregistré"
-            description="Lancez un calcul : sans donnée exploitable, le serveur refusera plutôt que d’inventer un résultat."
+            title={t('ui.aucunDiagnosticEnregistre')}
+            description={t('ui.lancezUnCalculSansDonneeExploitable')}
             icon="planet-outline"
           />
         ) : diagnosis ? (
           <Card tone="white" style={styles.card}>
             <View style={styles.head}>
               <View style={styles.headText}>
-                <Text preset="h3" color={COLORS.textPrimary}>
-                  Diagnostic du {formatDate(diagnosis.createdAt, locale)}
-                </Text>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  moteur {diagnosis.engine} {diagnosis.engineVersion} · méthode {diagnosis.methodVersion}
-                </Text>
+                <Text preset="h3" color={COLORS.textPrimary}>{t('ui.diagnosticDu', { createdAt: formatDate(diagnosis.createdAt, locale) })}</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.moteurMethode', { engine: diagnosis.engine, engineVersion: diagnosis.engineVersion, methodVersion: diagnosis.methodVersion })}</Text>
               </View>
               <ProvenanceTag kind="satellite" />
             </View>
 
             <View style={styles.confidence}>
-              <Text preset="caption" color={COLORS.slateGray}>
-                Confiance globale {diagnosis.confidenceLevel ? `(${diagnosis.confidenceLevel})` : ''}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.confianceGlobale', { value: diagnosis.confidenceLevel ? `(${diagnosis.confidenceLevel})` : '' })}</Text>
               <Progress value={diagnosis.confidence !== null ? Math.round(diagnosis.confidence * 100) : 0} tone="gold" />
               <Text preset="caption" color={COLORS.textPrimary}>
-                {diagnosis.confidence !== null ? `${formatNumber(diagnosis.confidence * 100, locale, 1)} %` : 'non publiée'}
+                {diagnosis.confidence !== null ? `${formatNumber(diagnosis.confidence * 100, locale, 1)} %` : t('ui.nonPubliee')}
               </Text>
             </View>
 
             <View style={styles.block}>
-              <Text preset="caption" color={COLORS.textPrimary}>
-                Sources fusionnées
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary}>{t('ui.sourcesFusionnees')}</Text>
               {diagnosis.sourcesUsed.length > 0 ? (
                 <ChipRow>
                   {diagnosis.sourcesUsed.map((source) => (
@@ -275,69 +248,52 @@ export default function PlotSatellite() {
                   ))}
                 </ChipRow>
               ) : (
-                <Text preset="caption" color={COLORS.slateGray}>
-                  aucune source listée
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucuneSourceListee')}</Text>
               )}
             </View>
 
             <View style={styles.block}>
-              <Text preset="caption" color={COLORS.textPrimary}>
-                Entrées prises en compte
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary}>{t('ui.entreesPrisesEnCompte')}</Text>
               <View style={styles.facts}>
                 <View style={styles.fact}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Échantillons de sol
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.echantillonsDeSol')}</Text>
                   <Text preset="bodySm" color={COLORS.textPrimary}>
                     {formatNumber(Number(inputs.samples ?? 0), locale)}
                   </Text>
                 </View>
                 <View style={styles.fact}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Relevés capteurs
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.relevesCapteurs')}</Text>
                   <Text preset="bodySm" color={COLORS.textPrimary}>
                     {formatNumber(Number(inputs.sensorReadings ?? 0), locale)}
                   </Text>
                 </View>
                 <View style={styles.fact}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Séries satellite
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.seriesSatellite')}</Text>
                   <Text preset="bodySm" color={COLORS.textPrimary}>
                     {formatNumber(Number(inputs.satelliteSeries ?? 0), locale)}
                   </Text>
                 </View>
                 <View style={styles.fact}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Recommandations
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.recommandations')}</Text>
                   <Text preset="bodySm" color={COLORS.textPrimary}>
-                    {inputs.allowRecommendations === true ? 'autorisées' : 'désactivées'}
+                    {inputs.allowRecommendations === true ? t('ui.autorisees') : t('ui.desactivees')}
                   </Text>
                 </View>
               </View>
             </View>
 
-            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-              Les matrices de pixels ne sont jamais stockées : seul le compte des entrées est conservé, avec la
-              version de méthode utilisée.
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.lesMatricesDePixelsNeSont')}</Text>
           </Card>
         ) : null}
 
-        <Text preset="overline" color={COLORS.forestGreen}>
-          Historique des calculs
-        </Text>
+        <Text preset="overline" color={COLORS.forestGreen}>{t('ui.historiqueDesCalculs')}</Text>
 
         {history.isLoading ? (
           <LoadingState count={2} height={80} />
         ) : history.isError ? (
           <ErrorState error={history.error} onRetry={() => void history.refetch()} />
         ) : (history.data?.items ?? []).length === 0 ? (
-          <EmptyState title="Aucun calcul" description="Chaque diagnostic crée une entrée horodatée, jamais réécrite." icon="time-outline" />
+          <EmptyState title={t('ui.aucunCalcul')} description={t('ui.chaqueDiagnosticCreeUneEntreeHorodatee')} icon="time-outline" />
         ) : (
           <View style={styles.list}>
             {(history.data?.items ?? []).map((item, index) => (
@@ -347,14 +303,10 @@ export default function PlotSatellite() {
                     <Text preset="bodySm" color={COLORS.textPrimary}>
                       {formatDate(item.createdAt, locale)}
                     </Text>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      {item.engine} {item.engineVersion} · méthode {item.methodVersion} · confiance{' '}
-                      {item.confidence !== null ? `${formatNumber(item.confidence * 100, locale, 0)} %` : '—'}
-                      {item.confidenceLevel ? ` (${item.confidenceLevel})` : ''}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.methodeConfiance', { engine: item.engine, engineVersion: item.engineVersion, methodVersion: item.methodVersion, value: item.confidence !== null ? `${formatNumber(item.confidence * 100, locale, 0)} %` : '—', value2: item.confidenceLevel ? ` (${item.confidenceLevel})` : '' })}</Text>
                   </View>
                   {item.sourcesUsed.length > 0 ? (
-                    <Chip label={`${item.sourcesUsed.length} source(s)`} tone="neutral" size="sm" />
+                    <Chip label={t('ui.sourceS', { length: item.sourcesUsed.length })} tone="neutral" size="sm" />
                   ) : null}
                 </Card>
               </Reveal>

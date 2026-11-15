@@ -26,6 +26,7 @@ import { SPACING } from '@/theme/space';
 
 /** Appels d’offres : avis d’acheteurs, réponses tracées (espace authentifié). */
 export default function Tenders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
@@ -43,16 +44,16 @@ export default function Tenders() {
     <PublicShell active="tenders">
       <PageHeader
         index={1}
-        eyebrow="International"
-        title="Appels d’offres"
-        subtitle="Avis d’acheteurs avec volumes, exigences de qualité, certifications et délais. Les réponses sont tracées, l’attribution est journalisée."
+        eyebrow={t('ui.international')}
+        title={t('ui.appelsDOffres')}
+        subtitle={t('ui.avisDAcheteursAvecVolumesExigences')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Les appels d’offres sont réservés aux comptes actifs"
-          description="Consulter un avis et y répondre suppose une organisation identifiée : c’est la condition de la traçabilité des échanges."
+          title={t('ui.lesAppelsDOffresSontReserves_90701')}
+          description={t('ui.consulterUnAvisEtYRepondre')}
           icon="globe-outline"
         >
           {tenders.isLoading ? (
@@ -61,8 +62,8 @@ export default function Tenders() {
             <ErrorState error={tenders.error} onRetry={() => void tenders.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucun appel d’offres ouvert"
-              description="Les avis publiés par les acheteurs apparaîtront ici, avec leur date limite."
+              title={t('ui.aucunAppelDOffresOuvert')}
+              description={t('ui.lesAvisPubliesParLesAcheteurs')}
               icon="globe-outline"
             />
           ) : (
@@ -91,26 +92,20 @@ export default function Tenders() {
 
                     <View style={styles.facts}>
                       <View style={styles.fact}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Volume
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.volume')}</Text>
                         <Text preset="bodyMedium" color={COLORS.textPrimary}>
                           {formatNumber(tender.quantity, locale, 1)} {tender.unit}
                         </Text>
                       </View>
                       <View style={styles.fact}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Échéance
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.echeance')}</Text>
                         <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                          {tender.deadline ? formatDate(tender.deadline, locale) : 'Non précisée'}
+                          {tender.deadline ? formatDate(tender.deadline, locale) : t('ui.nonPrecisee_d47b0')}
                         </Text>
                       </View>
                       {tender.quality ? (
                         <View style={styles.fact}>
-                          <Text preset="caption" color={COLORS.slateGray}>
-                            Qualité
-                          </Text>
+                          <Text preset="caption" color={COLORS.slateGray}>{t('ui.qualite')}</Text>
                           <Text preset="bodyMedium" color={COLORS.textPrimary}>
                             {tender.quality}
                           </Text>
@@ -129,12 +124,10 @@ export default function Tenders() {
                     <View style={styles.footer}>
                       <View style={styles.footerMeta}>
                         <Ionicons name="time-outline" size={13} color={COLORS.slateGray} />
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Publié {formatRelative(tender.createdAt, locale)}
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.publie_037d4', { createdAt: formatRelative(tender.createdAt, locale) })}</Text>
                       </View>
                       <Button
-                        label="Répondre"
+                        label={t('ui.repondre')}
                         variant="outline"
                         size="sm"
                         icon="send-outline"

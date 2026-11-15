@@ -8,26 +8,27 @@ import { useI18n } from '@/i18n';
 
 /** PUBLIC — appels d'offres publiés. */
 export default function PublicTenders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Tender>
-      title="Appels d'offres"
-      subtitle="Appels d'offres publiés par des acheteurs, nationaux et export."
+      title={t('ui.appelsDOffres_907ea')}
+      subtitle={t('ui.appelsDOffresPubliesParDes')}
       icon="📄"
       public
       queryKey={queryKeys.tenders.list({ limit: 100 })}
       fetch={() => tenderApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(tender) => tender.id}
       columns={[
-        { key: 'title', label: 'Titre', render: (tender) => tender.title },
-        { key: 'quantity', label: 'Volume', render: (tender) => `${formatNumber(tender.quantity, locale, 0)} ${tender.unit}` },
-        { key: 'destinationCountry', label: 'Destination', render: (tender) => <Chip label={tender.destinationCountry} tone="neutral" size="sm" /> },
-        { key: 'deadline', label: 'Échéance', render: (tender) => (tender.deadline ? formatDate(tender.deadline, locale) : '—') },
-        { key: 'status', label: 'Statut', render: (tender) => <Chip label={tender.status} tone={tender.status === 'OPEN' || tender.status === 'PUBLISHED' ? 'success' : 'neutral'} size="sm" /> },
+        { key: 'title', label: t('ui.titre'), render: (tender) => tender.title },
+        { key: 'quantity', label: t('ui.volume'), render: (tender) => `${formatNumber(tender.quantity, locale, 0)} ${tender.unit}` },
+        { key: 'destinationCountry', label: t('ui.destination'), render: (tender) => <Chip label={tender.destinationCountry} tone="neutral" size="sm" /> },
+        { key: 'deadline', label: t('ui.echeance'), render: (tender) => (tender.deadline ? formatDate(tender.deadline, locale) : '—') },
+        { key: 'status', label: t('ui.statut'), render: (tender) => <Chip label={tender.status} tone={tender.status === 'OPEN' || tender.status === 'PUBLISHED' ? 'success' : 'neutral'} size="sm" /> },
       ]}
-      emptyTitle="Aucun appel d'offres"
-      emptyDescription="Aucun appel d'offres n'est publié pour le moment."
-      notice="Répondre à un appel d'offres engage sur les volumes déclarés : ils restent marqués comme déclarés tant qu'aucun contrôle n'a eu lieu."
+      emptyTitle={t('ui.aucunAppelDOffres')}
+      emptyDescription={t('ui.aucunAppelDOffresNEst_c5213')}
+      notice={t('ui.repondreAUnAppelDOffres')}
     />
   );
 }

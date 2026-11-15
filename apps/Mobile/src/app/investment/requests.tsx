@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function InvestmentRequests() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,16 +24,16 @@ export default function InvestmentRequests() {
   const items = (query.data?.requests ?? []) as Array<Record<string, unknown>>;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Demandes de contact" subtitle="Demandes reçues des producteurs." />
+      <AppHeader title={t('ui.demandesDeContact')} subtitle={t('ui.demandesRecuesDesProducteurs')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Demandes de contact" icon="mail-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune demande" description="Les demandes de contact apparaîtront ici." icon="mail-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.demandesDeContact')} icon="mail-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneDemande')} description={t('ui.lesDemandesDeContactApparaitrontIci')} icon="mail-outline" /> : (
             <View style={styles.list}>
               {items.map((request, index) => (
                 <Reveal key={String(request.id ?? index)} index={index} variant="up">
                   <Card tone="white" style={styles.row}>
                     <View style={styles.rowBody}>
-                      <Text preset="bodySm">{String(request.subject ?? 'Demande')}</Text>
+                      <Text preset="bodySm">{String(request.subject ?? t('ui.demande'))}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>{request.createdAt ? formatDate(String(request.createdAt), locale) : '—'}</Text>
                     </View>
                     <Chip label={String(request.status ?? '—')} tone="neutral" size="sm" />

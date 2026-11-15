@@ -21,7 +21,11 @@ type Paths<T> = T extends string
 /** Clés i18n typées : `t('home.heroTitleLine1')` est vérifié à la compilation. */
 export type TranslationKey = Paths<Dictionary>;
 
-type Params = Record<string, string | number>;
+/**
+ * Paramètres d'interpolation. `null`/`undefined` s'affichent comme une chaîne
+ * vide — même règle que React pour un enfant JSX nul.
+ */
+export type Params = Record<string, string | number | null | undefined>;
 
 function readPath(dict: unknown, segments: string[]): string | undefined {
   let node: unknown = dict;
@@ -41,9 +45,36 @@ export function translate(locale: Locale, key: TranslationKey, params?: Params):
   const raw = readPath(DICTS[locale], segments) ?? readPath(DICTS.fr, segments);
   if (raw === undefined) return key as string;
   if (!params) return raw;
-  return raw.replace(/\{(\w+)\}/g, (match, name: string) =>
-    name in params ? String(params[name]) : match,
-  );
+  return raw.replace(/\{(\w+)\}/g, (match, name: string) => {
+    if (!(name in params)) return match;
+    const value = params[name];
+    return value === null || value === undefined ? '' : String(value);
+  });
+}
+
+/**
+ * Langue de l'appareil (navigateur ou système) à la première ouverture.
+ * `navigator.language` sur le web ; `Intl` (Hermes) sur mobile. Toute langue
+ * non prise en charge retombe sur le français, langue de référence.
+ */
+export function detectDeviceLocale(): Locale {
+  const candidates: Array<string | undefined> = [];
+  try {
+    const nav = (globalThis as { navigator?: { language?: string; languages?: readonly string[] } }).navigator;
+    candidates.push(...(nav?.languages ?? []), nav?.language);
+  } catch {
+    /* environnement sans navigator */
+  }
+  try {
+    candidates.push(Intl.DateTimeFormat().resolvedOptions().locale);
+  } catch {
+    /* Intl indisponible */
+  }
+  for (const tag of candidates) {
+    const base = tag?.toLowerCase().split(/[-_]/)[0];
+    if (base === 'fr' || base === 'en') return base;
+  }
+  return 'fr';
 }
 
 interface I18nState {
@@ -66,7 +97,9 @@ export const useI18nStore = create<I18nState>((set, get) => ({
   async hydrate() {
     if (get().hydrated) return;
     const stored = (await secureStorage.get(STORAGE_KEYS.locale)) as Locale | null;
-    set({ locale: stored === 'en' || stored === 'fr' ? stored : 'fr', hydrated: true });
+    // Choix enregistré, sinon langue de l'appareil, sinon français.
+    const locale = stored === 'en' || stored === 'fr' ? stored : detectDeviceLocale();
+    set({ locale, hydrated: true });
   },
 }));
 
@@ -85,3 +118,28 @@ export const SUPPORTED_LOCALES: ReadonlyArray<{ code: Locale; label: string; nat
   { code: 'fr', label: 'French', native: 'Français' },
   { code: 'en', label: 'English', native: 'English' },
 ];
+
+/**
+ * Traduction hors composant React : constantes de module (menus, catalogues),
+ * utilitaires, classes. Lit la langue courante au moment de l'appel.
+ *
+ * Dans un composant, préférer `useI18n().t` : le composant se ré-affiche
+ * alors au changement de langue. Les constantes de module utilisent des
+ * accesseurs (`get label() { return tr('…'); }`) pour être évaluées à
+ * l'affichage, jamais à l'import.
+ */
+export function tr(key: TranslationKey, params?: Params): string {
+  return translate(useI18nStore.getState().locale, key, params);
+}
+
+/**
+ * Attribut `lang` du document tenu à jour (WCAG 3.1.1) : lecteurs d'écran,
+ * césure et correcteur suivent la langue réellement affichée. Sans effet hors
+ * navigateur.
+ */
+function syncDocumentLang(locale: Locale) {
+  const doc = (globalThis as { document?: { documentElement?: { lang: string } } }).document;
+  if (doc?.documentElement) doc.documentElement.lang = locale;
+}
+syncDocumentLang(useI18nStore.getState().locale);
+useI18nStore.subscribe((state) => syncDocumentLang(state.locale));

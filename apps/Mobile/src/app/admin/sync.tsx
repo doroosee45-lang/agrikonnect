@@ -5,19 +5,19 @@ import { AuthGate, Card, Screen, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function AdminSync() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Synchronisation" subtitle="État de synchronisation des données." />
+      <AppHeader title={t('ui.synchronisation')} subtitle={t('ui.etatDeSynchronisationDesDonnees')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Synchronisation" icon="sync-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.synchronisation')} icon="sync-outline">
           <Card tone="white">
-            <Text preset="h3" style={styles.mb}>File de synchronisation</Text>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-              Les modifications hors ligne sont conservées localement puis réconciliées avec le serveur. Les conflits sont signalés et résolus manuellement.
-            </Text>
+            <Text preset="h3" style={styles.mb}>{t('ui.fileDeSynchronisation')}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.lesModificationsHorsLigneSontConservees_d531c')}</Text>
           </Card>
         </AuthGate>
       </Section>

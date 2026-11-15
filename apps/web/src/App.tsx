@@ -1,9 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
+import { AppErrorBoundary } from '@/components/ui/AppErrorBoundary';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingState } from '@/components/ui';
-import { useAuthStore } from '@/store/auth';
+import { realtime } from '@/services/realtime';
+import { selectIsAuthenticated, useAuthStore } from '@/store/auth';
+import { useLocaleSync } from '@/hooks/useLocaleSync';
 import { useEffect } from 'react';
 
 // Lazy-loaded page modules
@@ -47,6 +50,7 @@ const AdminPartners = lazy(() => import('@/pages/admin/Partners'));
 const AdminCompliance = lazy(() => import('@/pages/admin/Compliance'));
 const AdminAgronomicRanges = lazy(() => import('@/pages/admin/AgronomicRanges'));
 const AdminRules = lazy(() => import('@/pages/admin/Rules'));
+const AdminBlogPosts = lazy(() => import('@/pages/admin/BlogPosts'));
 
 const AgentConsent = lazy(() => import('@/pages/agent/Consent'));
 const AgentRegistration = lazy(() => import('@/pages/agent/Registration'));
@@ -168,6 +172,8 @@ const OrganizationProductionSummary = lazy(() => import('@/pages/organization/Pr
 const OrganizationVerification = lazy(() => import('@/pages/organization/Verification'));
 
 const PublicHome = lazy(() => import('@/pages/public/Home'));
+const PublicBlogPost = lazy(() => import('@/pages/public/BlogPost'));
+const PublicBlog = lazy(() => import('@/pages/public/Blog'));
 const PublicServices = lazy(() => import('@/pages/public/Services'));
 const PublicAbout = lazy(() => import('@/pages/public/About'));
 const PublicServiceDetail = lazy(() => import('@/pages/public/ServiceDetail'));
@@ -194,15 +200,29 @@ const Weather = lazy(() => import('@/pages/Weather'));
 
 function App() {
   const init = useAuthStore((state) => state.init);
+  const isAuthenticated = useAuthStore(selectIsAuthenticated);
+  // I18N — langue d'interface reportée sur le profil (notifications, e-mails).
+  useLocaleSync();
 
   useEffect(() => {
     void init();
   }, [init]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      realtime.disconnect();
+      return;
+    }
+
+    realtime.connect();
+    return () => realtime.disconnect();
+  }, [isAuthenticated]);
+
   return (
     <BrowserRouter>
       <AppLayout>
-        <Suspense fallback={<div style={{ padding: 48 }}><LoadingState count={2} height={120} /></div>}>
+        <AppErrorBoundary>
+          <Suspense fallback={<div style={{ padding: 48 }}><LoadingState count={2} height={120} /></div>}>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<PublicHome />} />
@@ -222,6 +242,8 @@ function App() {
             <Route path="/public/agriculture/:countryCode" element={<PublicAgricultureCountry />} />
             <Route path="/public/country-language" element={<PublicCountryLanguageSelector />} />
             <Route path="/public/legal" element={<PublicLegal />} />
+            <Route path="/public/blog" element={<PublicBlog />} />
+            <Route path="/public/blog/:slug" element={<PublicBlogPost />} />
 
             {/* Auth routes */}
             <Route path="/auth/login" element={<AuthLogin />} />
@@ -273,6 +295,7 @@ function App() {
             <Route path="/admin/compliance" element={<AdminCompliance />} />
             <Route path="/admin/agronomic-ranges" element={<AdminAgronomicRanges />} />
             <Route path="/admin/rules" element={<AdminRules />} />
+            <Route path="/admin/blog-posts" element={<AdminBlogPosts />} />
 
             {/* Agent routes */}
             <Route path="/agent/consent" element={<AgentConsent />} />
@@ -407,7 +430,8 @@ function App() {
             {/* Catch-all */}
             <Route path="*" element={<AppNotFound />} />
           </Routes>
-        </Suspense>
+          </Suspense>
+        </AppErrorBoundary>
       </AppLayout>
     </BrowserRouter>
   );

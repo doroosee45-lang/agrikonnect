@@ -510,6 +510,12 @@ export const createFakePrisma = (initial = {}) => {
   // Les deux formes de l'API Prisma sont supportées : tableau de promesses
   // (`$transaction([...])`) et fonction de rappel (`$transaction(async tx => …)`).
   fake.$transaction = async (arg) => (Array.isArray(arg) ? Promise.all(arg) : arg(fake));
+  fake.$queryRaw = async (query) => {
+    const sql = Array.isArray(query) ? query.join('?') : String(query);
+    if (sql.includes('pg_try_advisory_lock')) return [{ locked: true }];
+    if (sql.includes('pg_advisory_unlock')) return [{ unlocked: true }];
+    return [];
+  };
   fake.$disconnect = async () => {};
   fake.$connect = async () => {};
 

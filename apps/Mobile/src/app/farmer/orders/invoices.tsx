@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerInvoices() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function FarmerInvoices() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Factures" subtitle="Factures de vos commandes livrées." />
+      <FarmerHeader title={t('ui.factures')} subtitle={t('ui.facturesDeVosCommandesLivrees')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Factures" icon="document-text-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune facture" description="Les factures apparaissent ici après livraison." icon="document-text-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.factures')} icon="document-text-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneFacture')} description={t('ui.lesFacturesApparaissentIciApresLivraison')} icon="document-text-outline" /> : (
             <View style={styles.list}>
               {items.map((order, index) => (
                 <Reveal key={order.id} index={index} variant="up">

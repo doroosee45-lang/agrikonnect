@@ -9,6 +9,7 @@ import {
   HARDWARE_CONFIG_REVISED_AT,
   HARDWARE_CONFIG_VERSION,
   assertHardwareConfigReady,
+  resolveHardwareMode,
   hardware,
   isPlausible,
   pendingConfirmations,
@@ -65,7 +66,7 @@ test('Matériel : version et date de révision sont présentes et bien formées'
 /* ─────────────────────── Mode ─────────────────────── */
 
 test('Matériel : le mode est binaire et le matériel simulé est refusé en production', () => {
-  assert.ok(['SIMULATION', 'REAL'].includes(hardware.mode));
+  assert.ok(['SIMULATION', 'REAL', 'NONE'].includes(hardware.mode));
   // Hors production, le mode simulation est autorisé.
   assert.deepEqual(assertHardwareConfigReady({ isProd: false, config: { mode: 'SIMULATION' } }), {
     mode: 'SIMULATION',
@@ -109,6 +110,19 @@ test('Matériel : le démarrage en production s’arrête vraiment sur du matér
   const guardAt = serverSource.indexOf('assertHardwareConfigReady(');
   const listenAt = serverSource.indexOf('app.listen(');
   assert.ok(guardAt > -1 && listenAt > -1 && guardAt < listenAt, 'la garde doit précéder l’écoute du port');
+});
+
+test('Matériel : HARDWARE_MODE=NONE autorise la production sans matériel, et rien d’autre', () => {
+  assert.equal(resolveHardwareMode('SIMULATION', undefined), 'SIMULATION');
+  assert.equal(resolveHardwareMode('SIMULATION', '  '), 'SIMULATION');
+  assert.equal(resolveHardwareMode('SIMULATION', 'NONE'), 'NONE');
+  // REAL ne s'active pas par l'environnement : il exige les fiches techniques du fichier.
+  assert.throws(() => resolveHardwareMode('SIMULATION', 'REAL'), /HARDWARE_MODE invalide/);
+  assert.throws(() => resolveHardwareMode('SIMULATION', 'none'), /HARDWARE_MODE invalide/);
+  assert.deepEqual(assertHardwareConfigReady({ isProd: true, config: { mode: 'NONE' } }), {
+    mode: 'NONE',
+    missing: [],
+  });
 });
 
 /* ─────────── Champs obligatoires en mode matériel réel ─────────── */

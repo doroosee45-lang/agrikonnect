@@ -27,17 +27,17 @@ export default function OrganizationCreate() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Créer une organisation" subtitle="Enregistrez votre organisation." />
+      <AppHeader title={t('ui.creerUneOrganisation')} subtitle={t('ui.enregistrezVotreOrganisation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Créer une organisation" icon="business-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.creerUneOrganisation')} icon="business-outline">
           <Card tone="white">
             <View style={styles.form}>
-              <Input label="Nom" value={name} onChangeText={setName} />
-              <Input label="Type" value={type} onChangeText={setType} />
-              <Input label="Pays" value={countryCode} onChangeText={setCountryCode} />
+              <Input label={t('ui.nom')} value={name} onChangeText={setName} />
+              <Input label={t('ui.type')} value={type} onChangeText={setType} />
+              <Input label={t('ui.pays')} value={countryCode} onChangeText={setCountryCode} />
               {error ? <ErrorState error={error} /> : null}
-              <Text preset="caption" color={COLORS.slateGray}>{"Les champs marqués d'un astérisque sont obligatoires."}</Text>
-              <Button label="Créer" onPress={() => create.mutate()} loading={create.isPending} disabled={name.trim().length === 0} />
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.lesChampsMarquesDUnAsterisque')}</Text>
+              <Button label={t('ui.creer')} onPress={() => create.mutate()} loading={create.isPending} disabled={name.trim().length === 0} />
             </View>
           </Card>
         </AuthGate>

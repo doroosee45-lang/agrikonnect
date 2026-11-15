@@ -6,6 +6,8 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme';
+import { useI18n } from '@/i18n';
+import { bcpLocale } from '@/lib/format';
 
 type Dict = Record<string, unknown>;
 
@@ -20,7 +22,7 @@ const asText = (value: unknown, repli = '—'): string => {
 const formatDate = (value: unknown): string => {
   if (typeof value !== 'string' || !value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('fr-FR');
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(bcpLocale());
 };
 
 const SEVERITE_TONE: Record<string, 'error' | 'warning' | 'info'> = {
@@ -41,6 +43,7 @@ const telecharger = (contenu: string, filename: string, type: string) => {
 
 /** M6 U-M6-1 — journal d'audit : recherche avancée (acteur, action, ressource, date, gravité), détail avant/après, export. */
 export default function AdminAuditLog() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const [brouillon, setBrouillon] = useState({ action: '', actor: '', resource: '', from: '', to: '', severity: '' });
@@ -81,10 +84,10 @@ export default function AdminAuditLog() {
         sortie.filename,
         format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json;charset=utf-8',
       );
-      setAvis(`Export généré : ${sortie.filename}`);
+      setAvis(t('ui.exportGenere', { filename: sortie.filename }));
     } catch (caught) {
       const dict = asDict(caught);
-      setErreur(typeof dict.message === 'string' && dict.message ? dict.message : 'Export impossible');
+      setErreur(typeof dict.message === 'string' && dict.message ? dict.message : t('ui.exportImpossible'));
     }
   };
 
@@ -92,55 +95,48 @@ export default function AdminAuditLog() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Journal d'audit"
-        description="Actions sensibles — recherche avancée, détail avant/après, export (U-M6-1)."
+        title={t('ui.journalDAudit_52309')}
+        description={t('ui.actionsSensiblesRechercheAvanceeDetailAvant')}
         icon="🕒"
       >
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Journal d'audit
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>
-          Recherche par acteur, action, ressource, date et gravité. Le journal est en insertion seule (RG-S2) :
-          aucune entrée n'est modifiable ni supprimable ; les exports sont eux-mêmes journalisés (admin.audit.export).
-        </Text>
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.journalDAudit_52309')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>{t('ui.auditLogIntro')}</Text>
 
         <Card style={{ marginBottom: 16 }}>
           <CardBody>
             <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
               <Input
-                label="Action"
-                placeholder="Ex. : auth.login"
+                label={t('ui.action')}
+                placeholder={t('ui.exAuthLogin')}
                 value={brouillon.action}
                 onChange={(event) => setBrouillon({ ...brouillon, action: event.target.value })}
               />
               <Input
-                label="Acteur"
-                placeholder="E-mail, nom ou identifiant"
+                label={t('ui.acteur')}
+                placeholder={t('ui.eMailNomOuIdentifiant')}
                 value={brouillon.actor}
                 onChange={(event) => setBrouillon({ ...brouillon, actor: event.target.value })}
               />
               <Input
-                label="Ressource"
-                placeholder="Ex. : profile"
+                label={t('ui.ressource')}
+                placeholder={t('ui.exProfile')}
                 value={brouillon.resource}
                 onChange={(event) => setBrouillon({ ...brouillon, resource: event.target.value })}
               />
               <Input
-                label="Du"
+                label={t('ui.du')}
                 type="date"
                 value={brouillon.from}
                 onChange={(event) => setBrouillon({ ...brouillon, from: event.target.value })}
               />
               <Input
-                label="Au"
+                label={t('ui.au')}
                 type="date"
                 value={brouillon.to}
                 onChange={(event) => setBrouillon({ ...brouillon, to: event.target.value })}
               />
               <label style={{ display: 'grid', gap: 6 }}>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Gravité
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.gravite')}</Text>
                 <select
                   value={brouillon.severity}
                   onChange={(event) => setBrouillon({ ...brouillon, severity: event.target.value })}
@@ -153,7 +149,7 @@ export default function AdminAuditLog() {
                     fontSize: 14,
                   }}
                 >
-                  <option value="">Toutes</option>
+                  <option value="">{t('ui.toutes')}</option>
                   <option value="haute">haute</option>
                   <option value="moyenne">moyenne</option>
                   <option value="info">info</option>
@@ -161,9 +157,9 @@ export default function AdminAuditLog() {
               </label>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-              <Button label="Rechercher" size="sm" onClick={appliquer} />
+              <Button label={t('common.search')} size="sm" onClick={appliquer} />
               <Button
-                label="Réinitialiser"
+                label={t('ui.reinitialiser')}
                 variant="outline"
                 size="sm"
                 onClick={() => {
@@ -172,8 +168,8 @@ export default function AdminAuditLog() {
                   setFiltres(vide);
                 }}
               />
-              <Button label="Exporter CSV" variant="outline" size="sm" onClick={() => void exporter('csv')} />
-              <Button label="Exporter JSON" variant="outline" size="sm" onClick={() => void exporter('json')} />
+              <Button label={t('ui.exporterCsv')} variant="outline" size="sm" onClick={() => void exporter('csv')} />
+              <Button label={t('ui.exporterJson')} variant="outline" size="sm" onClick={() => void exporter('json')} />
             </div>
           </CardBody>
         </Card>
@@ -193,19 +189,13 @@ export default function AdminAuditLog() {
           </Card>
         ) : null}
 
-        <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 12 }}>
-          page {asNombreSafe(meta.page)} · {lignes.length} entrées affichées · total {asNombreSafe(meta.total)}
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 12 }}>{t('ui.pageEntreesAfficheesTotal', { page: asNombreSafe(meta.page), length: lignes.length, total: asNombreSafe(meta.total) })}</Text>
 
         <div style={{ display: 'grid', gap: 8 }}>
           {journal.isLoading ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Chargement…
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('common.loading')}</Text>
           ) : lignes.length === 0 ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Aucune entrée d'audit pour ces critères.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucuneEntreeDAuditPourCes')}</Text>
           ) : (
             lignes.map((ligne, index) => {
               const cle = asText(ligne.id, `entree-${String(index)}`);
@@ -225,7 +215,7 @@ export default function AdminAuditLog() {
                         {nomActeur || asText(ligne.actorId)}
                       </Text>
                       <Button
-                        label={ouvert === cle ? 'Masquer' : 'Détail'}
+                        label={ouvert === cle ? t('ui.masquer') : t('ui.detail')}
                         variant="ghost"
                         size="sm"
                         onClick={() => setOuvert(ouvert === cle ? null : cle)}
@@ -233,20 +223,13 @@ export default function AdminAuditLog() {
                     </div>
                     {ouvert === cle ? (
                       <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Identifiant : {cle} · Ressource : {asText(ligne.resource)} ({asText(ligne.resourceId)}) ·
-                          Adresse IP : {asText(ligne.ip)} · Agent : {asText(ligne.userAgent)}
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.identifiantRessourceAdresseIpAgent', { cle, resource: asText(ligne.resource), resourceId: asText(ligne.resourceId), ip: asText(ligne.ip), userAgent: asText(ligne.userAgent) })}</Text>
                         <div>
-                          <Text preset="caption" color={COLORS.slateGray}>
-                            Avant
-                          </Text>
+                          <Text preset="caption" color={COLORS.slateGray}>{t('ui.avant')}</Text>
                           <Text preset="bodySm">{ligne.oldValue === null || ligne.oldValue === undefined ? '—' : JSON.stringify(ligne.oldValue, null, 2)}</Text>
                         </div>
                         <div>
-                          <Text preset="caption" color={COLORS.slateGray}>
-                            Après
-                          </Text>
+                          <Text preset="caption" color={COLORS.slateGray}>{t('ui.apres')}</Text>
                           <Text preset="bodySm">{ligne.newValue === null || ligne.newValue === undefined ? '—' : JSON.stringify(ligne.newValue, null, 2)}</Text>
                         </div>
                       </div>

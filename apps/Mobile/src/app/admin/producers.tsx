@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminProducers() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminProducers() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Producteurs" subtitle="Comptes producteurs." />
+      <AppHeader title={t('ui.producteurs')} subtitle={t('ui.comptesProducteurs')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Producteurs" icon="person-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun producteur" description="Aucun compte producteur." icon="person-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.producteurs')} icon="person-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunProducteur')} description={t('ui.aucunCompteProducteur')} icon="person-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const user = row as Record<string, unknown>;

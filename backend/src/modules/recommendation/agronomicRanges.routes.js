@@ -24,6 +24,7 @@ import {
   RANGE_UNITS,
 } from './agronomicRanges.js';
 import { PARAMETER_LABELS, SOURCE_TYPE_LABELS, SOURCE_TYPES } from './agronomicRangesCsv.js';
+import { translateMessage } from '../../shared/i18n/index.js';
 
 const PARAMETER_KEYS = Object.values(RANGE_KEYS);
 const idParam = z.object({ id: z.string().min(10).max(60) });
@@ -150,7 +151,7 @@ router.get(
         key,
         // Libellé français du tableau « Plages agronomiques » : c'est celui que
         // l'agronome reconnaît, la clé technique ne lui parle pas.
-        label: RANGE_LABELS[key] ?? key,
+        label: translateMessage(RANGE_LABELS[key] ?? key),
         // Libellés acceptés à l'import CSV, en plus de la clé technique.
         acceptedLabels: PARAMETER_LABELS[key] ?? [],
         unit: RANGE_UNITS[key] ?? null,
@@ -158,7 +159,7 @@ router.get(
       })),
       physicalBounds: PHYSICAL_BOUNDS,
       /** Menu « Type de source ». « A choisir » n'y figure pas : c'est le vide. */
-      sourceTypes: SOURCE_TYPES.map((value) => ({ value, label: SOURCE_TYPE_LABELS[value] })),
+      sourceTypes: SOURCE_TYPES.map((value) => ({ value, label: translateMessage(SOURCE_TYPE_LABELS[value]) })),
       statuses: ['PROVISIONAL', 'VALIDATED', 'RETIRED'],
     }),
   ),

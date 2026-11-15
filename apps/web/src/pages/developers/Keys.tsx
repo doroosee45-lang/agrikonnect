@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Developers() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -51,7 +52,7 @@ export default function Developers() {
   });
 
   const createKey = useMutation({
-    mutationFn: (id: string) => apiClientApi.createKey(id, { label: 'clé' }),
+    mutationFn: (id: string) => apiClientApi.createKey(id, { label: t('ui.cle') }),
     onSuccess: (result) => {
       setError(null);
       setSecret({ clientId: result.data.key.clientId, value: result.data.secret });
@@ -70,44 +71,33 @@ export default function Developers() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Espace développeurs"
-        description="Connectez-vous pour gérer vos clients API, leurs finalités et leurs clés."
+        title={t('ui.espaceDeveloppeurs')}
+        description={t('ui.connectezVousPourGererVosClients')}
         icon="🔑"
       >
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            API publique
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Chaque clé porte une finalité de traitement déclarée puis approuvée. Les secrets ne sont affichés qu'une fois.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.apiPublique')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.chaqueClePorteUneFinaliteDe')}</Text>
         </div>
 
         <Card tone="white" style={{ marginBottom: 24 }}>
-          <Text preset="h3" style={{ marginBottom: 16 }}>
-            Nouveau client API
-          </Text>
+          <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.nouveauClientApi')}</Text>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-            <Input label="Nom" value={name} onChange={(e) => setName(e.target.value)} placeholder="Mon intégration" required />
-            <Input label="Email de contact" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} optionalLabel="optionnel" />
+            <Input label={t('ui.nom')} value={name} onChange={(e) => setName(e.target.value)} placeholder={t('ui.monIntegration')} required />
+            <Input label={t('ui.emailDeContact')} type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} optionalLabel={t('ui.optionnel')} />
           </div>
           {error ? (
             <div style={{ marginTop: 16 }}>
               <ErrorState error={error} showRequestId />
             </div>
           ) : null}
-          <Button label="Créer le client" onClick={() => createClient.mutate()} loading={createClient.isPending} disabled={!name.trim()} style={{ marginTop: 16 }} />
+          <Button label={t('ui.creerLeClient')} onClick={() => createClient.mutate()} loading={createClient.isPending} disabled={!name.trim()} style={{ marginTop: 16 }} />
         </Card>
 
         {secret ? (
           <Card tone="gold" style={{ marginBottom: 24 }}>
-            <Text preset="h3" style={{ marginBottom: 8 }}>
-              Secret à usage unique
-            </Text>
-            <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7, marginBottom: 12 }}>
-              Copiez ce secret maintenant : il ne sera plus jamais affiché. Une rotation génère un nouveau secret
-              et révoque l'ancien.
-            </Text>
+            <Text preset="h3" style={{ marginBottom: 8 }}>{t('ui.secretAUsageUnique')}</Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7, marginBottom: 12 }}>{t('ui.copiezCeSecretMaintenantIlNe')}</Text>
             <div
               style={{
                 fontFamily: 'monospace',
@@ -120,19 +110,17 @@ export default function Developers() {
             >
               {secret.value}
             </div>
-            <Button label="J'ai copié ce secret" onClick={() => setSecret(null)} variant="ghost" size="sm" style={{ marginTop: 12 }} />
+            <Button label={t('ui.jAiCopieCeSecret')} onClick={() => setSecret(null)} variant="ghost" size="sm" style={{ marginTop: 12 }} />
           </Card>
         ) : null}
 
-        <Text preset="h3" style={{ marginBottom: 16 }}>
-          Mes clients
-        </Text>
+        <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.mesClients')}</Text>
         {clients.isLoading ? (
           <LoadingState count={2} height={110} />
         ) : clients.isError ? (
           <ErrorState error={clients.error} onRetry={() => void clients.refetch()} />
         ) : (clients.data ?? []).length === 0 ? (
-          <EmptyState title="Aucun client" description="Créez un client API pour obtenir une clé." icon="🔑" />
+          <EmptyState title={t('ui.aucunClient')} description={t('ui.creezUnClientApiPourObtenir')} icon="🔑" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {(clients.data ?? []).map((client, index) => (
@@ -150,8 +138,7 @@ export default function Developers() {
                         {client.name}
                       </Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {client.contactEmail ?? 'contact non renseigné'} · créé le {formatDate(client.createdAt, locale)}
-                      </Text>
+                        {client.contactEmail ?? t('ui.contactNonRenseigne')}{' '}{t('ui.creeLe_65163', { createdAt: formatDate(client.createdAt, locale) })}</Text>
                     </div>
                     <Chip label={client.status} tone={client.status === 'ACTIVE' ? 'success' : 'warning'} size="sm" />
                   </div>
@@ -163,40 +150,32 @@ export default function Developers() {
                   </ChipRow>
 
                   <div style={{ marginBottom: 12 }}>
-                    <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>
-                      Finalité de traitement
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>{t('ui.finaliteDeTraitement')}</Text>
                     {client.dataPurpose ? (
                       <Text preset="bodySm" color={COLORS.textPrimary}>
                         {client.dataPurpose}
-                        {client.purposeApprovedAt ? ` · approuvée le ${formatDate(client.purposeApprovedAt, locale)}` : ' · en attente d’approbation'}
+                        {client.purposeApprovedAt ? t('ui.approuveeLe', { purposeApprovedAt: formatDate(client.purposeApprovedAt, locale) }) : t('ui.enAttenteDApprobation')}
                       </Text>
                     ) : (
-                      <Text preset="caption" color={COLORS.warning}>
-                        Non déclarée — required avant tout usage en production.
-                      </Text>
+                      <Text preset="caption" color={COLORS.warning}>{t('ui.nonDeclareeRequiredAvantToutUsage')}</Text>
                     )}
                   </div>
 
                   {purposeFor === client.id ? (
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', marginBottom: 12 }}>
                       <div style={{ flex: 1 }}>
-                        <Input label="Finalité" value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Ex. : tableau de bord interne des prix" />
+                        <Input label={t('ui.finalite')} value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder={t('ui.exTableauDeBordInterneDes')} />
                       </div>
-                      <Button label="Déclarer" onClick={() => setClientPurpose.mutate({ id: client.id, dataPurpose: purpose.trim() })} loading={setClientPurpose.isPending} disabled={!purpose.trim()} />
-                      <Button label="Annuler" onClick={() => setPurposeFor(null)} variant="ghost" />
+                      <Button label={t('ui.declarer')} onClick={() => setClientPurpose.mutate({ id: client.id, dataPurpose: purpose.trim() })} loading={setClientPurpose.isPending} disabled={!purpose.trim()} />
+                      <Button label={t('common.cancel')} onClick={() => setPurposeFor(null)} variant="ghost" />
                     </div>
                   ) : (
-                    <Button label={client.dataPurpose ? 'Modifier la finalité' : 'Déclarer la finalité'} onClick={() => setPurposeFor(client.id)} variant="outline" size="sm" style={{ marginBottom: 12 }} />
+                    <Button label={client.dataPurpose ? t('ui.modifierLaFinalite') : t('ui.declarerLaFinalite')} onClick={() => setPurposeFor(client.id)} variant="outline" size="sm" style={{ marginBottom: 12 }} />
                   )}
 
-                  <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 8 }}>
-                    Clés
-                  </Text>
+                  <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 8 }}>{t('ui.cles')}</Text>
                   {(client.keys ?? []).length === 0 ? (
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Aucune clé. Créez-en une pour appeler l'API.
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucuneCleCreezEnUnePour')}</Text>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                       {(client.keys ?? []).map((key) => (
@@ -205,19 +184,17 @@ export default function Developers() {
                             <Text preset="bodySm" color={COLORS.textPrimary}>
                               {key.label}
                             </Text>
-                            <Text preset="caption" color={COLORS.slateGray}>
-                              {key.prefix}… · créée le {formatDate(key.createdAt, locale)}
-                              {key.expiresAt ? ` · expire le ${formatDate(key.expiresAt, locale)}` : ''}
-                              {key.lastUsedAt ? ` · dernier usage ${formatDate(key.lastUsedAt, locale)}` : ' · jamais utilisée'}
+                            <Text preset="caption" color={COLORS.slateGray}>{t('ui.creeeLe_99161', { prefix: key.prefix, createdAt: formatDate(key.createdAt, locale) })}{key.expiresAt ? t('ui.expireLe_e1021', { expiresAt: formatDate(key.expiresAt, locale) }) : ''}
+                              {key.lastUsedAt ? t('ui.dernierUsage', { lastUsedAt: formatDate(key.lastUsedAt, locale) }) : t('ui.jamaisUtilisee')}
                             </Text>
                           </div>
-                          <Button label="Révoquer" onClick={() => revokeKey.mutate(key.id)} variant="danger" size="sm" loading={revokeKey.isPending && revokeKey.variables === key.id} />
+                          <Button label={t('ui.revoquer_9c67a')} onClick={() => revokeKey.mutate(key.id)} variant="danger" size="sm" loading={revokeKey.isPending && revokeKey.variables === key.id} />
                         </div>
                       ))}
                     </div>
                   )}
 
-                  <Button label="Créer une clé" onClick={() => createKey.mutate(client.id)} variant="outline" size="sm" style={{ marginTop: 12 }} loading={createKey.isPending && createKey.variables === client.id} />
+                  <Button label={t('ui.creerUneCle')} onClick={() => createKey.mutate(client.id)} variant="outline" size="sm" style={{ marginTop: 12 }} loading={createKey.isPending && createKey.variables === client.id} />
                 </Card>
               </motion.div>
             ))}
@@ -226,10 +203,7 @@ export default function Developers() {
 
         <Card tone="pale" style={{ marginTop: 32, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <span style={{ fontSize: 20 }}>🔒</span>
-          <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-            Les clés sont limitées en débit et en périmètre. Toute finalité non approuvée bloque l'accès aux jeux
-            de données sensibles. Les usages par route sont journalisés.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.lesClesSontLimiteesEnDebit')}</Text>
         </Card>
       </AuthGate>
     </Section>

@@ -6,33 +6,31 @@ import { adminApi } from '@/services/api/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /** ADMIN — rapports et exports disponibles. */
 export default function AdminReports() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Rapports" subtitle="Exports générés à la demande, tracés dans le journal d'audit." />
+      <AppHeader title={t('ui.rapports')} subtitle={t('ui.exportsGeneresALaDemandeTraces')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Rapports" icon="document-text-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.rapports')} icon="document-text-outline">
           <View style={styles.list}>
             <Reveal index={0} variant="up">
               <Card tone="white" style={styles.row}>
                 <View style={styles.rowBody}>
-                  <Text preset="bodyMedium">Export des exploitations</Text>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    GET /admin/export/farms — fichier généré à la demande, accès tracé.
-                  </Text>
+                  <Text preset="bodyMedium">{t('ui.exportDesExploitations')}</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.getAdminExportFarmsFichierGenere')}</Text>
                 </View>
-                <Button label="Télécharger" onPress={() => void Linking.openURL(adminApi.exportFarms())} variant="outline" size="sm" />
+                <Button label={t('ui.telecharger')} onPress={() => void Linking.openURL(adminApi.exportFarms())} variant="outline" size="sm" />
               </Card>
             </Reveal>
 
             <Card tone="pale">
-              <Text preset="caption" color={COLORS.textPrimary}>
-                Les exports ne contiennent jamais de coordonnées personnelles non nécessaires. Chaque téléchargement est journalisé avec son auteur et son horodatage.
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary}>{t('ui.lesExportsNeContiennentJamaisDe')}</Text>
             </Card>
           </View>
         </AuthGate>

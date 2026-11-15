@@ -9,12 +9,14 @@ import { SERVICE_CATALOG } from '@/lib/service-catalog';
 import { COLORS } from '@/theme/colors';
 import { LAYOUT, RADIUS, SPACING } from '@/theme/space';
 import { TERRE } from '@/theme/agrikonnect';
+import { useI18n } from '@/i18n';
 
 /**
  * Fiche détail d'un service — miroir mobile de `apps/web/src/pages/ServiceDetail.tsx`
  * (route web `/services/:serviceId`).
  */
 export default function ServiceDetail() {
+  const { t } = useI18n();
   const { serviceId } = useLocalSearchParams<{ serviceId: string }>();
   const service = SERVICE_CATALOG.find((item) => item.id === serviceId);
 
@@ -35,10 +37,10 @@ export default function ServiceDetail() {
           <PressableScale
             onPress={goBackToServices}
             accessibilityRole="button"
-            accessibilityLabel="Fermer et revenir aux services"
+            accessibilityLabel={t('ui.fermerEtRevenirAuxServices')}
             style={styles.backLink}
           >
-            <Text preset="bodyMedium" color={COLORS.forestGreen}>← Retour aux services</Text>
+            <Text preset="bodyMedium" color={COLORS.forestGreen}>{t('ui.retourAuxServices_3619a')}</Text>
           </PressableScale>
         </Reveal>
 
@@ -58,20 +60,18 @@ export default function ServiceDetail() {
                 pointerEvents="none"
               />
               <View style={styles.imageLabel}>
-                <Text preset="caption" color={COLORS.pureWhite}>AGRIKONNECT AFRICA · SERVICES</Text>
+                <Text preset="caption" color={COLORS.pureWhite}>{t('ui.agrikonnectAfricaServices')}</Text>
               </View>
             </View>
 
             <View style={styles.copy}>
-              <Text preset="overline" color={COLORS.forestGreen}>SERVICE AGRICOLE</Text>
+              <Text preset="overline" color={COLORS.forestGreen}>{t('ui.serviceAgricole')}</Text>
               <Text preset="h1" color={COLORS.textPrimary} accessibilityRole="header">
                 {service.title}
               </Text>
               <Text preset="lead" color={COLORS.slateGray}>{service.description}</Text>
 
-              <Text preset="h2" color={COLORS.textPrimary} style={styles.featuresTitle} accessibilityRole="header">
-                Ce que le service permet
-              </Text>
+              <Text preset="h2" color={COLORS.textPrimary} style={styles.featuresTitle} accessibilityRole="header">{t('ui.ceQueLeServicePermet')}</Text>
               <View style={styles.features}>
                 {service.features.map((feature) => (
                   <View key={feature} style={styles.featureRow}>
@@ -93,12 +93,10 @@ export default function ServiceDetail() {
               <PressableScale
                 onPress={goBackToServices}
                 accessibilityRole="button"
-                accessibilityLabel="Fermer le détail du service"
+                accessibilityLabel={t('ui.fermerLeDetailDuService')}
                 style={styles.closeButton}
               >
-                <Text preset="button" color={COLORS.pureWhite} style={styles.closeButtonLabel}>
-                  Fermer le détail
-                </Text>
+                <Text preset="button" color={COLORS.pureWhite} style={styles.closeButtonLabel}>{t('ui.fermerLeDetail')}</Text>
                 <Text preset="button" color={COLORS.pureWhite} style={styles.closeButtonIcon}>
                   ×
                 </Text>

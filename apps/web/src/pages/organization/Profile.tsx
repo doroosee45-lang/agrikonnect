@@ -11,6 +11,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** ORGANIZATION — profil de l'organisation. */
 export default function OrganizationProfile() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const organizations = useAuthStore((state) => state.user?.organizations ?? []);
@@ -25,19 +26,15 @@ export default function OrganizationProfile() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Profil" icon="🏢">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.profil')} icon="🏢">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: DURATION.slow / 1000, ease: EASE.out }}
           style={{ maxWidth: 720 }}
         >
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Profil de l'organisation
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-            Identité déclarée, rôles détenus et rattachement coopératif.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.profilDeLOrganisation')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.identiteDeclareeRolesDetenusEtRattachement')}</Text>
 
           {profile.isLoading ? (
             <LoadingState count={2} height={120} />
@@ -45,8 +42,8 @@ export default function OrganizationProfile() {
             <ErrorState error={profile.error} onRetry={() => void profile.refetch()} showRequestId />
           ) : !profile.data ? (
             <EmptyState
-              title="Aucune organisation"
-              description="Votre compte n'est rattaché à aucune organisation active."
+              title={t('ui.aucuneOrganisation')}
+              description={t('ui.votreCompteNEstRattacheA')}
               icon="🏢"
             />
           ) : (
@@ -58,10 +55,7 @@ export default function OrganizationProfile() {
                 <Text preset="h2" color={COLORS.pureWhite} style={{ marginBottom: 8 }}>
                   {profile.data.name}
                 </Text>
-                <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
-                  {profile.data.slug} · {profile.data.countryCode} · créée le{' '}
-                  {formatDate(profile.data.createdAt, locale)}
-                </Text>
+                <Text preset="caption" color="rgba(246, 247, 242, 0.7)">{t('ui.creeeLe_5bb2a', { slug: profile.data.slug, countryCode: profile.data.countryCode, createdAt: formatDate(profile.data.createdAt, locale) })}</Text>
                 {profile.data.description ? (
                   <Text preset="caption" color="rgba(246, 247, 242, 0.65)" style={{ marginTop: 12, lineHeight: 1.7 }}>
                     {profile.data.description}
@@ -70,13 +64,9 @@ export default function OrganizationProfile() {
               </Card>
 
               <Card tone="white">
-                <Text preset="h3" style={{ marginBottom: 12 }}>
-                  Vos rôles
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.vosRoles')}</Text>
                 {profile.data.roles.length === 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Aucun rôle enregistré sur cette organisation.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunRoleEnregistreSurCetteOrganisation')}</Text>
                 ) : (
                   <ChipRow>
                     {profile.data.roles.map((role) => (
@@ -84,25 +74,17 @@ export default function OrganizationProfile() {
                     ))}
                   </ChipRow>
                 )}
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12, lineHeight: 1.7 }}>
-                  Les rôles déterminent ce que vous pouvez consulter et modifier. Ils sont attribués par
-                  l'organisation, jamais déclarés par le compte.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12, lineHeight: 1.7 }}>{t('ui.lesRolesDeterminentCeQueVous')}</Text>
               </Card>
 
               <Card tone="white">
-                <Text preset="h3" style={{ marginBottom: 12 }}>
-                  Rattachement coopératif
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.rattachementCooperatif')}</Text>
                 {profile.data.cooperative ? (
                   <ChipRow>
-                    <Chip label="membre d'une coopérative" tone="success" size="sm" />
+                    <Chip label={t('ui.membreDUneCooperative')} tone="success" size="sm" />
                   </ChipRow>
                 ) : (
-                  <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.7 }}>
-                    Cette organisation n'est rattachée à aucune coopérative. Aucun volume n'est agrégé
-                    sans rattachement explicite.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.7 }}>{t('ui.cetteOrganisationNEstRattacheeA')}</Text>
                 )}
               </Card>
             </div>

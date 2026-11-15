@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function PublicSiteProjetDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -26,23 +27,23 @@ export default function PublicSiteProjetDetail() {
   const createdAt = typeof project?.createdAt === 'string' ? project.createdAt : null;
   return (
     <PublicShell active="projets">
-      <PageHeader index="15" eyebrow="Projet" title={String(project?.title ?? 'Fiche projet')} subtitle="Les pièces détaillées sont partagées via la data room, sur accès accordé." />
+      <PageHeader index="15" eyebrow={t('ui.projet')} title={String(project?.title ?? t('ui.ficheProjet_83fd1'))} subtitle={t('ui.lesPiecesDetailleesSontPartageesVia')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Projet" icon="layers-outline">
-          {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !project ? <Text preset="body">Projet introuvable.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.projet')} icon="layers-outline">
+          {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !project ? <Text preset="body">{t('ui.projetIntrouvable_85f8f')}</Text> : (
             <Card tone="white" style={styles.card}>
               <Text preset="h2">{String(project.title ?? '—')}</Text>
               {typeof project.summary === 'string' ? <Text preset="bodySm">{project.summary}</Text> : null}
               <View style={styles.field}>
-                <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                 <Chip label={String(project.status ?? '—')} tone="neutral" size="sm" />
               </View>
               <View style={styles.field}>
-                <Text preset="caption" color={COLORS.slateGray}>Pays</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.pays')}</Text>
                 <Text preset="bodySm">{String(project.countryCode ?? '—')}</Text>
               </View>
               <View style={styles.field}>
-                <Text preset="caption" color={COLORS.slateGray}>Publié le</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.publieLe')}</Text>
                 <Text preset="bodySm">{createdAt ? formatDate(createdAt, locale) : '—'}</Text>
               </View>
             </Card>

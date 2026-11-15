@@ -10,6 +10,7 @@ import { COLORS } from '@/theme';
 
 /** PUBLIC — fiche publique d'une exploitation (PUB-01 → PUB-06). */
 export default function PublicFarmProfile() {
+  const { t } = useI18n();
   const { slug } = useParams<{ slug: string }>();
   const { locale } = useI18n();
 
@@ -29,7 +30,7 @@ export default function PublicFarmProfile() {
       ) : query.isError ? (
         <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
       ) : !farm ? (
-        <Text preset="bodyMd">Exploitation introuvable.</Text>
+        <Text preset="bodyMd">{t('ui.exploitationIntrouvable')}</Text>
       ) : (
         <>
           <div style={{ marginBottom: 32 }}>
@@ -41,16 +42,12 @@ export default function PublicFarmProfile() {
               {farm.adminPath.province ? <Chip label={farm.adminPath.province} tone="neutral" size="sm" /> : null}
               <Chip label={farm.verification.label} tone={farm.verification.status === 'VERIFIED' ? 'success' : 'warning'} size="sm" />
             </div>
-            <Text preset="caption" color={COLORS.slateGray}>
-              Mise à jour : {formatDate(farm.updatedAt, locale)} · {farm.viewCount} vue(s)
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.miseAJourVueS', { updatedAt: formatDate(farm.updatedAt, locale), viewCount: farm.viewCount })}</Text>
           </div>
 
           {farm.description ? (
             <Card tone="white" style={{ marginBottom: 24 }}>
-              <Text preset="h3" style={{ marginBottom: 12 }}>
-                Présentation
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.presentation')}</Text>
               <Text preset="bodySm" style={{ lineHeight: 1.7 }}>
                 {farm.description}
               </Text>
@@ -58,38 +55,28 @@ export default function PublicFarmProfile() {
           ) : null}
 
           <Card tone="white" style={{ marginBottom: 24 }}>
-            <Text preset="h3" style={{ marginBottom: 16 }}>
-              Informations
-            </Text>
+            <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.informations')}</Text>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
               <div>
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>
-                  Surface totale
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>{t('ui.surfaceTotale')}</Text>
                 <Text preset="numeric" color={COLORS.forestGreen}>
                   {farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—'}
                 </Text>
               </div>
               <div>
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>
-                  Parcelles
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>{t('ui.parcelles')}</Text>
                 <Text preset="numeric" color={COLORS.forestGreen}>
                   {farm.plotsCount}
                 </Text>
               </div>
               <div>
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>
-                  Travailleurs
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>{t('ui.travailleurs')}</Text>
                 <Text preset="numeric" color={COLORS.forestGreen}>
                   {farm.workers ?? '—'}
                 </Text>
               </div>
               <div>
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>
-                  Année de création
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 4 }}>{t('ui.anneeDeCreation')}</Text>
                 <Text preset="numeric" color={COLORS.forestGreen}>
                   {farm.foundedYear ?? '—'}
                 </Text>
@@ -99,9 +86,7 @@ export default function PublicFarmProfile() {
 
           {farm.crops.length > 0 ? (
             <Card tone="white" style={{ marginBottom: 24 }}>
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Cultures
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.cultures')}</Text>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {farm.crops.map((crop) => (
                   <Chip key={crop.slug} label={crop.name} tone="forest" size="sm" />
@@ -111,17 +96,12 @@ export default function PublicFarmProfile() {
           ) : null}
 
           <Card tone="white" style={{ marginBottom: 24 }}>
-            <Text preset="h3" style={{ marginBottom: 12 }}>
-              Vérification
-            </Text>
+            <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.verification_bb27a')}</Text>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <Text preset="bodySm">
-                Statut : <Chip label={farm.verification.label} tone={farm.verification.status === 'VERIFIED' ? 'success' : 'warning'} size="sm" />
+              <Text preset="bodySm">{t('ui.statut_b20e7')}{' '}<Chip label={farm.verification.label} tone={farm.verification.status === 'VERIFIED' ? 'success' : 'warning'} size="sm" />
               </Text>
               {farm.verification.verifiedAt ? (
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Vérifié le {formatDate(farm.verification.verifiedAt, locale)}
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.verifieLe', { verifiedAt: formatDate(farm.verification.verifiedAt, locale) })}</Text>
               ) : null}
               <div style={{ marginTop: 8 }}>
                 <ProvenanceTag kind={farm.source === 'declared' ? 'DECLARED' : 'MEASURED'} source={farm.source} />
@@ -132,8 +112,8 @@ export default function PublicFarmProfile() {
           <Card tone="pale">
             <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
               {farm.contact.masked
-                ? 'Les coordonnées du producteur ne sont pas affichées. Pour le contacter, passez par la messagerie interne après avoir créé un compte.'
-                : 'Contactez le producteur via la messagerie interne.'}
+                ? t('ui.lesCoordonneesDuProducteurNeSont')
+                : t('ui.contactezLeProducteurViaLaMessagerie')}
             </Text>
           </Card>
         </>

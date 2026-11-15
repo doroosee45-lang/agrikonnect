@@ -8,6 +8,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Enquêtes à compléter.
@@ -17,6 +18,7 @@ import { SPACING } from '@/theme/space';
  * qui est la seule source réelle disponible.
  */
 export default function FarmerSurveys() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
     queryKey: [...queryKeys.dashboard.farmer, 'surveys'] as unknown[],
@@ -29,19 +31,19 @@ export default function FarmerSurveys() {
   const items = Array.isArray(raw) ? (raw as Array<Record<string, unknown>>) : [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Enquêtes" subtitle="Questionnaires à compléter." />
+      <FarmerHeader title={t('ui.enquetes')} subtitle={t('ui.questionnairesACompleter')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Enquêtes" icon="clipboard-outline">
-          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune enquête" description="Aucun questionnaire en attente." icon="clipboard-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.enquetes')} icon="clipboard-outline">
+          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneEnquete')} description={t('ui.aucunQuestionnaireEnAttente')} icon="clipboard-outline" /> : (
             <View style={styles.list}>
               {items.map((survey, index) => (
                 <Reveal key={String(survey.id ?? index)} index={index} variant="up">
                   <Card tone="white" style={styles.row}>
                     <View style={styles.rowBody}>
-                      <Text preset="bodySm">{String(survey.title ?? 'Enquête')}</Text>
-                      <Text preset="caption" color={COLORS.slateGray}>{String(survey.description ?? 'Questionnaire à compléter')}</Text>
+                      <Text preset="bodySm">{String(survey.title ?? t('ui.enquete'))}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{String(survey.description ?? t('ui.questionnaireACompleter'))}</Text>
                     </View>
-                    <Chip label={String(survey.status ?? 'en attente')} tone="neutral" size="sm" />
+                    <Chip label={String(survey.status ?? t('ui.enAttente_5fba9'))} tone="neutral" size="sm" />
                   </Card>
                 </Reveal>
               ))}

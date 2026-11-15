@@ -7,18 +7,20 @@ import { insightsApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { formatNumber } from '@/lib/format';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n, tr } from '@/i18n';
 
 const INDICATORS: Array<{ key: string; label: string; unit?: string }> = [
-  { key: 'producers', label: 'Producteurs' },
-  { key: 'cultivatedAreaHa', label: 'Surface cultivée', unit: 'ha' },
-  { key: 'volumeKg', label: 'Volume', unit: 'kg' },
-  { key: 'listings', label: 'Annonces' },
-  { key: 'projects', label: 'Projets' },
-  { key: 'exportValue', label: 'Valeur export', unit: 'USD' },
+  { key: 'producers', get label() { return tr('ui.producteurs'); } },
+  { key: 'cultivatedAreaHa', get label() { return tr('ui.surfaceCultivee'); }, unit: 'ha' },
+  { key: 'volumeKg', get label() { return tr('ui.volume'); }, unit: 'kg' },
+  { key: 'listings', get label() { return tr('ui.annonces'); } },
+  { key: 'projects', get label() { return tr('ui.projets'); } },
+  { key: 'exportValue', get label() { return tr('ui.valeurExport'); }, unit: 'USD' },
 ];
 
 /** INSIGHTS — vue régionale agrégée, seuil de divulgation affiché. */
 export default function InsightsRegion() {
+  const { t } = useI18n();
   const { region } = useParams<{ region: string }>();
 
   const overview = useQuery({
@@ -33,19 +35,12 @@ export default function InsightsRegion() {
 
   return (
     <Section>
-      <Text preset="h1" style={{ marginBottom: 8 }}>
-        Région {region ?? '—'}
-      </Text>
-      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-        Indicateurs agrégés. Un indicateur n'est affiché que si le groupe contient au moins {disclosure?.minGroupSize ?? '—'} entités.
-      </Text>
+      <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.region', { value: region ?? '—' })}</Text>
+      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.indicateursAgregesUnIndicateurNEst', { value: disclosure?.minGroupSize ?? '—' })}</Text>
 
       {disclosure ? (
         <Card tone="pale" style={{ marginBottom: 24 }}>
-          <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-            Politique de divulgation : seuil minimum {disclosure.minGroupSize} entités. En dessous de ce seuil, l'indicateur est masqué pour
-            empêcher toute ré-identification. Aucune valeur n'est extrapolée pour combler un groupe insuffisant.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.politiqueDeDivulgationSeuilMinimumEntites', { minGroupSize: disclosure.minGroupSize })}</Text>
         </Card>
       ) : null}
 
@@ -54,7 +49,7 @@ export default function InsightsRegion() {
       ) : overview.isError ? (
         <ErrorState error={overview.error} onRetry={() => void overview.refetch()} showRequestId />
       ) : Object.keys(indicators).length === 0 ? (
-        <EmptyState title="Aucun indicateur" description="Aucun indicateur agrégé n'est disponible pour cette région." icon="📊" />
+        <EmptyState title={t('ui.aucunIndicateur')} description={t('ui.aucunIndicateurAgregeNEstDisponible')} icon="📊" />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
           {INDICATORS.map((indicator, index) => {
@@ -73,7 +68,7 @@ export default function InsightsRegion() {
                     {indicator.label}
                   </Text>
                   {suppressed ? (
-                    <Chip label="masqué" tone="neutral" size="sm" />
+                    <Chip label={t('ui.masque_ca7ce')} tone="neutral" size="sm" />
                   ) : (
                     <Text preset="numeric" color={COLORS.forestGreen}>
                       {typeof value === 'number' ? formatNumber(value) : String(value)}

@@ -6,9 +6,11 @@ import { useMutation } from '@tanstack/react-query';
 import { Button, Card, ErrorState, Input, Section, Text } from '@/components/ui';
 import { authApi } from '@/services/endpoints';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** AUTH — vérification de téléphone par OTP. */
 export default function AuthVerifyPhone() {
+  const { t } = useI18n();
   const [otp, setOtp] = useState('');
   const [error, setError] = useState<unknown>(null);
   const [success, setSuccess] = useState(false);
@@ -30,21 +32,15 @@ export default function AuthVerifyPhone() {
   return (
     <Section>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.slow / 1000, ease: EASE.out }} style={{ maxWidth: 480, margin: '0 auto' }}>
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Vérification de téléphone
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Saisissez le code reçu par SMS pour vérifier votre numéro.
-        </Text>
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.verificationDeTelephone')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.saisissezLeCodeRecuParSms')}</Text>
 
         <Card tone="white">
           {success ? (
             <div style={{ textAlign: 'center', padding: 24 }}>
-              <Text preset="h3" style={{ marginBottom: 12 }}>
-                Téléphone vérifié
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.telephoneVerifie_8a357')}</Text>
               <Link to="/auth/login">
-                <Button label="Se connecter" variant="outline" size="sm" />
+                <Button label={t('ui.seConnecter')} variant="outline" size="sm" />
               </Link>
             </div>
           ) : (
@@ -55,11 +51,11 @@ export default function AuthVerifyPhone() {
               }}
               style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
             >
-              <Input label="Code OTP" value={otp} onChange={(event) => setOtp(event.target.value)} required />
+              <Input label={t('ui.codeOtp')} value={otp} onChange={(event) => setOtp(event.target.value)} required />
               {error ? <ErrorState error={error} showRequestId /> : null}
-              <Button label="Vérifier" type="submit" loading={verify.isPending} disabled={!otp} />
+              <Button label={t('ui.verifier')} type="submit" loading={verify.isPending} disabled={!otp} />
               <Button
-                label="Renvoyer le code"
+                label={t('ui.renvoyerLeCode')}
                 variant="ghost"
                 size="sm"
                 loading={sendOtp.isPending}

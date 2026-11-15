@@ -13,6 +13,7 @@ import { Navbar, type NavItem } from './Navbar';
 import { PublicFooter } from './PublicFooter';
 import { VERT } from '../../theme/agrikonnect';
 import { HeroCarousel } from './home/HeroCarousel';
+import { useI18n, tr } from '@/i18n';
 
 export interface PublicShellProps {
   children: React.ReactNode;
@@ -78,22 +79,23 @@ export function PublicShell({
 }
 
 const QUICK_LINKS = [
-  { label: 'Sol & sous-sol', icon: 'earth-outline' as const, href: '/services/inspection-sols' },
-  { label: 'État du sol', icon: 'flask-outline' as const, href: '/services/inspection-sols' },
-  { label: 'Quand semer ?', icon: 'calendar-outline' as const, href: '/services/conseils-semis' },
-  { label: 'Cultures & parcelles', icon: 'leaf-outline' as const, href: '/services/fermes-productions' },
-  { label: 'Carte agricole', icon: 'map-outline' as const, href: '/explore' },
+  { get label() { return tr('ui.solSousSol'); }, icon: 'earth-outline' as const, href: '/services/inspection-sols' },
+  { get label() { return tr('ui.etatDuSol'); }, icon: 'flask-outline' as const, href: '/services/inspection-sols' },
+  { get label() { return tr('ui.quandSemer'); }, icon: 'calendar-outline' as const, href: '/services/conseils-semis' },
+  { get label() { return tr('ui.culturesParcelles'); }, icon: 'leaf-outline' as const, href: '/services/fermes-productions' },
+  { get label() { return tr('ui.carteAgricole'); }, icon: 'map-outline' as const, href: '/explore' },
 ];
 
 function PublicTopbar() {
+  const { t } = useI18n();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   return (
     <View style={[styles.topbar, { marginTop: insets.top }]}>
       {width >= 700 ? (
         <View style={styles.topbarIntro}>
-          <Text preset="overline" color={COLORS.forestGreen}>AGRIKONNECT AFRICA</Text>
-          <Text preset="caption" color={COLORS.slateGray}>Conseils et données agricoles</Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('common.appName')}</Text>
+          <Text preset="caption" color={COLORS.slateGray}>{t('ui.conseilsEtDonneesAgricoles')}</Text>
         </View>
       ) : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} nestedScrollEnabled contentContainerStyle={styles.topbarLinks}>

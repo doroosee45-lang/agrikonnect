@@ -13,7 +13,7 @@ import { useAuthStore } from '@/store/auth';
 import { getUserInitialRoute } from '@/lib/redirects';
 
 export default function Register() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { email: presetEmail } = useLocalSearchParams<{ email?: string }>();
   const register = useAuthStore((state) => state.register);
   const busy = useAuthStore((state) => state.busy);
@@ -62,7 +62,7 @@ export default function Register() {
         phone: phone.trim() || undefined,
         password,
         countryCode: countryCode.trim().toUpperCase(),
-        locale: 'fr',
+        locale, // langue active (I18N-01), et non plus 'fr' figé
       });
       // La vérification d'adresse (si e-mail fourni) est la prochaine étape :
       // l'écran dédié se charge du renvoi du lien, l'adresse y est préremplie.
@@ -77,14 +77,14 @@ export default function Register() {
       const requestError = caught instanceof RequestError ? caught : null;
       if (requestError?.fields?.length) {
         setFieldErrors(
-          Object.fromEntries(requestError.fields.map((field) => [field.field, field.message ?? field.code ?? 'Invalide'])),
+          Object.fromEntries(requestError.fields.map((field) => [field.field, field.message ?? field.code ?? t('ui.invalide')])),
         );
       }
     }
   };
 
   return (
-    <AuthShell title={t('auth.signupTitle')} subtitle="Choisissez votre rôle, renseignez votre identité. Les rôles de contrôle ne sont jamais attribués à l’inscription.">
+    <AuthShell title={t('auth.signupTitle')} subtitle={t('ui.choisissezVotreRoleRenseignezVotreIdentite')}>
       <View style={styles.form}>
         <View style={styles.block}>
           <Text preset="caption" color={COLORS.textPrimary}>
@@ -107,7 +107,7 @@ export default function Register() {
             label={t('auth.firstName')}
             value={firstName}
             onChangeText={setFirstName}
-            placeholder="Aminata"
+            placeholder={t('ui.aminata')}
             icon="person-outline"
             autoCapitalize="words"
             error={fieldErrors.firstName ?? null}
@@ -116,7 +116,7 @@ export default function Register() {
             label={t('auth.lastName')}
             value={lastName}
             onChangeText={setLastName}
-            placeholder="Koné"
+            placeholder={t('ui.kone')}
             autoCapitalize="words"
             error={fieldErrors.lastName ?? null}
           />
@@ -131,8 +131,8 @@ export default function Register() {
           icon="mail-outline"
           autoCapitalize="none"
           keyboardType="email-address"
-          optionalLabel={phone.trim() ? undefined : 'requis si pas de téléphone'}
-          error={fieldErrors.email ?? (emailInvalid ? 'Adresse e-mail invalide.' : missingContact ? 'Un e-mail ou un téléphone est requis.' : null)}
+          optionalLabel={phone.trim() ? undefined : t('ui.requisSiPasDeTelephone')}
+          error={fieldErrors.email ?? (emailInvalid ? t('ui.adresseEMailInvalide') : missingContact ? t('ui.unEMailOuUnTelephone') : null)}
         />
 
         <Input
@@ -143,8 +143,8 @@ export default function Register() {
           placeholder="+225 07 00 00 00 00"
           icon="call-outline"
           keyboardType="phone-pad"
-          optionalLabel={email.trim() ? undefined : 'requis si pas d’e-mail'}
-          helper="Format international, 8 à 15 chiffres après le +."
+          optionalLabel={email.trim() ? undefined : t('ui.requisSiPasDEMail')}
+          helper={t('ui.formatInternational8A15Chiffres')}
           error={fieldErrors.phone ?? null}
         />
 
@@ -158,26 +158,23 @@ export default function Register() {
             icon="globe-outline"
             autoCapitalize="characters"
             maxLength={2}
-            error={fieldErrors.countryCode ?? (countryInvalid ? 'Code pays à 2 lettres.' : null)}
+            error={fieldErrors.countryCode ?? (countryInvalid ? t('ui.codePaysA2Lettres') : null)}
           />
           <Input
             label={t('auth.password')}
             value={password}
             onChangeText={setPassword}
             onBlur={() => setTouched(true)}
-            placeholder="8 caractères minimum"
+            placeholder={t('ui.n8CaracteresMinimum')}
             icon="lock-closed-outline"
             secure
-            error={fieldErrors.password ?? (passwordShort ? '8 caractères minimum.' : null)}
+            error={fieldErrors.password ?? (passwordShort ? t('ui.n8CaracteresMinimum_74197') : null)}
           />
         </View>
 
         {accountType === 'COOPERATIVE_ADMIN' ? (
           <Card tone="pale" style={styles.notice}>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-              Une organisation de type coopérative sera créée avec votre compte. Vous pourrez renseigner son
-              nom et ses membres depuis votre espace.
-            </Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.uneOrganisationDeTypeCooperativeSera')}</Text>
           </Card>
         ) : null}
 

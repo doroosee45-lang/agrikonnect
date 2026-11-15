@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerOrders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,10 +25,10 @@ export default function FarmerOrders() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Commandes" subtitle="Vos commandes." />
+      <FarmerHeader title={t('ui.commandes')} subtitle={t('ui.vosCommandes')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Commandes" icon="receipt-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune commande" description="Vos commandes apparaîtront ici." icon="receipt-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.commandes')} icon="receipt-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneCommande')} description={t('ui.vosCommandesApparaitrontIci')} icon="receipt-outline" /> : (
             <View style={styles.list}>
               {items.map((order, index) => (
                 <Reveal key={order.id} index={index} variant="up">

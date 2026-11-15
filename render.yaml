@@ -1,0 +1,75 @@
+# Blueprint Render — AGRIKONNECT AFRICA (API + site web).
+#
+# Aucun secret ici : les variables marquées `sync: false` se saisissent dans le
+# tableau de bord Render à la création du blueprint (valeurs de backend/.env).
+# Les migrations ne sont PAS lancées automatiquement : la base Supabase est
+# gérée à part (`npm run prisma:deploy` après vérification).
+
+services:
+  # ─── API (Express + Prisma) ──────────────────────────────────────
+  - type: web
+    name: agrikonnect-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --omit=dev && npx --yes prisma@5.22.0 generate
+    startCommand: node src/server.js
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # Aucun matériel branché : démarrage autorisé en production, mesures refusées.
+      - key: HARDWARE_MODE
+        value: NONE
+      - key: SIMULATION_ENABLED
+        value: "false"
+      - key: LOG_LEVEL
+        value: info
+      # Origine du site web ci-dessous (à ajuster si le nom du service change).
+      - key: CORS_ORIGIN
+        value: https://agrikonnect-web.onrender.com
+      - key: PUBLIC_WEB_URL
+        value: https://agrikonnect-web.onrender.com
+      # Clé dédiée au chiffrement des secrets TOTP (obligatoire en production).
+      - key: MFA_ENCRYPTION_KEY
+        generateValue: true
+      - key: SETTINGS_SECRET_KEY
+        generateValue: true
+      # Secrets et accès : à saisir dans le tableau de bord.
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SMS_PROVIDER
+        sync: false
+      - key: EMAIL_PROVIDER
+        sync: false
+
+  # ─── Site web (React + Vite, fichiers statiques) ─────────────────
+  - type: web
+    name: agrikonnect-web
+    runtime: static
+    rootDir: apps/web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: VITE_API_BASE_URL
+        value: https://agrikonnect-api.onrender.com/api/v1
+      - key: VITE_REALTIME_URL
+        value: https://agrikonnect-api.onrender.com
+    routes:
+      # Application monopage : toute route inconnue sert index.html.
+      - type: rewrite
+        source: /*
+        destination: /index.html

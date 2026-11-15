@@ -8,6 +8,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 import { organizationApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
+import { useI18n } from '@/i18n';
 
 /**
  * Coopératives.
@@ -17,6 +18,7 @@ import { queryKeys } from '@/services/query';
  * endpoint qui expose ce critère.
  */
 export default function PublicSiteCooperatives() {
+  const { t } = useI18n();
   const query = useQuery({
     queryKey: [...queryKeys.organizations.all, 'COOPERATIVE'] as unknown[],
     queryFn: () => organizationApi.list({ type: 'COOPERATIVE', limit: 100 }).then((r) => r.data),
@@ -25,9 +27,9 @@ export default function PublicSiteCooperatives() {
   const items = query.data ?? [];
   return (
     <PublicShell active="cooperatives">
-      <PageHeader index="02" eyebrow="Réseau" title="Coopératives" subtitle="Organisations collectives enregistrées." />
+      <PageHeader index="02" eyebrow={t('ui.reseau')} title={t('ui.cooperatives')} subtitle={t('ui.organisationsCollectivesEnregistrees')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune coopérative" description="Aucune coopérative enregistrée pour le moment." icon="people-outline" /> : (
+        {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneCooperative')} description={t('ui.aucuneCooperativeEnregistreePourLeMoment')} icon="people-outline" /> : (
           <View style={styles.list}>
             {items.map((coop, index) => (
               <Reveal key={coop.id} index={index} variant="up">

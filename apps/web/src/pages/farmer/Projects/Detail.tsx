@@ -10,49 +10,50 @@ import { useI18n } from '@/i18n';
 
 /** FARMER — fiche projet : besoin, apport, accès à la salle de données. */
 export default function FarmerProjectDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
 
   return (
     <DetailPage<Project>
       title={(project) => project.title}
-      subtitle="Fiche du projet et accès à sa salle de données."
+      subtitle={t('ui.ficheDuProjetEtAccesA')}
       backHref="/farmer/projects"
-      backLabel="Retour aux projets"
+      backLabel={t('ui.retourAuxProjets_14c74')}
       queryKey={queryKeys.projects.one(id ?? '')}
       fetch={() => projectApi.get(id ?? '').then((result) => result.data as unknown as Project)}
       actions={() => (
         <>
           <Link to={`/farmer/projects/${id}/dataroom`}>
-            <Button label="Salle de données" variant="outline" size="sm" />
+            <Button label={t('ui.salleDeDonnees')} variant="outline" size="sm" />
           </Link>
           <Link to={`/farmer/projects/${id}/reports`}>
-            <Button label="Rapports" variant="outline" size="sm" />
+            <Button label={t('ui.rapports')} variant="outline" size="sm" />
           </Link>
           <Link to={`/farmer/projects/${id}/access`}>
-            <Button label="Journal d'accès" variant="ghost" size="sm" />
+            <Button label={t('ui.journalDAcces')} variant="ghost" size="sm" />
           </Link>
         </>
       )}
       sections={(project) => [
         {
-          title: 'Identification',
+          title: t('ui.identification'),
           fields: [
-            { label: 'Titre', value: project.title },
-            { label: 'Statut', value: <Chip label={project.status} tone={project.status === 'OPEN' ? 'success' : 'neutral'} size="sm" /> },
-            { label: 'Créé le', value: formatDate(project.createdAt, locale) },
-            { label: 'Mise à jour', value: formatDate(project.updatedAt, locale) },
+            { label: t('ui.titre'), value: project.title },
+            { label: t('ui.statut'), value: <Chip label={project.status} tone={project.status === 'OPEN' ? 'success' : 'neutral'} size="sm" /> },
+            { label: t('ui.creeLe'), value: formatDate(project.createdAt, locale) },
+            { label: t('ui.miseAJour'), value: formatDate(project.updatedAt, locale) },
           ],
         },
         {
-          title: 'Financement',
-          notice: "Le besoin et l'apport sont des montants déclarés. Ils ne sont pas vérifiés par la plateforme.",
+          title: t('ui.financement'),
+          notice: t('ui.leBesoinEtLApportSont'),
           fields: [
-            { label: 'Besoin', value: project.fundingNeed !== null ? formatCurrency(project.fundingNeed, 'USD') : '—' },
-            { label: 'Apport propre', value: project.ownContribution !== null ? formatCurrency(project.ownContribution, 'USD') : '—' },
+            { label: t('ui.besoin'), value: project.fundingNeed !== null ? formatCurrency(project.fundingNeed, 'USD') : '—' },
+            { label: t('ui.apportPropre'), value: project.ownContribution !== null ? formatCurrency(project.ownContribution, 'USD') : '—' },
           ],
         },
-        { title: 'Présentation', fields: [{ label: 'Description', value: project.description ?? 'Aucune description renseignée.' }] },
+        { title: t('ui.presentation'), fields: [{ label: t('ui.description'), value: project.description ?? t('ui.aucuneDescriptionRenseignee') }] },
       ]}
     />
   );

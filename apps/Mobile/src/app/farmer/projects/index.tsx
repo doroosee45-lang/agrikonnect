@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerProjects() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,11 +25,11 @@ export default function FarmerProjects() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Mes projets" subtitle="Projets d'investissement rattachés à votre exploitation." />
+      <FarmerHeader title={t('ui.mesProjets')} subtitle={t('ui.projetsDInvestissementRattachesAVotre')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Mes projets" icon="layers-outline">
-          <Button label="Proposer un projet" variant="primary" onPress={() => router.push('/farmer/projects/new')} />
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun projet" description="Proposez un projet pour rechercher un financement." icon="layers-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.mesProjets')} icon="layers-outline">
+          <Button label={t('ui.proposerUnProjet')} variant="primary" onPress={() => router.push('/farmer/projects/new')} />
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunProjet')} description={t('ui.proposezUnProjetPourRechercherUn')} icon="layers-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const project = row as Record<string, unknown>;
@@ -37,8 +38,8 @@ export default function FarmerProjects() {
                 return (
                   <Reveal key={projectId} index={index} variant="up">
                     <PressableCard onPress={() => router.push(`/farmer/projects/${projectId}`)}>
-                      <Text preset="bodyMedium">{String(project.title ?? 'Projet sans titre')}</Text>
-                      <Text preset="caption" color={COLORS.slateGray}>{String(project.status ?? '—')} · {createdAt ? formatDate(createdAt, locale) : 'date inconnue'}</Text>
+                      <Text preset="bodyMedium">{String(project.title ?? t('ui.projetSansTitre'))}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{String(project.status ?? '—')} · {createdAt ? formatDate(createdAt, locale) : t('ui.dateInconnue')}</Text>
                     </PressableCard>
                   </Reveal>
                 );

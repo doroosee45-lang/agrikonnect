@@ -8,6 +8,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Fiche coopérative.
@@ -17,6 +18,7 @@ import { SPACING } from '@/theme/space';
  * mais la donnée affichée est bien celle de la coopérative courante.
  */
 export default function CooperativeDetail() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
     queryKey: queryKeys.cooperatives.current,
@@ -27,18 +29,18 @@ export default function CooperativeDetail() {
   const cooperative = query.data;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={cooperative?.organization?.name ?? 'Coopérative'} subtitle="Fiche de la coopérative active." />
+      <AppHeader title={cooperative?.organization?.name ?? t('ui.cooperative')} subtitle={t('ui.ficheDeLaCooperativeActive')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Coopérative" icon="people-outline">
-          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !cooperative ? <Text preset="body">Aucune coopérative rattachée à votre organisation.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.cooperative')} icon="people-outline">
+          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !cooperative ? <Text preset="body">{t('ui.aucuneCooperativeRattacheeAVotreOrganisation')}</Text> : (
             <Card tone="white" style={styles.card}>
-              <Text preset="h3">{cooperative.organization?.name ?? 'Coopérative'}</Text>
+              <Text preset="h3">{cooperative.organization?.name ?? t('ui.cooperative')}</Text>
               <View style={styles.chips}>
                 {cooperative.province ? <Chip label={cooperative.province} tone="neutral" size="sm" /> : null}
                 {cooperative.territory ? <Chip label={cooperative.territory} tone="neutral" size="sm" /> : null}
               </View>
-              <Text preset="bodySm" color={COLORS.slateGray}>Statut juridique : {cooperative.legalStatus ?? 'non renseigné'}</Text>
-              <Text preset="bodySm" color={COLORS.slateGray}>Année de création : {cooperative.foundedYear ?? 'non renseignée'}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.statutJuridique')}{' '}{cooperative.legalStatus ?? t('ui.nonRenseigne')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.anneeDeCreation_74321')}{' '}{cooperative.foundedYear ?? t('ui.nonRenseignee')}</Text>
               {cooperative.description ? <Text preset="bodySm">{cooperative.description}</Text> : null}
             </Card>
           )}

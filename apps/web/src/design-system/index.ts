@@ -1,9 +1,5 @@
 /**
- * design-system AGRIKONNECT AFRICA (kit v1.0).
- *
- * Composants Tailwind/shadcn pour le NEUF uniquement ; les ecrans existants
- * gardent les styles inline + jetons. Chaque composant livre ici est adopte
- * dans au moins un ecran reel.
+ * design-system AGRIKONNECT AFRICA (kit v1.0 + Horizon Bento).
  */
 export { ChartCard } from './components/ChartCard';
 export type { ChartCardProps } from './components/ChartCard';
@@ -13,4 +9,29 @@ export { cn } from './lib/utils';
 export { useBreakpoint } from './hooks/useBreakpoint';
 export type { Breakpoint } from './hooks/useBreakpoint';
 export { Sidebar } from './components/Sidebar';
-export type { SidebarGroup, SidebarItem, SidebarProps } from './components/Sidebar';
+export type { SidebarGroup, SidebarItem, SidebarProps, SidebarStatusCard } from './components/Sidebar';
+export {
+  HorizonAreaChartCard,
+  HorizonDonutCard,
+  HorizonGeoMapCard,
+  HorizonMiniIcon,
+  HorizonOverviewCard,
+  HorizonQuadMetricsCard,
+  HorizonShell,
+  HorizonTrackListCard,
+  buildMonthlySeries,
+  formatHorizonTimestamp,
+} from './components/HorizonDashboard';
+export type {
+  HorizonAreaChartCardProps,
+  HorizonDonutSegment,
+  HorizonIconName,
+  HorizonKpiItem,
+  HorizonMapLegendItem,
+  HorizonMapMarker,
+  HorizonOverviewCardProps,
+  HorizonQuadCell,
+  HorizonSeriesPoint,
+  HorizonTone,
+  HorizonTrackItem,
+} from './components/HorizonDashboard';

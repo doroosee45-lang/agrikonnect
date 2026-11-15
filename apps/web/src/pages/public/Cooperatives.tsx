@@ -8,11 +8,12 @@ import { useI18n } from '@/i18n';
 
 /** PUBLIC — coopératives dont le profil est publié. */
 export default function PublicCooperatives() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<OrganizationDetail>
-      title="Coopératives"
-      subtitle="Coopératives dont le profil est publié sur la plateforme."
+      title={t('ui.cooperatives')}
+      subtitle={t('ui.cooperativesDontLeProfilEstPublie')}
       icon="👥"
       public
       queryKey={queryKeys.organizations.all}
@@ -20,13 +21,13 @@ export default function PublicCooperatives() {
       rowKey={(organization) => organization.id}
       rowHref={(organization) => `/public/cooperatives/${organization.id}`}
       columns={[
-        { key: 'name', label: 'Nom', render: (organization) => organization.name },
-        { key: 'countryCode', label: 'Pays', render: (organization) => <Chip label={organization.countryCode} tone="neutral" size="sm" /> },
-        { key: 'createdAt', label: 'Enregistrée le', render: (organization) => formatDate(organization.createdAt, locale) },
+        { key: 'name', label: t('ui.nom'), render: (organization) => organization.name },
+        { key: 'countryCode', label: t('ui.pays'), render: (organization) => <Chip label={organization.countryCode} tone="neutral" size="sm" /> },
+        { key: 'createdAt', label: t('ui.enregistreeLe'), render: (organization) => formatDate(organization.createdAt, locale) },
       ]}
-      emptyTitle="Aucune coopérative publiée"
-      emptyDescription="Aucune coopérative n'a encore publié son profil."
-      notice="Les volumes consolidés ne sont publiés qu'avec le consentement explicite de chaque membre."
+      emptyTitle={t('ui.aucuneCooperativePubliee')}
+      emptyDescription={t('ui.aucuneCooperativeNAEncorePublie')}
+      notice={t('ui.lesVolumesConsolidesNeSontPublies')}
     />
   );
 }

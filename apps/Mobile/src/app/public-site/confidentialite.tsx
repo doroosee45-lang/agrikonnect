@@ -4,38 +4,40 @@ import { PageHeader, PublicShell } from '@/components/public-site/PublicShell';
 import { Card, Reveal, Section, Text } from '@/components/ui';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 const BLOCKS = [
   {
-    title: 'Ce qui est publié par défaut',
-    body: 'Rien de personnel. Une fiche publique expose le nom de l’exploitation, son découpage administratif, sa surface déclarée, ses cultures et son statut de vérification. Les coordonnées restent masquées tant que le producteur ne les publie pas.',
+    get title() { return tr('ui.ceQuiEstPublieParDefaut'); },
+    get body() { return tr('ui.rienDePersonnelUneFichePublique'); },
   },
   {
-    title: 'Positions',
-    body: 'Les coordonnées affichées sur les routes publiques sont arrondies côté serveur avant l’envoi. La position exacte d’une parcelle n’est jamais exposée publiquement.',
+    get title() { return tr('ui.positions'); },
+    get body() { return tr('ui.lesCoordonneesAfficheesSurLesRoutes'); },
   },
   {
-    title: 'Statistiques',
-    body: 'Les agrégats sont soumis au k-anonymat : tout groupe de moins de dix analyses est supprimé de la publication, sans arrondi ni complétion.',
+    get title() { return tr('ui.statistiques'); },
+    get body() { return tr('ui.lesAgregatsSontSoumisAuK'); },
   },
   {
-    title: 'Jetons et session',
-    body: 'Les jetons d’accès sont stockés dans le trousseau sécurisé de l’appareil (Keychain / Keystore), jamais dans les journaux. L’accès dure au plus quinze minutes et le rafraîchissement est rotatif.',
+    get title() { return tr('ui.jetonsEtSession'); },
+    get body() { return tr('ui.lesJetonsDAccesSontStockes'); },
   },
   {
-    title: 'Médias',
-    body: 'Les images sont servies par URL signée à durée limitée (5 minutes par défaut). Un lien partagé expire de lui-même.',
+    get title() { return tr('ui.medias'); },
+    get body() { return tr('ui.lesImagesSontServiesParUrl'); },
   },
   {
-    title: 'Messagerie',
-    body: 'Les échanges commerciaux passent par la messagerie interne. Les messages sont horodatés, signalables, et une partie peut bloquer l’autre.',
+    get title() { return tr('ui.messagerie'); },
+    get body() { return tr('ui.lesEchangesCommerciauxPassentParLa'); },
   },
 ];
 
 export default function Confidentialite() {
+  const { t } = useI18n();
   return (
     <PublicShell active="accueil">
-      <PageHeader index={1} eyebrow="Légal" title="Confidentialité" subtitle="Les règles appliquées par la plateforme, telles qu’elles sont implémentées." compact />
+      <PageHeader index={1} eyebrow={t('ui.legal')} title={t('ui.confidentialite')} subtitle={t('ui.lesReglesAppliqueesParLaPlateforme')} compact />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         {BLOCKS.map((block, index) => (
           <Reveal key={block.title} index={index % 3} variant="up">

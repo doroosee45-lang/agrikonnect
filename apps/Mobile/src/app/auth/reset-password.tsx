@@ -8,8 +8,10 @@ import { Button, Card, ErrorState, Input, Screen, Section, Text } from '@/compon
 import { authApi } from '@/services/api/endpoints';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function AuthResetPassword() {
+  const { t } = useI18n();
   const [token, setToken] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<unknown>(null);
@@ -23,20 +25,20 @@ export default function AuthResetPassword() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Réinitialiser le mot de passe" subtitle="Saisissez le code reçu et votre nouveau mot de passe." />
+      <AppHeader title={t('ui.reinitialiserLeMotDePasse')} subtitle={t('ui.saisissezLeCodeRecuEtVotre')} />
       <Section bare contentStyle={styles.section}>
         <Card tone="white">
           {success ? (
             <View style={styles.success}>
-              <Text preset="h3" color={COLORS.success} style={styles.mb}>Mot de passe réinitialisé</Text>
-              <Button label="Se connecter" variant="outline" onPress={() => router.push('/auth/login')} />
+              <Text preset="h3" color={COLORS.success} style={styles.mb}>{t('ui.motDePasseReinitialise')}</Text>
+              <Button label={t('ui.seConnecter')} variant="outline" onPress={() => router.push('/auth/login')} />
             </View>
           ) : (
             <View style={styles.form}>
-              <Input label="Code de réinitialisation" value={token} onChangeText={setToken} />
-              <Input label="Nouveau mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
+              <Input label={t('ui.codeDeReinitialisation')} value={token} onChangeText={setToken} />
+              <Input label={t('ui.nouveauMotDePasse')} value={password} onChangeText={setPassword} secureTextEntry />
               {error ? <ErrorState error={error} /> : null}
-              <Button label="Réinitialiser" onPress={() => reset.mutate()} loading={reset.isPending} disabled={!token || !password} />
+              <Button label={t('ui.reinitialiser')} onPress={() => reset.mutate()} loading={reset.isPending} disabled={!token || !password} />
             </View>
           )}
         </Card>

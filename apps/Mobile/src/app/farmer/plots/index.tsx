@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerPlots() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,11 +24,11 @@ export default function FarmerPlots() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Mes parcelles" subtitle="Parcelles rattachées à vos exploitations." />
+      <FarmerHeader title={t('ui.mesParcelles')} subtitle={t('ui.parcellesRattacheesAVosExploitations')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Parcelles" icon="map-outline">
-          <Button label="Nouvelle parcelle" icon="add-outline" onPress={() => router.push('/farmer/plots/create')} style={styles.mb} />
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune parcelle" description="Créez votre première parcelle." icon="map-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.parcelles')} icon="map-outline">
+          <Button label={t('ui.nouvelleParcelle')} icon="add-outline" onPress={() => router.push('/farmer/plots/create')} style={styles.mb} />
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneParcelle')} description={t('ui.creezVotrePremiereParcelle')} icon="map-outline" /> : (
             <View style={styles.list}>
               {items.map((plot, index) => (
                 <Reveal key={plot.id} index={index} variant="up">

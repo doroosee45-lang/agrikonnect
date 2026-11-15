@@ -43,6 +43,7 @@ const STATUS_TONES: Record<string, 'neutral' | 'info' | 'success' | 'warning' | 
  * escalade humaine possible et aucune décision automatique.
  */
 export default function Ai() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -63,7 +64,7 @@ export default function Ai() {
     mutationFn: () => aiApi.copilot({ question: question.trim() }),
     onSuccess: () => {
       setError(null);
-      setNotice('Réponse générée. Elle reste indicative : aucune décision automatique n’en découle.');
+      setNotice(t('ui.reponseGenereeElleResteIndicativeAucune'));
       setQuestion('');
       void queryClient.invalidateQueries({ queryKey: queryKeys.ai.all });
     },
@@ -77,7 +78,7 @@ export default function Ai() {
     mutationFn: () => aiApi.analyze({ type: 'CHAT', prompt: question.trim(), consentGiven: consent }),
     onSuccess: () => {
       setError(null);
-      setNotice('Analyse enregistrée.');
+      setNotice(t('ui.analyseEnregistree'));
       void queryClient.invalidateQueries({ queryKey: queryKeys.ai.all });
     },
     onError: (caught) => {
@@ -96,50 +97,41 @@ export default function Ai() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Assistant agronomique" subtitle="Réponses sourcées, consentement explicite, escalade humaine." />
+      <AppHeader title={t('ui.assistantAgronomique')} subtitle={t('ui.reponsesSourceesConsentementExpliciteEscaladeHum')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour interroger l'assistant et retrouver vos analyses."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourInterrogerLAssistant')}
           icon="sparkles-outline"
         >
           <Card tone="pale" style={styles.warning}>
             <Ionicons name="information-circle-outline" size={16} color={COLORS.info} />
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              L’assistant produit des indications, pas des prescriptions. Chaque sortie porte un avertissement et
-              peut être escaladée vers un agronome identifié. Aucune décision n’est prise automatiquement.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lAssistantProduitDesIndicationsPas')}</Text>
           </Card>
 
           <Card tone="white" style={styles.card}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Poser une question
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.poserUneQuestion')}</Text>
             <TextArea
-              label="Votre question"
+              label={t('ui.votreQuestion')}
               value={question}
               onChangeText={setQuestion}
-              placeholder="Quels signes surveiller sur des feuilles de cacaoyer jaunissantes ?"
+              placeholder={t('ui.quelsSignesSurveillerSurDesFeuilles')}
               minHeight={90}
             />
 
             <View style={styles.consentRow}>
               <View style={styles.consentText}>
-                <Text preset="caption" color={COLORS.textPrimary}>
-                  J’accepte que ma question et le contexte de ma parcelle soient traités
-                </Text>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Consentement enregistré avec chaque analyse, révocable à tout moment.
-                </Text>
+                <Text preset="caption" color={COLORS.textPrimary}>{t('ui.jAccepteQueMaQuestionEt')}</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.consentementEnregistreAvecChaqueAnalyseRevocable')}</Text>
               </View>
               <Switch
                 value={consent}
                 onValueChange={setConsent}
                 trackColor={{ false: COLORS.lightBorder, true: COLORS.livingGreen }}
                 thumbColor={COLORS.pureWhite}
-                accessibilityLabel="Consentement au traitement"
+                accessibilityLabel={t('ui.consentementAuTraitement')}
               />
             </View>
 
@@ -152,7 +144,7 @@ export default function Ai() {
 
             <View style={styles.actions}>
               <Button
-                label="Interroger l’assistant"
+                label={t('ui.interrogerLAssistant')}
                 onPress={() => ask.mutate()}
                 variant="primary"
                 size="sm"
@@ -161,7 +153,7 @@ export default function Ai() {
                 disabled={question.trim().length < 3}
               />
               <Button
-                label="Analyse tracée"
+                label={t('ui.analyseTracee')}
                 onPress={() => analyze.mutate()}
                 variant="outline"
                 size="sm"
@@ -175,7 +167,7 @@ export default function Ai() {
           <View style={styles.filters}>
             <ChipRow>
               {['', 'CHAT', 'PLANT_PHOTO', 'DOCUMENT'].map((type) => (
-                <FilterChip key={type || 'all'} label={type || 'Toutes'} active={filter === type} onPress={() => setFilter(type)} />
+                <FilterChip key={type || 'all'} label={type || t('ui.toutes')} active={filter === type} onPress={() => setFilter(type)} />
               ))}
             </ChipRow>
           </View>
@@ -186,8 +178,8 @@ export default function Ai() {
             <ErrorState error={analyses.error} onRetry={() => void analyses.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucune analyse"
-              description="Vos questions et analyses apparaîtront ici avec leur statut, leur modèle et leur avertissement."
+              title={t('ui.aucuneAnalyse')}
+              description={t('ui.vosQuestionsEtAnalysesApparaitrontIci_075c0')}
               icon="sparkles-outline"
             />
           ) : (
@@ -198,12 +190,12 @@ export default function Ai() {
                     <View style={styles.head}>
                       <View style={styles.headText}>
                         <Text preset="bodyMedium" color={COLORS.textPrimary} numberOfLines={2}>
-                          {item.prompt ?? `Analyse ${item.type}`}
+                          {item.prompt ?? t('ui.analyse_211fa', { type: item.type })}
                         </Text>
                         <Text preset="caption" color={COLORS.slateGray}>
                           {item.type} · {formatDate(item.createdAt, locale)}
                           {item.model ? ` · ${item.provider ?? ''} ${item.model}`.trim() : ''}
-                          {item.tokensUsed !== null ? ` · ${formatNumber(item.tokensUsed, locale)} jetons` : ''}
+                          {item.tokensUsed !== null ? t('ui.jetons', { tokensUsed: formatNumber(item.tokensUsed, locale) }) : ''}
                         </Text>
                       </View>
                       <Chip label={item.status} tone={STATUS_TONES[item.status] ?? 'neutral'} size="sm" />
@@ -216,9 +208,7 @@ export default function Ai() {
                     ) : null}
 
                     {item.confidence !== null ? (
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Confiance indiquée : {formatNumber(item.confidence * 100, locale, 0)} %
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.confianceIndiquee', { value: formatNumber(item.confidence * 100, locale, 0) })}</Text>
                     ) : null}
 
                     {item.disclaimer ? (
@@ -229,7 +219,7 @@ export default function Ai() {
 
                     {item.status === 'COMPLETED' ? (
                       <Button
-                        label={item.escalatedAt ? 'Escaladée à un humain' : 'Escalader à un agronome'}
+                        label={item.escalatedAt ? t('ui.escaladeeAUnHumain') : t('ui.escaladerAUnAgronome')}
                         onPress={() => escalate.mutate(item.id)}
                         variant="ghost"
                         size="sm"

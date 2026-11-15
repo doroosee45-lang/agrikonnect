@@ -23,6 +23,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
  * saisie de l'agriculteur.
  */
 export default function FarmerSyncStatus() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -53,8 +54,8 @@ export default function FarmerSyncStatus() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Synchronisation"
-        description="État de synchronisation de vos données."
+        title={t('ui.synchronisation')}
+        description={t('ui.etatDeSynchronisationDeVosDonnees')}
         icon="🔄"
       >
         <motion.div
@@ -63,13 +64,8 @@ export default function FarmerSyncStatus() {
           transition={{ duration: DURATION.slow / 1000, ease: EASE.out }}
           style={{ maxWidth: 760 }}
         >
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Synchronisation
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-            Les modifications hors ligne sont conservées localement puis réconciliées avec le serveur.
-            Aucune n'est écrasée en silence.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.synchronisation')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.lesModificationsHorsLigneSontConservees')}</Text>
 
           {collections.isLoading || conflicts.isLoading ? (
             <LoadingState count={3} height={100} />
@@ -79,16 +75,16 @@ export default function FarmerSyncStatus() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <Card tone={openConflicts > 0 ? 'pale' : 'white'}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-                  <Text preset="h3">Conflits ouverts</Text>
+                  <Text preset="h3">{t('ui.conflitsOuverts')}</Text>
                   <Chip
-                    label={openConflicts > 0 ? `${openConflicts} à arbitrer` : 'aucun'}
+                    label={openConflicts > 0 ? t('ui.aArbitrer', { openConflicts }) : t('ui.aucun')}
                     tone={openConflicts > 0 ? 'warning' : 'success'}
                     size="sm"
                   />
                 </div>
                 <Text preset="caption" color={COLORS.textPrimary} style={{ marginTop: 12, lineHeight: 1.7 }}>
                   {conflicts.data?.policy ??
-                    'Aucune résolution silencieuse : les conflits restent ouverts jusqu’à arbitrage.'}
+                    t('ui.aucuneResolutionSilencieuseLesConflitsRestent')}
                 </Text>
                 {conflicts.data && conflicts.data.operations.length > 0 ? (
                   <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -113,14 +109,10 @@ export default function FarmerSyncStatus() {
               </Card>
 
               <Card tone="white">
-                <Text preset="h3" style={{ marginBottom: 12 }}>
-                  Dernier incrément disponible
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.dernierIncrementDisponible')}</Text>
                 {pending.data ? (
                   <>
-                    <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.8 }}>
-                      Depuis le {formatDate(pending.data.since, locale)}
-                      {pending.data.hasMore ? ' · d’autres changements suivent' : ' · à jour'}
+                    <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.8 }}>{t('ui.depuisLe', { since: formatDate(pending.data.since, locale) })}{pending.data.hasMore ? t('ui.dAutresChangementsSuivent') : t('ui.aJour_1d5c3')}
                     </Text>
                     <div style={{ marginTop: 12 }}>
                       <ChipRow>
@@ -130,7 +122,7 @@ export default function FarmerSyncStatus() {
                             <Chip key={name} label={`${name} : ${count}`} tone="info" size="sm" />
                           ))}
                         {Object.values(pending.data.counts).every((count) => count === 0) ? (
-                          <Chip label="aucun changement" tone="neutral" size="sm" />
+                          <Chip label={t('ui.aucunChangement')} tone="neutral" size="sm" />
                         ) : null}
                       </ChipRow>
                     </div>
@@ -139,16 +131,12 @@ export default function FarmerSyncStatus() {
                     </Text>
                   </>
                 ) : (
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    État non disponible.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.etatNonDisponible')}</Text>
                 )}
               </Card>
 
               <Card tone="white">
-                <Text preset="h3" style={{ marginBottom: 16 }}>
-                  Collections synchronisables
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.collectionsSynchronisables')}</Text>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {(collections.data?.collections ?? []).map((collection) => (
                     <div
@@ -165,20 +153,17 @@ export default function FarmerSyncStatus() {
                       </div>
                       <ChipRow>
                         <Chip
-                          label={collection.softDelete ? 'suppression logique' : 'suppression définitive'}
+                          label={collection.softDelete ? t('ui.suppressionLogique') : t('ui.suppressionDefinitive')}
                           tone="neutral"
                           size="sm"
                         />
-                        <Chip label={`idempotence : ${collection.idempotentBy}`} tone="neutral" size="sm" />
+                        <Chip label={t('ui.idempotencyBy', { value: collection.idempotentBy })} tone="neutral" size="sm" />
                         <Chip label={collection.concurrency} tone="neutral" size="sm" />
                       </ChipRow>
                     </div>
                   ))}
                 </div>
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 16, lineHeight: 1.7 }}>
-                  Chaque opération porte un identifiant unique : rejouer un envoi après une coupure réseau ne
-                  crée pas de doublon. La concurrence est résolue par version, jamais par écrasement.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 16, lineHeight: 1.7 }}>{t('ui.chaqueOperationPorteUnIdentifiantUnique')}</Text>
               </Card>
             </div>
           )}

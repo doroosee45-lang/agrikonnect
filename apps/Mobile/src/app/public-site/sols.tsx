@@ -23,6 +23,7 @@ import { VERT } from '../../theme/agrikonnect';
 
 /** Statistiques de sol agrégées (`GET /public/soil-stats`), avec la règle de k-anonymat. */
 export default function Soils() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { data, isLoading, isError, error, refetch } = useSoilStats();
 
@@ -30,9 +31,9 @@ export default function Soils() {
     <PublicShell active="accueil">
       <PageHeader
         index={1}
-        eyebrow="Données"
-        title="Statistiques de sol"
-        subtitle="Moyennes de paramètres mesurés, groupées par pays. Aucun rattachement à une parcelle ou à une exploitation identifiable."
+        eyebrow={t('ui.donnees')}
+        title={t('ui.statistiquesDeSol')}
+        subtitle={t('ui.moyennesDeParametresMesuresGroupeesPar_6b87a')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
@@ -42,8 +43,8 @@ export default function Soils() {
           <ErrorState error={error} onRetry={() => void refetch()} />
         ) : !data || data.rows.length === 0 ? (
           <EmptyState
-            title="Aucune statistique publiable"
-            description={`Chaque groupe de moins de ${data?.kAnonymity ?? 10} analyses est supprimé plutôt qu’arrondi ou complété.`}
+            title={t('ui.aucuneStatistiquePubliable')}
+            description={t('ui.chaqueGroupeDeMoinsDeAnalyses', { value: data?.kAnonymity ?? 10 })}
             icon="flask-outline"
           />
         ) : (
@@ -73,9 +74,7 @@ export default function Soils() {
                   </View>
 
                   {row.parameters.length === 0 ? (
-                    <Text preset="bodySm" color={COLORS.slateGray}>
-                      Aucun paramètre n’atteint le seuil de publication.
-                    </Text>
+                    <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucunParametreNAtteintLeSeuil')}</Text>
                   ) : (
                     <View style={styles.params}>
                       {row.parameters.map((parameter) => (
@@ -87,7 +86,7 @@ export default function Soils() {
                             <Text preset="numeric" color={COLORS.forestGreen} style={styles.paramNumber}>
                               {formatNumber(parameter.mean, locale, 2)}
                             </Text>
-                            <ProvenanceTag kind="measured" label={`${parameter.samples} échantillons`} />
+                            <ProvenanceTag kind="measured" label={t('ui.echantillons_4b9f2', { samples: parameter.samples })} />
                           </View>
                         </View>
                       ))}
@@ -95,9 +94,7 @@ export default function Soils() {
                   )}
 
                   {row.withheldParameters.length > 0 ? (
-                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      Non publiés (trop peu de mesures) : {row.withheldParameters.join(', ')}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.nonPubliesTropPeuDeMesures', { value: row.withheldParameters.join(', ') })}</Text>
                   ) : null}
                 </Card>
               </Reveal>
@@ -105,18 +102,14 @@ export default function Soils() {
 
             {data.suppressedGroups.length > 0 ? (
               <Card tone="paper" style={styles.suppressed}>
-                <Text preset="overline" color={COLORS.warning}>
-                  Groupes supprimés
-                </Text>
+                <Text preset="overline" color={COLORS.warning}>{t('ui.groupesSupprimes')}</Text>
                 {data.suppressedGroups.map((group) => (
-                  <Text key={group.countryCode} preset="bodySm" color={COLORS.slateGray}>
-                    {group.countryCode} — {group.assessments} analyses ({group.reason})
-                  </Text>
+                  <Text key={group.countryCode} preset="bodySm" color={COLORS.slateGray}>{t('ui.analyses', { countryCode: group.countryCode, assessments: group.assessments, reason: group.reason })}</Text>
                 ))}
               </Card>
             ) : null}
 
-            <AdvisoryNotice text="Ces moyennes décrivent un pays, pas un champ : elles ne remplacent pas une analyse de parcelle." />
+            <AdvisoryNotice text={t('ui.cesMoyennesDecriventUnPaysPas')} />
           </>
         )}
       </Section>

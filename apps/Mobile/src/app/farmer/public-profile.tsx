@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerPublicProfile() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
   const me = useQuery({ queryKey: queryKeys.me, queryFn: () => authApi.me().then((r) => r.data), enabled: isAuthenticated, retry: false });
@@ -18,9 +19,9 @@ export default function FarmerPublicProfile() {
   const published = farms.data?.filter((f) => f.isPublic) ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Ma fiche publique" subtitle="Ce que les visiteurs voient." />
+      <FarmerHeader title={t('ui.maFichePublique')} subtitle={t('ui.ceQueLesVisiteursVoient')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Fiche publique" icon="globe-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.fichePublique')} icon="globe-outline">
           {me.isLoading || farms.isLoading ? <LoadingState count={2} height={110} /> : (
             <>
               <Card tone="white" style={styles.card}>
@@ -29,10 +30,10 @@ export default function FarmerPublicProfile() {
                   <Chip label={me.data?.user.countryCode ?? '—'} tone="neutral" size="sm" />
                 </View>
               </Card>
-              <Text preset="h3" style={styles.mb}>Exploitations publiées</Text>
+              <Text preset="h3" style={styles.mb}>{t('ui.exploitationsPubliees')}</Text>
               {published.length === 0 ? (
                 <Card tone="pale">
-                  <Text preset="bodySm" color={COLORS.slateGray}>Aucune exploitation publiée.</Text>
+                  <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneExploitationPubliee_3f768')}</Text>
                 </Card>
               ) : (
                 <View style={styles.list}>

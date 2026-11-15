@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AiDocuments() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,15 +24,13 @@ export default function AiDocuments() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Documents générés" subtitle="Fiches techniques, synthèses et plans de campagne." />
+      <AppHeader title={t('ui.documentsGeneres')} subtitle={t('ui.fichesTechniquesSynthesesEtPlansDe_4b3f5')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Documents générés" icon="document-text-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.documentsGeneres')} icon="document-text-outline">
           <Card tone="pale" style={styles.notice}>
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Les documents sont générés par une IA. Ils doivent être relus et validés par un expert avant toute utilisation.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lesDocumentsSontGeneresParUne')}</Text>
           </Card>
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun document" description="Les documents générés apparaîtront ici." icon="document-text-outline" /> : (
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunDocument')} description={t('ui.lesDocumentsGeneresApparaitrontIci')} icon="document-text-outline" /> : (
             <View style={styles.list}>
               {items.map((document, index) => (
                 <Reveal key={document.id} index={index} variant="up">

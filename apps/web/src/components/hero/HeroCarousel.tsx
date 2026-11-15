@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { COLORS, DURATION, EASE, RADIUS } from '@/theme';
 import { VERT, TERRE, TAILLES } from '@/theme/agrikonnect';
+import { tr } from '@/i18n';
 
 /**
  * Une diapositive du carrousel Hero.
@@ -176,9 +177,7 @@ export function HeroCarousel({
                   justifyContent: 'center',
                 }}
               >
-                <Text preset="caption" color={TERRE[700]}>
-                  Visuel indisponible
-                </Text>
+                <Text preset="caption" color={TERRE[700]}>{tr('ui.visuelIndisponible')}</Text>
               </div>
             )}
             {/* Overlay de lisibilité : dégradé sombre en bas du carrousel. */}
@@ -231,9 +230,7 @@ export function HeroCarousel({
             letterSpacing: '0.14em',
             textTransform: 'uppercase',
           }}
-        >
-          AGRIKONNECT AFRICA
-        </Text>
+        >{tr('common.appName')}</Text>
         <Text
           preset="h1"
           color={COLORS.pureWhite}
@@ -288,7 +285,7 @@ export function HeroCarousel({
           {slides.map((_, i) => (
             <motion.button
               key={`dot-${i}`}
-              aria-label={`Diapositive ${i + 1} sur ${total}`}
+              aria-label={tr('ui.diapositiveSur', { value: i + 1, total })}
               aria-current={isActive(i) ? 'true' : undefined}
               onClick={() => setIndex(i)}
               whileHover={reduced ? undefined : { scale: 1.2 }}

@@ -6,6 +6,7 @@ import { Button, Card, Chip, PressableScale, Reveal, Section, Text } from '@/com
 import { SELF_SERVICE_ROLES } from '@/lib/platform';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Création de profil.
@@ -15,9 +16,10 @@ import { SPACING } from '@/theme/space';
  * vers le formulaire d\u2019inscription authentifié.
  */
 export default function PublicSiteCreerProfil() {
+  const { t } = useI18n();
   return (
     <PublicShell active="creer-profil" footer={false}>
-      <PageHeader index="13" eyebrow="Inscription" title="Créer un profil" subtitle="Choisissez le rôle qui correspond à votre activité, puis complétez l\u2019inscription." />
+      <PageHeader index="13" eyebrow={t('ui.inscription')} title={t('ui.creerUnProfil')} subtitle={t('ui.choisissezLeRoleQuiCorrespondA')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <View style={styles.list}>
           {SELF_SERVICE_ROLES.map((role, index) => (
@@ -33,14 +35,12 @@ export default function PublicSiteCreerProfil() {
           ))}
         </View>
         <Card tone="pale">
-          <Text preset="caption" color={COLORS.slateGray}>
-            L\u2019inscription demande un type de compte et un pays. Les rôles d\u2019administration et de vérification ne sont pas ouverts en libre-service.
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray}>{t('ui.lInscriptionDemandeUnTypeDe')}</Text>
         </Card>
         <PressableScale onPress={() => router.push('/auth/register')}>
-          <Button label="Continuer l\u2019inscription" variant="primary" onPress={() => router.push('/auth/register')} />
+          <Button label={t('ui.continuerLInscription')} variant="primary" onPress={() => router.push('/auth/register')} />
         </PressableScale>
-        <Button label="J\u2019ai déjà un compte" variant="ghost" onPress={() => router.push('/auth/login')} />
+        <Button label={t('ui.jAiDejaUnCompte')} variant="ghost" onPress={() => router.push('/auth/login')} />
       </Section>
     </PublicShell>
   );

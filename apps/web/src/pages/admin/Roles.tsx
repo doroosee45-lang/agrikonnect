@@ -6,6 +6,7 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /**
  * ADMIN M2 — rôles de gouvernance et matrice de permissions (U-M2-6).
@@ -15,6 +16,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
  * (nomination/révocation) se fait depuis la fiche utilisateur.
  */
 export default function AdminRoles() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const roles = useQuery({
@@ -31,17 +33,12 @@ export default function AdminRoles() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Rôles"
-        description="Rôles de gouvernance et permissions effectives."
+        title={t('ui.roles')}
+        description={t('ui.rolesDeGouvernanceEtPermissionsEffectives')}
         icon="🛡️"
       >
-        <Text preset="h1" style={{ fontSize: 32, marginBottom: 8 }}>
-          Rôles et permissions
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>
-          Matrice effective servie par GET /admin/roles. La nomination des rôles de gouvernance
-          se fait depuis la fiche de chaque compte (palier 2 — Super Admin, second facteur exigé).
-        </Text>
+        <Text preset="h1" style={{ fontSize: 32, marginBottom: 8 }}>{t('ui.rolesEtPermissions')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>{t('ui.matriceEffectiveServieParGetAdmin')}</Text>
 
         {roles.isLoading ? (
           <LoadingState count={3} height={120} />
@@ -49,9 +46,7 @@ export default function AdminRoles() {
           <ErrorState error={roles.error} onRetry={() => void roles.refetch()} showRequestId />
         ) : !matrice ? (
           <Card tone="white">
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Aucun rôle exposé.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucunRoleExpose')}</Text>
           </Card>
         ) : (
           <div style={{ display: 'grid', gap: 16 }}>
@@ -68,11 +63,9 @@ export default function AdminRoles() {
                     <Text preset="h2" style={{ fontSize: 20 }}>
                       {entree.role}
                     </Text>
-                    {entree.role === 'SUPER_ADMIN' && <Chip label="Palier 2" tone="warning" />}
+                    {entree.role === 'SUPER_ADMIN' && <Chip label={t('ui.palier2')} tone="warning" />}
                   </div>
-                  <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
-                    {entree.permissions.length} permission(s) effective(s)
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>{t('ui.permissionSEffectiveS', { length: entree.permissions.length })}</Text>
                   <ChipRow>
                     {entree.permissions.map((permission) => (
                       <Chip

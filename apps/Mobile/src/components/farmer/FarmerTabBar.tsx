@@ -15,6 +15,7 @@ import { SPRING } from '@/theme/motion';
 import { RADIUS, SPACING } from '@/theme/space';
 
 import { PressableScale, Text } from '@/components/ui';
+import { tr } from '@/i18n';
 
 /** Structure minimale attendue d'une barre d'onglets expo-router. */
 export interface TabBarProps {
@@ -32,11 +33,11 @@ const ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 const LABELS: Record<string, string> = {
-  index: 'Accueil',
-  farms: 'Exploitations',
-  plots: 'Parcelles',
-  productions: 'Productions',
-  soil: 'Sols',
+  get index() { return tr('ui.accueil'); },
+  get farms() { return tr('ui.exploitations'); },
+  get plots() { return tr('ui.parcelles'); },
+  get productions() { return tr('ui.productions'); },
+  get soil() { return tr('ui.sols'); },
 };
 
 /**

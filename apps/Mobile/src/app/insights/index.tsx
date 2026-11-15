@@ -19,7 +19,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatNumber } from '@/lib/format';
 import { insightsApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
@@ -28,12 +28,12 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 const INDICATOR_LABELS: Record<string, string> = {
-  producers: 'Organisations productrices',
-  cultivatedAreaHa: 'Surface cultivée',
-  volumeKg: 'Volume déclaré',
-  listings: 'Annonces publiées',
-  projects: 'Projets publiés',
-  exportValue: 'Valeur export',
+  get producers() { return tr('ui.organisationsProductrices'); },
+  get cultivatedAreaHa() { return tr('ui.surfaceCultivee'); },
+  get volumeKg() { return tr('ui.volumeDeclare'); },
+  get listings() { return tr('ui.annoncesPubliees'); },
+  get projects() { return tr('ui.projetsPublies'); },
+  get exportValue() { return tr('ui.valeurExport'); },
 };
 
 /**
@@ -44,6 +44,7 @@ const INDICATOR_LABELS: Record<string, string> = {
  * n'est inventée et aucun zéro de complaisance n'est affiché.
  */
 export default function Insights() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [countryCode, setCountryCode] = useState('CI');
@@ -76,29 +77,26 @@ export default function Insights() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Insights pays" subtitle="Agrégats publiés sous k-anonymat, avec source et méthode." />
+      <AppHeader title={t('ui.insightsPays')} subtitle={t('ui.agregatsPubliesSousKAnonymatAvec')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour consulter les agrégats par pays."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourConsulterLesAgregats')}
           icon="bar-chart-outline"
         >
           <Card tone="white" style={styles.card}>
             <Input
-              label="Pays (code ISO à 2 lettres)"
+              label={t('ui.paysCodeIsoA2Lettres')}
               value={countryCode}
               onChangeText={(value) => setCountryCode(value.toUpperCase().slice(0, 2))}
               placeholder="CI"
               icon="globe-outline"
               maxLength={2}
-              error={countryCode.length === 2 ? null : 'Deux lettres attendues (ex. CI, SN, CD).'}
+              error={countryCode.length === 2 ? null : t('ui.countryCodeTwoLetters')}
             />
-            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-              Seuil de publication : {policy.data?.minGroupSize ?? '—'} organisations minimum par agrégat. En
-              dessous, la valeur est masquée avec son motif.
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.seuilDePublicationOrganisationsMinimumPar', { value: policy.data?.minGroupSize ?? '—' })}</Text>
           </Card>
 
           {overview.isLoading ? (
@@ -107,12 +105,12 @@ export default function Insights() {
             <ErrorState error={overview.error} onRetry={() => void overview.refetch()} />
           ) : overview.data?.disclosure?.empty ? (
             <EmptyState
-              title="Aucun indicateur publiable"
-              description={overview.data.disclosure.message ?? 'Aucune organisation enregistrée pour ce pays.'}
+              title={t('ui.aucunIndicateurPubliable')}
+              description={overview.data.disclosure.message ?? t('ui.aucuneOrganisationEnregistreePourCePays')}
               icon="bar-chart-outline"
             />
           ) : indicators.length === 0 ? (
-            <EmptyState title="Aucun indicateur" description="Saisissez un code pays valide." icon="search-outline" />
+            <EmptyState title={t('ui.aucunIndicateur')} description={t('ui.saisissezUnCodePaysValide')} icon="search-outline" />
           ) : (
             <View style={styles.list}>
               {indicators.map(([key, indicator], index) => (
@@ -127,33 +125,29 @@ export default function Insights() {
                     <Text preset="numeric" color={COLORS.forestGreen} style={styles.value}>
                       {indicator.value !== null
                         ? `${formatNumber(indicator.value, locale, 0)}${indicator.unit ? ` ${indicator.unit}` : ''}`
-                        : 'non publié'}
+                        : t('ui.nonPublie')}
                     </Text>
                     {indicator.value === null && indicator.reason ? (
                       <Chip label={indicator.reason} tone="warning" size="sm" />
                     ) : null}
-                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      Source : {indicator.source} · méthode : {indicator.method}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.sourceMethode', { source: indicator.source, method: indicator.method })}</Text>
                   </Card>
                 </Reveal>
               ))}
             </View>
           )}
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Volumes par culture
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.volumesParCulture')}</Text>
           {crops.isLoading ? (
             <LoadingState count={2} height={90} />
           ) : crops.isError ? (
             <ErrorState error={crops.error} onRetry={() => void crops.refetch()} />
           ) : (crops.data?.crops ?? []).length === 0 ? (
             <EmptyState
-              title="Aucune culture publiable"
+              title={t('ui.aucuneCulturePubliable')}
               description={
                 crops.data?.suppressedNote ??
-                'Les cultures représentées par moins d’organisations que le seuil ne sont pas publiées.'
+                t('ui.lesCulturesRepresenteesParMoinsD')
               }
               icon="leaf-outline"
             />
@@ -166,9 +160,7 @@ export default function Insights() {
                       <Text preset="bodyMedium" color={COLORS.textPrimary}>
                         {row.crop.names?.fr ?? row.crop.slug ?? row.crop.id}
                       </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        {formatNumber(row.organizations, locale)} organisation(s) · {row.method}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.organisationS', { organizations: formatNumber(row.organizations, locale), method: row.method })}</Text>
                     </View>
                     <Text preset="numeric" color={COLORS.forestGreen}>
                       {formatNumber(row.volumeKg, locale, 0)} kg
@@ -185,22 +177,18 @@ export default function Insights() {
             </Text>
           ) : null}
           {crops.data?.disclosure ? (
-            <Text preset="caption" color={COLORS.slateGray}>
-              Données personnelles : {crops.data.disclosure.personalData} · {crops.data.disclosure.caveat}
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.donneesPersonnelles', { personalData: crops.data.disclosure.personalData, caveat: crops.data.disclosure.caveat })}</Text>
           ) : null}
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Activité mensuelle
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.activiteMensuelle')}</Text>
           {activity.isLoading ? (
             <LoadingState count={1} height={90} />
           ) : activity.isError ? (
             <ErrorState error={activity.error} onRetry={() => void activity.refetch()} />
           ) : (activity.data?.series ?? []).length === 0 ? (
             <EmptyState
-              title="Série non publiée"
-              description={activity.data?.suppressedReason ?? 'Pas assez d’organisations actives sur la fenêtre pour publier une série.'}
+              title={t('ui.serieNonPubliee')}
+              description={activity.data?.suppressedReason ?? t('ui.pasAssezDOrganisationsActivesSur')}
               icon="trending-up-outline"
             />
           ) : (
@@ -210,10 +198,7 @@ export default function Insights() {
                   <Text preset="caption" color={COLORS.textPrimary} style={styles.activityPeriod}>
                     {row.period}
                   </Text>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    {formatNumber(row.listings, locale)} annonce(s) · {formatNumber(row.orders, locale)} commande(s) ·{' '}
-                    {formatNumber(row.projects, locale)} projet(s)
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.annonceSCommandeSProjetS', { listings: formatNumber(row.listings, locale), orders: formatNumber(row.orders, locale), projects: formatNumber(row.projects, locale) })}</Text>
                 </View>
               ))}
               <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
@@ -224,9 +209,7 @@ export default function Insights() {
 
           {policy.data ? (
             <Card tone="ink" style={styles.policy}>
-              <Text preset="overline" color={COLORS.gold}>
-                Politique de divulgation
-              </Text>
+              <Text preset="overline" color={COLORS.gold}>{t('ui.politiqueDeDivulgation')}</Text>
               {policy.data.rules.map((rule) => (
                 <View key={rule} style={styles.ruleRow}>
                   <Ionicons name="checkmark-outline" size={13} color={COLORS.gold} />

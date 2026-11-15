@@ -1,83 +1,74 @@
+import { tr } from '@/i18n';
 ﻿export const HOME_SLIDES = [
   {
     image: new URL('../../assets/hero/champs-manioc.jpg', import.meta.url).href,
-    titre: 'Traçabilité agricole, marchés et investissement en Afrique',
-    sousTitre:
-      'Chaque lot porte son origine. Chaque donnée porte sa source. Chaque transaction est traçable, de la parcelle au marché.',
+    get titre() { return tr('ui.tracabiliteAgricoleMarchesEtInvestissementEn'); },
+    get sousTitre() { return tr('ui.chaqueLotPorteSonOrigineChaque'); },
     ctaHref: '/auth/register',
-    ctaLabel: 'Créer un compte gratuit',
+    get ctaLabel() { return tr('ui.creerUnCompteGratuit'); },
   },
   {
     image: new URL('../../assets/hero/cooperative.jpg', import.meta.url).href,
-    titre: 'Les coopératives au cœur des filières',
-    sousTitre:
-      'Réunissez vos productions, négociez collectivement et accédez aux marchés grâce à une organisation transparente.',
+    get titre() { return tr('ui.lesCooperativesAuCUrDes'); },
+    get sousTitre() { return tr('ui.reunissezVosProductionsNegociezCollectivementEt'); },
     ctaHref: '/public/cooperatives',
-    ctaLabel: 'Découvrir les coopératives',
+    get ctaLabel() { return tr('ui.decouvrirLesCooperatives'); },
   },
   {
     image: new URL('../../assets/hero/marche.jpg', import.meta.url).href,
-    titre: 'Opportunités de marché',
-    sousTitre:
-      'Publiez vos annonces, recevez des offres d’achat et suivez vos expéditions jusqu’à leur destination.',
+    get titre() { return tr('ui.opportunitesDeMarche'); },
+    get sousTitre() { return tr('ui.publiezVosAnnoncesRecevezDesOffres'); },
     ctaHref: '/public/tenders',
-    ctaLabel: 'Voir les opportunités',
+    get ctaLabel() { return tr('ui.voirLesOpportunites'); },
   },
   {
     image: new URL('../../assets/hero/terres-aeriennes.jpg', import.meta.url).href,
-    titre: 'Cartographie agricole',
-    sousTitre:
-      'Localisez vos exploitations sur une carte partagée, avec les statistiques de sol agrégées par zone.',
+    get titre() { return tr('ui.cartographieAgricole'); },
+    get sousTitre() { return tr('ui.localisezVosExploitationsSurUneCarte'); },
     ctaHref: '/public/map',
-    ctaLabel: 'Ouvrir la carte',
+    get ctaLabel() { return tr('ui.ouvrirLaCarte'); },
   },
   {
     image: new URL('../../assets/hero/sol-analyse.jpg', import.meta.url).href,
-    titre: 'Analyse des sols et conseils agronomes',
-    sousTitre:
-      'Déterminez la convenance de vos parcelles pour chaque culture et planifiez vos rotations en toute confiance.',
+    get titre() { return tr('ui.analyseDesSolsEtConseilsAgronomes'); },
+    get sousTitre() { return tr('ui.determinezLaConvenanceDeVosParcelles'); },
     ctaHref: '/auth/register',
-    ctaLabel: 'Commencer l’analyse',
+    get ctaLabel() { return tr('ui.commencerLAnalyse'); },
   },
   {
     image: new URL('../../assets/hero/technologie-capteurs.jpg', import.meta.url).href,
-    titre: 'Technologie au service des exploitations',
-    sousTitre:
-      'Capteurs, détections d’anomalies et alertes de seuil : suivez vos cultures en temps réel, partout en RDC.',
+    get titre() { return tr('ui.technologieAuServiceDesExploitations'); },
+    get sousTitre() { return tr('ui.capteursDetectionsDAnomaliesEtAlertes'); },
     ctaHref: '/auth/register',
-    ctaLabel: 'Équiper mon exploitation',
+    get ctaLabel() { return tr('ui.equiperMonExploitation'); },
   },
   {
     image: new URL('../../assets/hero/tracabilite-lot.jpg', import.meta.url).href,
-    titre: 'Traçabilité de la parcelle au marché',
-    sousTitre:
-      'Chaque lot reçoit un QR code et un historique vérifié : origine, traitements, récolte et destination.',
+    get titre() { return tr('ui.tracabiliteDeLaParcelleAuMarche'); },
+    get sousTitre() { return tr('ui.chaqueLotRecoitUnQrCode'); },
     ctaHref: '/public/lots/demo',
-    ctaLabel: 'Voir un lot exemple',
+    get ctaLabel() { return tr('ui.voirUnLotExemple'); },
   },
   {
     image: new URL('../../assets/hero/investissement-projet.jpg', import.meta.url).href,
-    titre: 'Investisseurs et projets agricoles',
-    sousTitre:
-      'Déposez un projet de développement, trouvez des partenaires et suivez son avancement dans une data room sécurisée.',
+    get titre() { return tr('ui.investisseursEtProjetsAgricoles'); },
+    get sousTitre() { return tr('ui.deposezUnProjetDeDeveloppementTrouvez'); },
     ctaHref: '/public/projects',
-    ctaLabel: 'Déposer un projet',
+    get ctaLabel() { return tr('ui.deposerUnProjet'); },
   },
   {
     image: new URL('../../assets/hero/elevage.jpg', import.meta.url).href,
-    titre: 'Filières animales et élevage',
-    sousTitre:
-      'Suivez vos cheptels, enregistrez les productions et organisez la commercialisation avec vos coopératives.',
+    get titre() { return tr('ui.filieresAnimalesEtElevage'); },
+    get sousTitre() { return tr('ui.suivezVosCheptelsEnregistrezLesProductions'); },
     ctaHref: '/auth/register',
-    ctaLabel: 'Gérer mon élevage',
+    get ctaLabel() { return tr('ui.gererMonElevage'); },
   },
   {
     image: new URL('../../assets/hero/recolte.jpg', import.meta.url).href,
-    titre: 'Récoltes et productions agricoles',
-    sousTitre:
-      'Déclarez vos rendements, comparez-les aux recommandations et valorisez votre production sur le marché.',
+    get titre() { return tr('ui.recoltesEtProductionsAgricoles'); },
+    get sousTitre() { return tr('ui.declarezVosRendementsComparezLesAux'); },
     ctaHref: '/auth/register',
-    ctaLabel: 'Déclarer ma récolte',
+    get ctaLabel() { return tr('ui.declarerMaRecolte'); },
   },
 ] as const;
 

@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function InvestmentFollowed() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function InvestmentFollowed() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Projets suivis" subtitle="Vos projets d'investissement suivis." />
+      <AppHeader title={t('ui.projetsSuivis')} subtitle={t('ui.vosProjetsDInvestissementSuivis')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Projets suivis" icon="star-outline">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun projet suivi" description="Suivez des projets pour les retrouver ici." icon="star-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.projetsSuivis')} icon="star-outline">
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunProjetSuivi')} description={t('ui.suivezDesProjetsPourLesRetrouver')} icon="star-outline" /> : (
             <View style={styles.list}>
               {items.map((project, index) => (
                 <Reveal key={String(project.id)} index={index} variant="up">

@@ -9,6 +9,7 @@ import { queryKeys } from '@/services/query';
 import type { ProjectCreateInput } from '@/services/types';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE, RADIUS } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /**
  * FARMER — création d'un projet de financement.
@@ -56,6 +57,7 @@ const numberOrUndefined = (value: string): number | undefined => {
 };
 
 export default function FarmerProjectCreate() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -101,17 +103,15 @@ export default function FarmerProjectCreate() {
       navigate('/farmer/projects');
     },
     onError: (error) => {
-      setFailure(error instanceof Error ? error.message : 'Création impossible.');
+      setFailure(error instanceof Error ? error.message : t('ui.creationImpossible'));
     },
   });
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Nouveau projet" icon="💼">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.nouveauProjet')} icon="💼">
         <div style={{ marginBottom: 24 }}>
-          <Link to="/farmer/projects" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour aux projets
-          </Link>
+          <Link to="/farmer/projects" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourAuxProjets')}</Link>
         </div>
 
         <motion.div
@@ -120,40 +120,34 @@ export default function FarmerProjectCreate() {
           transition={{ duration: DURATION.slow / 1000, ease: EASE.out }}
           style={{ maxWidth: 720 }}
         >
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Nouveau projet
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-            Les montants saisis sont déclarés. Ils ne sont pas vérifiés par la plateforme.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.nouveauProjet')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.lesMontantsSaisisSontDeclaresIls')}</Text>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Identification
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.identification')}</Text>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <Input
-                  label="Titre du projet"
+                  label={t('ui.titreDuProjet')}
                   value={form.title}
                   onChange={set('title')}
                   minLength={5}
                   maxLength={200}
-                  placeholder="Extension de 40 ha de maïs à Lisala"
+                  placeholder={t('ui.extensionDe40HaDeMais')}
                   required
                 />
                 <Input
-                  label="Secteur"
+                  label={t('ui.secteur')}
                   value={form.sector}
                   onChange={set('sector')}
                   minLength={2}
                   maxLength={80}
-                  placeholder="Céréales, maraîchage, élevage…"
+                  placeholder={t('ui.cerealesMaraichageElevage')}
                   required
                 />
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
                   <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>Pays</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.textPrimary }}>{t('ui.pays')}</span>
                     <select
                       value={form.countryCode}
                       onChange={set('countryCode')}
@@ -178,79 +172,74 @@ export default function FarmerProjectCreate() {
                     </select>
                   </label>
                   <Input
-                    label="Province"
+                    label={t('ui.province')}
                     value={form.province}
                     onChange={set('province')}
                     maxLength={120}
-                    optionalLabel="facultatif"
-                    placeholder="Équateur, Bandundu…"
+                    optionalLabel={t('common.optional')}
+                    placeholder={t('ui.equateurBandundu')}
                   />
                 </div>
                 <TextArea
-                  label="Description"
+                  label={t('ui.description')}
                   value={form.description}
                   onChange={set('description')}
                   maxLength={5000}
                   rows={5}
-                  optionalLabel="facultatif"
-                  placeholder="Objectif, contexte, état actuel de l'exploitation."
+                  optionalLabel={t('common.optional')}
+                  placeholder={t('ui.objectifContexteEtatActuelDeL')}
                 />
               </div>
             </Card>
 
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Surfaces et financement
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.surfacesEtFinancement')}</Text>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14 }}>
                 <Input
-                  label="Surface existante (ha)"
+                  label={t('ui.surfaceExistanteHa')}
                   type="number"
                   min={0}
                   step="0.01"
                   value={form.existingAreaHa}
                   onChange={set('existingAreaHa')}
-                  optionalLabel="facultatif"
+                  optionalLabel={t('common.optional')}
                 />
                 <Input
-                  label="Surface visée (ha)"
+                  label={t('ui.surfaceViseeHa')}
                   type="number"
                   min={0}
                   step="0.01"
                   value={form.targetAreaHa}
                   onChange={set('targetAreaHa')}
-                  optionalLabel="facultatif"
+                  optionalLabel={t('common.optional')}
                 />
                 <Input
-                  label="Besoin de financement"
+                  label={t('ui.besoinDeFinancement')}
                   type="number"
                   min={0}
                   step="0.01"
                   value={form.fundingAmount}
                   onChange={set('fundingAmount')}
-                  optionalLabel="facultatif"
+                  optionalLabel={t('common.optional')}
                 />
-                <Input label="Devise" value={form.currency} onChange={set('currency')} maxLength={3} />
+                <Input label={t('ui.devise')} value={form.currency} onChange={set('currency')} maxLength={3} />
                 <Input
-                  label="Durée (mois)"
+                  label={t('ui.dureeMois')}
                   type="number"
                   min={1}
                   max={240}
                   step={1}
                   value={form.durationMonths}
                   onChange={set('durationMonths')}
-                  optionalLabel="facultatif"
+                  optionalLabel={t('common.optional')}
                 />
               </div>
-              <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 16, lineHeight: 1.7 }}>
-                Les montants et surfaces sont des déclarations de l'agriculteur. Ils ne sont ni audités ni
-                garantis par la plateforme : toute décision d'investissement relève de l'investisseur.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 16, lineHeight: 1.7 }}>{t('ui.lesMontantsEtSurfacesSontDes')}</Text>
             </Card>
 
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <Button variant="primary" label="Publier le projet" loading={create.isPending} onClick={() => create.mutate()} />
-              <Button variant="ghost" label="Annuler" onClick={() => navigate('/farmer/projects')} />
+              <Button variant="primary" label={t('ui.publierLeProjet')} loading={create.isPending} onClick={() => create.mutate()} />
+              <Button variant="ghost" label={t('common.cancel')} onClick={() => navigate('/farmer/projects')} />
             </div>
 
             {failure ? (

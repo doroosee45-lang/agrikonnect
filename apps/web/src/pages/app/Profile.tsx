@@ -12,6 +12,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Profil() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -42,14 +43,10 @@ export default function Profil() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Profil" description="Connectez-vous pour gérer votre compte." icon="👤">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.profil')} description={t('ui.connectezVousPourGererVotreCompte')} icon="👤">
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Mon profil
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Informations personnelles, complétude du dossier et sécurité du compte.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.monProfil')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.informationsPersonnellesCompletudeDuDossierEt')}</Text>
         </div>
 
         {me.isLoading ? (
@@ -86,9 +83,7 @@ export default function Profil() {
 
               {completeness ? (
                 <div style={{ marginBottom: 20 }}>
-                  <Text preset="caption" color="rgba(246, 247, 242, 0.8)" style={{ marginBottom: 8 }}>
-                    Dossier complété à {completeness.percent} % · {completeness.done}/{completeness.total} critères
-                  </Text>
+                  <Text preset="caption" color="rgba(246, 247, 242, 0.8)" style={{ marginBottom: 8 }}>{t('ui.dossierCompleteACriteres', { percent: completeness.percent, done: completeness.done, total: completeness.total })}</Text>
                   <div style={{ height: 8, backgroundColor: 'rgba(246,247,242,0.15)', borderRadius: 4, overflow: 'hidden' }}>
                     <motion.div
                       initial={{ width: 0 }}
@@ -102,9 +97,9 @@ export default function Profil() {
 
               <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
                 {[
-                  { label: 'Exploitations', value: counts?.farms ?? 0 },
-                  { label: 'Parcelles', value: counts?.plots ?? 0 },
-                  { label: 'Récoltes', value: counts?.productions ?? 0 },
+                  { label: t('ui.exploitations'), value: counts?.farms ?? 0 },
+                  { label: t('ui.parcelles'), value: counts?.plots ?? 0 },
+                  { label: t('ui.recoltes'), value: counts?.productions ?? 0 },
                 ].map((item) => (
                   <div key={item.label}>
                     <Text preset="numeric" color={COLORS.pureWhite}>
@@ -119,9 +114,7 @@ export default function Profil() {
             </Card>
 
             <Card tone="white" style={{ marginBottom: 24 }}>
-              <Text preset="h3" style={{ marginBottom: 20 }}>
-                Informations personnelles
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 20 }}>{t('ui.informationsPersonnelles')}</Text>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -129,25 +122,21 @@ export default function Profil() {
                 }}
                 style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}
               >
-                <Input label="Prénom" value={firstName} onChange={(e) => setFirstName(e.target.value)} required autoComplete="given-name" />
-                <Input label="Nom" value={lastName} onChange={(e) => setLastName(e.target.value)} required autoComplete="family-name" />
-                <Input label="Téléphone" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" optionalLabel="optionnel" />
-                <Input label="WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} autoComplete="tel" optionalLabel="optionnel" />
+                <Input label={t('ui.prenom')} value={firstName} onChange={(e) => setFirstName(e.target.value)} required autoComplete="given-name" />
+                <Input label={t('ui.nom')} value={lastName} onChange={(e) => setLastName(e.target.value)} required autoComplete="family-name" />
+                <Input label={t('ui.telephone_d3b02')} value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" optionalLabel={t('ui.optionnel')} />
+                <Input label={t('ui.whatsapp')} value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} autoComplete="tel" optionalLabel={t('ui.optionnel')} />
                 <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12 }}>
-                  <Button label="Enregistrer" type="submit" loading={update.isPending} />
-                  <Button label="Annuler" type="button" variant="ghost" onClick={() => update.reset()} />
+                  <Button label={t('common.save')} type="submit" loading={update.isPending} />
+                  <Button label={t('common.cancel')} type="button" variant="ghost" onClick={() => update.reset()} />
                 </div>
               </form>
             </Card>
 
             <Card tone="white" style={{ marginBottom: 24 }}>
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Permissions
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.permissions')}</Text>
               {permissions.length === 0 ? (
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Aucune permission spécifique chargée.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunePermissionSpecifiqueChargee')}</Text>
               ) : (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {permissions.map((permission) => (
@@ -158,14 +147,12 @@ export default function Profil() {
             </Card>
 
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Sécurité
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.securite_33e96')}</Text>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                 <Link to="/auth/forgot">
-                  <Button label="Changer le mot de passe" variant="outline" size="sm" />
+                  <Button label={t('ui.changerLeMotDePasse')} variant="outline" size="sm" />
                 </Link>
-                <Button label="Se déconnecter" variant="danger" size="sm" onClick={() => void logout()} />
+                <Button label={t('ui.seDeconnecter')} variant="danger" size="sm" onClick={() => void logout()} />
               </div>
             </Card>
           </>

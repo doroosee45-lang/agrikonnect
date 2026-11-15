@@ -2,51 +2,51 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { APP } from '@/lib/config';
 import { publicApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 
 const FOOTER_COLUMNS = [
   {
-    title: 'Plateforme',
+    get title() { return tr('ui.plateforme'); },
     links: [
-      { label: 'Services', href: '/services' },
-      { label: 'Marchés', href: '/market' },
-      { label: 'Appels d’offres', href: '/public/tenders' },
-      { label: 'Projets', href: '/public/projects' },
-      { label: 'Carte agricole', href: '/public/map' },
+      { get label() { return tr('ui.services'); }, href: '/services' },
+      { get label() { return tr('ui.marches'); }, href: '/market' },
+      { get label() { return tr('ui.appelsDOffres'); }, href: '/public/tenders' },
+      { get label() { return tr('ui.projets'); }, href: '/public/projects' },
+      { get label() { return tr('ui.carteAgricole'); }, href: '/public/map' },
     ],
   },
   {
-    title: 'Données',
+    get title() { return tr('ui.donnees'); },
     links: [
-      { label: 'Prix agricoles', href: '/prices' },
-      { label: 'Météo', href: '/weather' },
-      { label: 'Catalogue de données', href: '/public/data' },
-      { label: 'Traçabilité d’un lot', href: '/public/lots/demo' },
-      { label: 'Agriculture par pays', href: '/public/agriculture/CD' },
+      { get label() { return tr('ui.prixAgricoles'); }, href: '/prices' },
+      { get label() { return tr('ui.meteo'); }, href: '/weather' },
+      { get label() { return tr('ui.catalogueDeDonnees'); }, href: '/public/data' },
+      { get label() { return tr('ui.tracabiliteDUnLot'); }, href: '/public/lots/demo' },
+      { get label() { return tr('ui.agricultureParPays'); }, href: '/public/agriculture/CD' },
     ],
   },
   {
-    title: 'Réseau',
+    get title() { return tr('ui.reseau'); },
     links: [
-      { label: '\u00c0 propos', href: '/a-propos' },
-      { label: 'Producteurs', href: '/public/farmers' },
-      { label: 'Coopératives', href: '/public/cooperatives' },
-      { label: 'Choisir un pays et une langue', href: '/public/country-language' },
-      { label: 'Informations légales', href: '/public/legal' },
-      { label: 'Pays et cultures', href: '/public/agriculture/CD' },
+      { get label() { return tr('ui.aPropos'); }, href: '/a-propos' },
+      { get label() { return tr('ui.producteurs'); }, href: '/public/farmers' },
+      { get label() { return tr('ui.cooperatives'); }, href: '/public/cooperatives' },
+      { get label() { return tr('ui.choisirUnPaysEtUneLangue'); }, href: '/public/country-language' },
+      { get label() { return tr('ui.informationsLegales'); }, href: '/public/legal' },
+      { get label() { return tr('ui.paysEtCultures'); }, href: '/public/agriculture/CD' },
     ],
   },
   {
-    title: 'Espaces',
+    get title() { return tr('ui.espaces'); },
     links: [
-      { label: 'Espace producteur', href: '/farmer' },
-      { label: 'Connexion', href: '/auth/login' },
-      { label: 'Créer un compte', href: '/auth/register' },
-      { label: 'API développeurs', href: '/developers' },
-      { label: 'Mon profil', href: '/app/profile' },
+      { get label() { return tr('ui.espaceProducteur'); }, href: '/farmer' },
+      { get label() { return tr('ui.connexion'); }, href: '/auth/login' },
+      { get label() { return tr('ui.creerUnCompte'); }, href: '/auth/register' },
+      { get label() { return tr('ui.apiDeveloppeurs'); }, href: '/developers' },
+      { get label() { return tr('ui.monProfil'); }, href: '/app/profile' },
     ],
   },
 ];
@@ -65,11 +65,12 @@ export function Footer() {
   });
 
   const apiState = health.isLoading ? 'checking' : health.isError || health.data?.status !== 'ok' ? 'down' : 'up';
+  // I18N-04 — plus de ternaire sur la langue : chaque libellé passe par le dictionnaire.
   const apiLabel = apiState === 'up'
-    ? `${locale === 'fr' ? 'API opérationnelle' : 'API operational'} · v${health.data?.version ?? '?'}`
+    ? t('ui.apiOperationnelleV', { value: health.data?.version ?? '?' })
     : apiState === 'down'
-      ? (locale === 'fr' ? 'API injoignable' : 'API unavailable')
-      : (locale === 'fr' ? 'Vérification…' : 'Checking…');
+      ? t('ui.apiInjoignable')
+      : t('ui.verification');
 
   function submitNewsletter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,12 +80,12 @@ export function Footer() {
   }
 
   return (
-    <footer className="site-footer" aria-label="Pied de page AGRIKONNECT">
+    <footer className="site-footer" aria-label={t('ui.piedDePageAgrikonnect')}>
       <div className="site-footer-gold-line" />
       <div className="site-footer-content">
         <div className="site-footer-top">
           <div className="site-footer-brand">
-            <Link to="/" className="site-footer-wordmark" aria-label="AGRIKONNECT AFRICA, accueil">
+            <Link to="/" className="site-footer-wordmark" aria-label={t('ui.agrikonnectAfricaAccueil')}>
               <svg className="site-footer-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
                 <circle cx="20" cy="20" r="19" fill="var(--vert-800)" stroke="rgba(250,246,236,.22)" />
                 <path d="M20 30c0-6.5 3.6-11.4 9.5-13.2C28.6 24.2 25 29.2 20 30Z" fill="var(--vert-500)" />
@@ -120,12 +121,10 @@ export function Footer() {
         <section className="site-footer-newsletter" aria-labelledby="site-footer-newsletter-title">
           <div className="site-footer-newsletter-copy">
             <h2 id="site-footer-newsletter-title">{t('home.newsletterTitle')}</h2>
-            <p>{locale === 'fr'
-              ? 'Les relevés de prix sont réservés aux comptes vérifiés : chaque prix publié porte sa source et sa date.'
-              : 'Price reports are available to verified accounts. Every published price includes its source and date.'}</p>
+            <p>{t('ui.lesRelevesDePrixSontReserves')}</p>
           </div>
           <form className="site-footer-newsletter-form" onSubmit={submitNewsletter} noValidate>
-            <label className="sr-only" htmlFor="footer-newsletter-email">{locale === 'fr' ? 'Adresse e-mail' : 'Email address'}</label>
+            <label className="sr-only" htmlFor="footer-newsletter-email">{t('ui.adresseEMail')}</label>
             <input
               id="footer-newsletter-email"
               type="email"
@@ -152,12 +151,12 @@ export function Footer() {
 
         <div className="site-footer-bottom">
           <span>© {new Date().getFullYear()} {APP.name} · {APP.version}</span>
-          <nav className="site-footer-legal" aria-label={locale === 'fr' ? 'Liens légaux' : 'Legal links'}>
+          <nav className="site-footer-legal" aria-label={t('ui.liensLegaux')}>
             <Link className="site-footer-link" to="/public/legal">{t('home.footerLegal')}</Link>
             <Link className="site-footer-link" to="/public/legal">{t('home.footerPrivacy')}</Link>
             <Link className="site-footer-link" to="/public/legal">{t('home.footerTerms')}</Link>
           </nav>
-          <div className="site-footer-languages" aria-label={locale === 'fr' ? 'Langue' : 'Language'}>
+          <div className="site-footer-languages" aria-label={t('common.language')}>
             {(['fr', 'en'] as const).map((code) => (
               <button
                 key={code}

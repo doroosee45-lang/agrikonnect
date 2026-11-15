@@ -8,6 +8,7 @@ import type { ButtonVariant } from '@/components/ui';
 import { COLORS } from '@/theme/colors';
 import { CREME, ENCRE, VERT } from '@/theme/agrikonnect';
 import { RADIUS, SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 /**
  * Sections de l'accueil mobile — miroir exact du site web
@@ -109,6 +110,7 @@ function MediaCard({ image, title, body, ctaLabel, ctaVariant = 'ghost', onPress
  * 2 · Présentation / proposition de valeur.
  * ──────────────────────────────────────────────────────────── */
 export function HomeIntroSection() {
+  const { t } = useI18n();
   return (
     <Section bare background={COLORS.naturalWhite}>
       <Reveal variant="up">
@@ -117,29 +119,19 @@ export function HomeIntroSection() {
             source={SECTION_IMAGES.soil}
             contentFit="cover"
             style={styles.introImage}
-            accessibilityLabel="Un agriculteur examine la qualité du sol dans une parcelle cultivée"
+            accessibilityLabel={t('ui.unAgriculteurExamineLaQualiteDu')}
             transition={200}
           />
           <View style={styles.introContent}>
-            <Text preset="overline" color={VERT[600]} style={styles.introKicker}>
-              AGRIKONNECT AFRICA
-            </Text>
-            <Text preset="h2" color={ENCRE[900]} style={styles.introTitle}>
-              Traçabilité, données et mise en relation pour l’agriculture africaine
-            </Text>
-            <Text preset="body" color={COLORS.slateGray} style={styles.introBody}>
-              AGRIKONNECT connecte les producteurs, les coopératives, les acheteurs et les
-              investisseurs autour d’une seule plateforme. Chaque donnée affichée provient
-              d’une source citable ; aucune recommandation n’est jamais inventée.
-            </Text>
+            <Text preset="overline" color={VERT[600]} style={styles.introKicker}>{t('common.appName')}</Text>
+            <Text preset="h2" color={ENCRE[900]} style={styles.introTitle}>{t('ui.tracabiliteDonneesEtMiseEnRelation')}</Text>
+            <Text preset="body" color={COLORS.slateGray} style={styles.introBody}>{t('ui.agrikonnectConnecteLesProducteursLesCooperatives')}</Text>
             <PressableScale
               onPress={() => router.push('/services' as never)}
               accessibilityRole="button"
               style={styles.introCta}
             >
-              <Text preset="bodyMedium" color={VERT[600]}>
-                Découvrir nos services →
-              </Text>
+              <Text preset="bodyMedium" color={VERT[600]}>{t('ui.decouvrirNosServices_72197')}</Text>
             </PressableScale>
           </View>
         </View>
@@ -152,25 +144,26 @@ export function HomeIntroSection() {
  * 4 · Produits agricoles et productions disponibles.
  * ──────────────────────────────────────────────────────────── */
 const PRODUCTS: { label: string; image: number }[] = [
-  { label: 'Cassava / Manioc', image: CULTURE_IMAGES.manioc },
-  { label: 'Maïs', image: CULTURE_IMAGES.mais },
-  { label: 'Riz', image: CULTURE_IMAGES.riz },
-  { label: 'Arachide', image: CULTURE_IMAGES.arachide },
-  { label: 'Plantain', image: CULTURE_IMAGES.plantain },
-  { label: 'Cacao', image: CULTURE_IMAGES.cacao },
-  { label: 'Café', image: CULTURE_IMAGES.cafe },
-  { label: 'Légumes-feuilles', image: CULTURE_IMAGES.legumes },
+  { get label() { return tr('ui.cassavaManioc'); }, image: CULTURE_IMAGES.manioc },
+  { get label() { return tr('ui.mais'); }, image: CULTURE_IMAGES.mais },
+  { get label() { return tr('ui.riz'); }, image: CULTURE_IMAGES.riz },
+  { get label() { return tr('ui.arachide'); }, image: CULTURE_IMAGES.arachide },
+  { get label() { return tr('ui.plantain'); }, image: CULTURE_IMAGES.plantain },
+  { get label() { return tr('ui.cacao'); }, image: CULTURE_IMAGES.cacao },
+  { get label() { return tr('ui.cafe'); }, image: CULTURE_IMAGES.cafe },
+  { get label() { return tr('ui.legumesFeuilles'); }, image: CULTURE_IMAGES.legumes },
 ];
 
 export function ProductsSection() {
+  const { t } = useI18n();
   const columns = useGridColumns();
 
   return (
     <Section
       centered
-      eyebrow="Catalogue"
-      title="Produits agricoles et productions"
-      subtitle="Retrouvez les cultures et les productions disponibles auprès des producteurs de la plateforme."
+      eyebrow={t('ui.catalogue')}
+      title={t('ui.produitsAgricolesEtProductions')}
+      subtitle={t('ui.retrouvezLesCulturesEtLesProductions')}
     >
       <View style={styles.grid}>
         {PRODUCTS.map((produit, index) => (
@@ -183,7 +176,7 @@ export function ProductsSection() {
             <MediaCard
               image={produit.image}
               title={produit.label}
-              ctaLabel="Voir les producteurs"
+              ctaLabel={t('ui.voirLesProducteurs')}
               ctaVariant="outline"
               onPress={() => router.push('/farmers' as never)}
             />
@@ -199,36 +192,37 @@ export function ProductsSection() {
  * ──────────────────────────────────────────────────────────── */
 const VALUE_CHAINS: { titre: string; description: string; image: number }[] = [
   {
-    titre: 'Filières végétales',
-    description: 'Céréales, tubercules, légumineuses et cultures de rente, de la parcelle au marché.',
+    get titre() { return tr('ui.filieresVegetales'); },
+    get description() { return tr('ui.cerealesTuberculesLegumineusesEtCulturesDe'); },
     image: CULTURE_IMAGES.manioc,
   },
   {
-    titre: 'Élevage et cheptel',
-    description: 'Suivi des animaux, déclarations de production et organisation de la vente.',
+    get titre() { return tr('ui.elevageEtCheptel'); },
+    get description() { return tr('ui.suiviDesAnimauxDeclarationsDeProduction'); },
     image: HERO_IMAGES.elevage,
   },
   {
-    titre: 'Aquaculture et pisciculture',
-    description: 'Bassins, aliments et traçabilité des poissons élevés.',
+    get titre() { return tr('ui.aquacultureEtPisciculture'); },
+    get description() { return tr('ui.bassinsAlimentsEtTracabiliteDesPoissons'); },
     image: CULTURE_IMAGES.riz,
   },
   {
-    titre: 'Apiculture',
-    description: 'Ruchers, production de miel et pollinisation des cultures.',
+    get titre() { return tr('ui.apiculture'); },
+    get description() { return tr('ui.ruchersProductionDeMielEtPollinisation'); },
     image: SECTION_IMAGES.training,
   },
 ];
 
 export function ValueChainsSection() {
+  const { t } = useI18n();
   const columns = useGridColumns();
 
   return (
     <Section
       centered
-      eyebrow="Filières"
-      title="Filières végétales et animales"
-      subtitle="De la production à la commercialisation, chaque filière bénéficie d’un suivi de traçabilité complet."
+      eyebrow={t('ui.filieres')}
+      title={t('ui.filieresVegetalesEtAnimales')}
+      subtitle={t('ui.deLaProductionALaCommercialisation')}
     >
       <View style={styles.grid}>
         {VALUE_CHAINS.map((filiere, index) => (
@@ -242,7 +236,7 @@ export function ValueChainsSection() {
               image={filiere.image}
               title={filiere.titre}
               body={filiere.description}
-              ctaLabel="Explorer"
+              ctaLabel={t('ui.explorer')}
               onPress={() => router.push('/auth/register' as never)}
             />
           </Reveal>
@@ -256,33 +250,34 @@ export function ValueChainsSection() {
  * 6 · Coopératives et organisations agricoles.
  * ──────────────────────────────────────────────────────────── */
 export function CooperativesSection() {
+  const { t } = useI18n();
   return (
     <Section
       centered
       background={CREME[100]}
-      eyebrow="Coopératives"
-      title="Coopératives et organisations agricoles"
-      subtitle="Rejoignez une coopérative pour mutualiser les moyens, négocier collectivement et accéder à de nouveaux marchés."
+      eyebrow={t('ui.cooperatives')}
+      title={t('ui.cooperativesEtOrganisationsAgricoles')}
+      subtitle={t('ui.rejoignezUneCooperativePourMutualiserLes')}
     >
       <Reveal variant="up">
         <Image
           source={SECTION_IMAGES.cooperative}
           contentFit="cover"
           style={styles.bannerImage}
-          accessibilityLabel="Membres d’une coopérative agricole au travail"
+          accessibilityLabel={t('ui.membresDUneCooperativeAgricoleAu')}
           transition={200}
         />
       </Reveal>
       <Reveal index={1} variant="up">
         <View style={styles.ctaRow}>
           <Button
-            label="Voir les coopératives"
+            label={t('ui.voirLesCooperatives')}
             variant="outline"
             size="lg"
             onPress={() => router.push('/cooperatives' as never)}
           />
           <Button
-            label="Créer une coopérative"
+            label={t('ui.creerUneCooperative')}
             variant="primary"
             size="lg"
             onPress={() => router.push('/auth/register' as never)}
@@ -298,31 +293,32 @@ export function CooperativesSection() {
  * ──────────────────────────────────────────────────────────── */
 const MARKET_OPPORTUNITIES: { titre: string; description: string; image: number }[] = [
   {
-    titre: 'Vendre ma production',
-    description: 'Publiez une annonce et recevez des offres d’achat vérifiées.',
+    get titre() { return tr('ui.vendreMaProduction'); },
+    get description() { return tr('ui.publiezUneAnnonceEtRecevezDes'); },
     image: SECTION_IMAGES.market,
   },
   {
-    titre: 'Acheter en gros',
-    description: 'Trouvez des producteurs et coopératives pour vos approvisionnements.',
+    get titre() { return tr('ui.acheterEnGros'); },
+    get description() { return tr('ui.trouvezDesProducteursEtCooperativesPour'); },
     image: HERO_IMAGES.recolte,
   },
   {
-    titre: 'Organiser le transport',
-    description: 'Demandez un devis de transport pour vos expéditions.',
+    get titre() { return tr('ui.organiserLeTransport'); },
+    get description() { return tr('ui.demandezUnDevisDeTransportPour'); },
     image: HERO_IMAGES.tracabiliteLot,
   },
 ];
 
 export function MarketSection() {
+  const { t } = useI18n();
   const columns = useGridColumns();
 
   return (
     <Section
       centered
-      eyebrow="Marchés"
-      title="Opportunités de marché"
-      subtitle="Publiez vos annonces de vente, recevez des offres d’achat et organisez le transport de vos productions."
+      eyebrow={t('ui.marches')}
+      title={t('ui.opportunitesDeMarche')}
+      subtitle={t('ui.publiezVosAnnoncesDeVenteRecevez')}
     >
       <View style={styles.grid}>
         {MARKET_OPPORTUNITIES.map((opportunite, index) => (
@@ -336,7 +332,7 @@ export function MarketSection() {
               image={opportunite.image}
               title={opportunite.titre}
               body={opportunite.description}
-              ctaLabel="Commencer"
+              ctaLabel={t('ui.commencer')}
               onPress={() => router.push('/auth/register' as never)}
             />
           </Reveal>
@@ -350,33 +346,34 @@ export function MarketSection() {
  * 9 · Investisseurs, partenaires et coopération.
  * ──────────────────────────────────────────────────────────── */
 export function InvestmentSection() {
+  const { t } = useI18n();
   return (
     <Section
       centered
       background={CREME[100]}
-      eyebrow="Investissement"
-      title="Investisseurs, partenaires et coopération"
-      subtitle="Déposez un projet agricole, trouvez des partenaires de financement et suivez son avancement dans une data room sécurisée."
+      eyebrow={t('ui.investissement')}
+      title={t('ui.investisseursPartenairesEtCooperation')}
+      subtitle={t('ui.deposezUnProjetAgricoleTrouvezDes')}
     >
       <Reveal variant="up">
         <Image
           source={SECTION_IMAGES.project}
           contentFit="cover"
           style={styles.bannerImage}
-          accessibilityLabel="Projet agricole présenté à des partenaires potentiels"
+          accessibilityLabel={t('ui.projetAgricolePresenteADesPartenaires')}
           transition={200}
         />
       </Reveal>
       <Reveal index={1} variant="up">
         <View style={styles.ctaRow}>
           <Button
-            label="Voir les projets"
+            label={t('ui.voirLesProjets')}
             variant="outline"
             size="lg"
             onPress={() => router.push('/projets' as never)}
           />
           <Button
-            label="Déposer un projet"
+            label={t('ui.deposerUnProjet')}
             variant="primary"
             size="lg"
             onPress={() => router.push('/auth/register' as never)}
@@ -392,36 +389,37 @@ export function InvestmentSection() {
  * ──────────────────────────────────────────────────────────── */
 const RESOURCES: { titre: string; description: string; image: number }[] = [
   {
-    titre: 'Calendriers culturales',
-    description: 'Périodes de semis, d’entretien et de récolte par culture et par zone.',
+    get titre() { return tr('ui.calendriersCulturales'); },
+    get description() { return tr('ui.periodesDeSemisDEntretienEt_c335e'); },
     image: SECTION_IMAGES.training,
   },
   {
-    titre: 'Conseils de rotation',
-    description: 'Préservez la fertilité de vos sols avec des rotations adaptées.',
+    get titre() { return tr('ui.conseilsDeRotation'); },
+    get description() { return tr('ui.preservezLaFertiliteDeVosSols'); },
     image: SECTION_IMAGES.soil,
   },
   {
-    titre: 'Alertes climatiques',
-    description: 'Soyez informé des conditions météorologiques qui affectent vos cultures.',
+    get titre() { return tr('ui.alertesClimatiques'); },
+    get description() { return tr('ui.soyezInformeDesConditionsMeteorologiquesQui'); },
     image: HERO_IMAGES.terresAeriennes,
   },
   {
-    titre: 'Bonnes pratiques',
-    description: 'Guides techniques pour chaque filière agricole.',
+    get titre() { return tr('ui.bonnesPratiques'); },
+    get description() { return tr('ui.guidesTechniquesPourChaqueFiliereAgricole'); },
     image: HERO_IMAGES.solAnalyse,
   },
 ];
 
 export function ResourcesSection() {
+  const { t } = useI18n();
   const columns = useGridColumns();
 
   return (
     <Section
       centered
-      eyebrow="Ressources"
-      title="Actualités et conseils agricoles"
-      subtitle="Calendriers culturales, conseils de rotation, alertes climatiques et bonnes pratiques pour chaque culture."
+      eyebrow={t('ui.ressources')}
+      title={t('ui.actualitesEtConseilsAgricoles')}
+      subtitle={t('ui.calendriersCulturalesConseilsDeRotationAlertes')}
     >
       <View style={styles.grid}>
         {RESOURCES.map((ressource, index) => (
@@ -435,7 +433,7 @@ export function ResourcesSection() {
               image={ressource.image}
               title={ressource.titre}
               body={ressource.description}
-              ctaLabel="Lire"
+              ctaLabel={t('ui.lire')}
               onPress={() => router.push('/auth/register' as never)}
             />
           </Reveal>
@@ -459,56 +457,57 @@ const PLATFORM_FEATURES: {
   {
     id: 'traceability',
     icon: 'shield-checkmark-outline',
-    title: 'Traçabilité et origine',
-    body: 'Chaque lot porte son exploitation, sa parcelle, sa saison et ses contrôles.',
+    get title() { return tr('ui.tracabiliteEtOrigine'); },
+    get body() { return tr('ui.chaqueLotPorteSonExploitationSa'); },
     image: SECTION_IMAGES.traceability,
   },
   {
     id: 'market',
     icon: 'storefront-outline',
-    title: 'Marché et commandes',
-    body: 'Annonces, demandes d’achat, offres et commandes avec paiement et litiges.',
+    get title() { return tr('ui.marcheEtCommandes'); },
+    get body() { return tr('ui.annoncesDemandesDAchatOffresEt'); },
     image: SECTION_IMAGES.market,
   },
   {
     id: 'investment',
     icon: 'trending-up-outline',
-    title: 'Investissement et projets',
-    body: 'Portefeuille de projets, data room, rapports d’impact et financement.',
+    get title() { return tr('ui.investissementEtProjets'); },
+    get body() { return tr('ui.portefeuilleDeProjetsDataRoomRapports'); },
     image: SECTION_IMAGES.project,
   },
   {
     id: 'insights',
     icon: 'bar-chart-outline',
-    title: 'Données de marché',
-    body: 'Prix, volumes et activité agrégés avec seuil de k-anonymat.',
+    get title() { return tr('ui.donneesDeMarche'); },
+    get body() { return tr('ui.prixVolumesEtActiviteAgregesAvec'); },
     image: SECTION_IMAGES.map,
   },
   {
     id: 'cooperative',
     icon: 'people-outline',
-    title: 'Coopératives',
-    body: 'Regroupement de producteurs, volumes consolidés et offres groupées.',
+    get title() { return tr('ui.cooperatives'); },
+    get body() { return tr('ui.regroupementDeProducteursVolumesConsolidesEt'); },
     image: SECTION_IMAGES.cooperative,
   },
   {
     id: 'ai',
     icon: 'sparkles-outline',
-    title: 'Assistance IA',
-    body: 'Analyses de cultures, documents et copilote, avec escalade humaine.',
+    get title() { return tr('ui.assistanceIa'); },
+    get body() { return tr('ui.analysesDeCulturesDocumentsEtCopilote'); },
     image: HERO_IMAGES.technologieCapteurs,
   },
 ];
 
 export function HomeServicesSection() {
+  const { t } = useI18n();
   const columns = useGridColumns();
 
   return (
     <Section
       centered
-      eyebrow="Services"
-      title="Une plateforme complète pour l’agriculture africaine"
-      subtitle="De la parcelle au marché, en passant par l’investissement : traçabilité, données et mise en relation."
+      eyebrow={t('ui.services')}
+      title={t('ui.unePlateformeCompletePourLAgriculture')}
+      subtitle={t('ui.deLaParcelleAuMarcheEn')}
     >
       <View style={styles.grid}>
         {PLATFORM_FEATURES.map((service, index) => (
@@ -537,7 +536,7 @@ export function HomeServicesSection() {
                   {service.body}
                 </Text>
                 <Button
-                  label="Ouvrir"
+                  label={t('ui.ouvrir')}
                   variant="ghost"
                   size="sm"
                   onPress={() => router.push('/services' as never)}
@@ -556,23 +555,24 @@ export function HomeServicesSection() {
  * 13 · Traçabilité des lots.
  * ──────────────────────────────────────────────────────────── */
 export function TraceabilityCtaSection() {
+  const { t } = useI18n();
   return (
     <Section
       centered
-      eyebrow="Traçabilité"
-      title="Traçabilité de la parcelle au marché"
-      subtitle="Chaque lot reçoit un QR code et un historique vérifié : origine, traitements, récolte et destination."
+      eyebrow={t('ui.tracabilite')}
+      title={t('ui.tracabiliteDeLaParcelleAuMarche')}
+      subtitle={t('ui.chaqueLotRecoitUnQrCode')}
     >
       <Reveal variant="up">
         <View style={styles.ctaRow}>
           <Button
-            label="Traçer un lot"
+            label={t('ui.tracerUnLot')}
             variant="primary"
             size="lg"
             onPress={() => router.push('/auth/register' as never)}
           />
           <Button
-            label="Voir un exemple"
+            label={t('ui.voirUnExemple')}
             variant="outline"
             size="lg"
             onPress={() => router.push('/public-site/lot' as never)}
@@ -587,19 +587,20 @@ export function TraceabilityCtaSection() {
  * 14 · Appel à l’action destiné aux producteurs (section sombre).
  * ──────────────────────────────────────────────────────────── */
 export function ProducerCtaSection() {
+  const { t } = useI18n();
   return (
     <Section
       centered
       light
       background={VERT[800]}
-      eyebrow="Producteurs"
-      title="Rejoignez AGRIKONNECT en tant que producteur"
-      subtitle="Créez votre compte, publiez vos exploitations et vos productions, et accédez aux marchés et aux investisseurs de la plateforme."
+      eyebrow={t('ui.producteurs')}
+      title={t('ui.rejoignezAgrikonnectEnTantQueProducteur')}
+      subtitle={t('ui.creezVotreComptePubliezVosExploitations')}
     >
       <Reveal variant="up">
         <View style={styles.ctaRow}>
           <Button
-            label="Créer mon compte producteur"
+            label={t('ui.creerMonCompteProducteur')}
             variant="gold"
             size="lg"
             onPress={() => router.push('/auth/register' as never)}
@@ -614,24 +615,25 @@ export function ProducerCtaSection() {
  * 15 · Appel à l’action partenaires + accès utilisateurs.
  * ──────────────────────────────────────────────────────────── */
 export function PartnerCtaSection() {
+  const { t } = useI18n();
   return (
     <Section
       centered
       background={CREME[100]}
-      eyebrow="Partenaires et investisseurs"
-      title="Investissez dans l’agriculture africaine"
-      subtitle="Déposez un projet, suivez son avancement et collaborez avec les organisations agricoles de la plateforme."
+      eyebrow={t('ui.partenairesEtInvestisseurs')}
+      title={t('ui.investissezDansLAgricultureAfricaine')}
+      subtitle={t('ui.deposezUnProjetSuivezSonAvancement')}
     >
       <Reveal variant="up">
         <View style={styles.ctaRow}>
           <Button
-            label="Voir les projets"
+            label={t('ui.voirLesProjets')}
             variant="outline"
             size="lg"
             onPress={() => router.push('/projets' as never)}
           />
           <Button
-            label="Créer un compte"
+            label={t('ui.creerUnCompte')}
             variant="primary"
             size="lg"
             onPress={() => router.push('/auth/register' as never)}
@@ -639,9 +641,7 @@ export function PartnerCtaSection() {
         </View>
       </Reveal>
       <Reveal index={1} variant="up">
-        <Text preset="caption" color={COLORS.slateGray} style={styles.footerLine}>
-          AGRIKONNECT AFRICA — Traçabilité agricole, marchés et investissement.
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray} style={styles.footerLine}>{t('ui.agrikonnectAfricaTracabiliteAgricoleMarchesEt')}</Text>
       </Reveal>
     </Section>
   );

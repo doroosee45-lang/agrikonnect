@@ -41,6 +41,7 @@ const STATUS_TONES: Record<string, 'neutral' | 'info' | 'success' | 'error'> = {
  * La décision (acceptée / rejetée) est humaine et tracée.
  */
 export default function PlotRotation() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -86,24 +87,18 @@ export default function PlotRotation() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <PlotScreenHeader title="Rotation" plotName={plot.data?.name} plotId={id} />
+      <PlotScreenHeader title={t('ui.rotation')} plotName={plot.data?.name} plotId={id} />
 
       <Section bare contentStyle={styles.section}>
         <Card tone="pale" style={styles.disclaimer}>
           <Ionicons name="information-circle-outline" size={16} color={COLORS.info} />
-          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-            Rotation issue de règles agronomiques validées et versionnées. Elle doit être confirmée par un
-            agronome avant application : le statut reste « proposé » tant qu’aucune décision n’est enregistrée.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.rotationIssueDeReglesAgronomiquesValidees')}</Text>
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Proposer une rotation
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.proposerUneRotation')}</Text>
 
-          <Text preset="caption" color={COLORS.textPrimary}>
-            Culture de départ <Text preset="caption" color={COLORS.slateGray}>(facultatif)</Text>
+          <Text preset="caption" color={COLORS.textPrimary}>{t('ui.cultureDeDepart')}{' '}<Text preset="caption" color={COLORS.slateGray}>{t('ui.facultatif')}</Text>
           </Text>
           {crops.isLoading ? (
             <LoadingState count={1} height={44} />
@@ -123,7 +118,7 @@ export default function PlotRotation() {
           )}
 
           <Input
-            label="Horizon (années)"
+            label={t('ui.horizonAnnees')}
             value={horizon}
             onChangeText={setHorizon}
             placeholder="3"
@@ -135,16 +130,13 @@ export default function PlotRotation() {
           {error ? <ErrorState error={error} showRequestId /> : null}
 
           <Button
-            label="Proposer une rotation"
+            label={t('ui.proposerUneRotation')}
             onPress={() => propose.mutate()}
             variant="primary"
             fullWidth
             loading={propose.isPending}
           />
-          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-            Si aucune rotation n’est documentée pour cette culture dans le jeu de règles applicable, le serveur
-            refuse la demande : aucune séquence n’est improvisée.
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.siAucuneRotationNEstDocumentee')}</Text>
         </Card>
 
         {plans.isLoading ? (
@@ -153,8 +145,8 @@ export default function PlotRotation() {
           <ErrorState error={plans.error} onRetry={() => void plans.refetch()} />
         ) : items.length === 0 ? (
           <EmptyState
-            title="Aucune rotation proposée"
-            description="Proposez une rotation pour obtenir une séquence sourcée, année par année."
+            title={t('ui.aucuneRotationProposee')}
+            description={t('ui.proposezUneRotationPourObtenirUne')}
             icon="repeat-outline"
           />
         ) : (
@@ -164,13 +156,8 @@ export default function PlotRotation() {
                 <Card tone="white" style={styles.card}>
                   <View style={styles.head}>
                     <View style={styles.headText}>
-                      <Text preset="h3" color={COLORS.textPrimary}>
-                        Rotation sur {plan.horizonYears} an(s)
-                      </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        jeu de règles {plan.ruleSetVersion} · zone {plan.steps?.zone ?? '—'} · proposée le{' '}
-                        {formatDate(plan.createdAt, locale)}
-                      </Text>
+                      <Text preset="h3" color={COLORS.textPrimary}>{t('ui.rotationSurAnS', { horizonYears: plan.horizonYears })}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.jeuDeReglesZoneProposeeLe', { ruleSetVersion: plan.ruleSetVersion, value: plan.steps?.zone ?? '—', createdAt: formatDate(plan.createdAt, locale) })}</Text>
                     </View>
                     <Chip label={plan.status} tone={STATUS_TONES[plan.status] ?? 'neutral'} size="sm" />
                   </View>
@@ -179,9 +166,7 @@ export default function PlotRotation() {
                     {(plan.steps?.sequence ?? []).map((step) => (
                       <View key={`${plan.id}-${step.year}`} style={styles.step}>
                         <View style={styles.stepYear}>
-                          <Text preset="caption" color={COLORS.forestGreen}>
-                            Année {step.year}
-                          </Text>
+                          <Text preset="caption" color={COLORS.forestGreen}>{t('ui.annee_69aa1', { year: step.year })}</Text>
                         </View>
                         <View style={styles.stepBody}>
                           <Text preset="bodyMedium" color={COLORS.textPrimary}>
@@ -189,7 +174,7 @@ export default function PlotRotation() {
                           </Text>
                           {step.family ? (
                             <Text preset="caption" color={COLORS.slateGray}>
-                              famille : {step.family}
+                              {t('ui.cropFamily', { family: step.family })}
                             </Text>
                           ) : null}
                           {step.rationale ? (
@@ -211,9 +196,7 @@ export default function PlotRotation() {
 
                   {(plan.steps?.assumptions ?? []).length > 0 ? (
                     <View style={styles.block}>
-                      <Text preset="caption" color={COLORS.textPrimary}>
-                        Hypothèses
-                      </Text>
+                      <Text preset="caption" color={COLORS.textPrimary}>{t('ui.hypotheses_b7812')}</Text>
                       {(plan.steps?.assumptions ?? []).map((assumption) => (
                         <Text key={assumption} preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
                           • {assumption}
@@ -223,15 +206,13 @@ export default function PlotRotation() {
                   ) : null}
 
                   {(plan.alternatives?.options ?? []).length > 0 ? (
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Autres rotations documentées : {(plan.alternatives?.options ?? []).join(', ')}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.autresRotationsDocumentees', { value: (plan.alternatives?.options ?? []).join(', ') })}</Text>
                   ) : null}
 
                   {plan.status === 'PROPOSED' ? (
                     <View style={styles.actions}>
                       <Button
-                        label="Accepter"
+                        label={t('ui.accepter')}
                         onPress={() => decide.mutate({ planId: plan.id, decision: 'ACCEPTED' })}
                         variant="primary"
                         size="sm"
@@ -239,7 +220,7 @@ export default function PlotRotation() {
                         loading={decide.isPending && decide.variables?.planId === plan.id}
                       />
                       <Button
-                        label="Rejeter"
+                        label={t('ui.rejeter')}
                         onPress={() => decide.mutate({ planId: plan.id, decision: 'REJECTED' })}
                         variant="outline"
                         size="sm"

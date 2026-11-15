@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { AuthGate, Card, EmptyState, ErrorState, LoadingState, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /**
  * Socle commun des huit modules d'une parcelle.
@@ -41,6 +42,7 @@ export function PlotModule<T>({
   emptyDescription,
   isEmpty,
 }: PlotModuleProps<T>) {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const plotId = id ?? '';
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -58,9 +60,7 @@ export function PlotModule<T>({
     <Section>
       <AuthGate isAuthenticated={isAuthenticated} title={title} description={subtitle} icon={icon}>
         <div style={{ marginBottom: 24 }}>
-          <Link to={`/farmer/plots/${plotId}`} style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour à la parcelle
-          </Link>
+          <Link to={`/farmer/plots/${plotId}`} style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourALaParcelle')}</Link>
         </div>
 
         <Text preset="h1" style={{ marginBottom: 8 }}>

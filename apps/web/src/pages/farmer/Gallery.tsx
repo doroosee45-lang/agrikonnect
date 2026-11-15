@@ -6,9 +6,11 @@ import { mediaApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** FARMER — médias rattachés aux parcelles (upload en deux temps). */
 export default function FarmerGallery() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const query = useQuery({
@@ -20,17 +22,15 @@ export default function FarmerGallery() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Galerie" description="Médias rattachés à vos parcelles." icon="🖼️">
-        <Text preset="h1" style={{ marginBottom: 32 }}>
-          Galerie
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.galerie')} description={t('ui.mediasRattachesAVosParcelles')} icon="🖼️">
+        <Text preset="h1" style={{ marginBottom: 32 }}>{t('ui.galerie')}</Text>
 
         {query.isLoading ? (
           <LoadingState count={2} height={110} />
         ) : query.isError ? (
           <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
         ) : !query.data || query.data.length === 0 ? (
-          <EmptyState title="Aucun média" description="Les photos et documents rattachés à vos parcelles apparaissent ici." icon="🖼️" />
+          <EmptyState title={t('ui.aucunMedia')} description={t('ui.lesPhotosEtDocumentsRattachesA')} icon="🖼️" />
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
             {query.data.map((media, index) => (

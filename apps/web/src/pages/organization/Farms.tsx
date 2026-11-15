@@ -3,26 +3,28 @@ import { farmApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import type { Farm } from '@/services/types';
 import { Chip } from '@/components/ui';
+import { useI18n } from '@/i18n';
 
 /** ORGANIZATION — exploitations rattachées à l'organisation. */
 export default function OrganizationFarms() {
+  const { t } = useI18n();
   return (
     <ResourcePage<Farm>
-      title="Exploitations"
-      subtitle="Exploitations rattachées à votre organisation."
+      title={t('ui.exploitations')}
+      subtitle={t('ui.exploitationsRattacheesAVotreOrganisation')}
       icon="🏡"
       queryKey={queryKeys.farms.list({ limit: 100 })}
       fetch={() => farmApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(farm) => farm.id}
       rowHref={(farm) => `/farmer/farms/${farm.id}`}
       columns={[
-        { key: 'name', label: 'Nom', render: (farm) => farm.name },
-        { key: 'countryCode', label: 'Pays', render: (farm) => `${farm.countryCode}${farm.province ? ` · ${farm.province}` : ''}` },
-        { key: 'totalAreaHa', label: 'Surface', render: (farm) => (farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—') },
-        { key: 'isPublic', label: 'Publication', render: (farm) => <Chip label={farm.isPublic ? 'publique' : 'privée'} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
+        { key: 'name', label: t('ui.nom'), render: (farm) => farm.name },
+        { key: 'countryCode', label: t('ui.pays'), render: (farm) => `${farm.countryCode}${farm.province ? ` · ${farm.province}` : ''}` },
+        { key: 'totalAreaHa', label: t('ui.surface'), render: (farm) => (farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—') },
+        { key: 'isPublic', label: t('ui.publication'), render: (farm) => <Chip label={farm.isPublic ? t('ui.publique_9eb2b') : t('ui.privee')} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
       ]}
-      emptyTitle="Aucune exploitation"
-      emptyDescription="Aucune exploitation n'est rattachée à votre organisation."
+      emptyTitle={t('ui.aucuneExploitation')}
+      emptyDescription={t('ui.aucuneExploitationNEstRattacheeA')}
     />
   );
 }

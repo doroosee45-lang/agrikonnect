@@ -25,6 +25,7 @@ const ALERT_STATUS_TONE = { NEW: 'warning', READ: 'info', HANDLED: 'success' } a
  * primaire ; cet écran est le suivi, pas le déclencheur.
  */
 function PlotAlertsPanel() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const plotId = id ?? '';
   const { locale } = useI18n();
@@ -51,11 +52,9 @@ function PlotAlertsPanel() {
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
-        <Text preset="h3">Alertes de seuil</Text>
+        <Text preset="h3">{t('ui.alertesDeSeuil')}</Text>
         {alerts.data ? (
-          <Text preset="caption" color={COLORS.slateGray}>
-            {alerts.data.openCount} ouverte(s) sur {alerts.data.total}
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray}>{t('ui.ouverteSSur', { openCount: alerts.data.openCount, total: alerts.data.total })}</Text>
         ) : null}
       </div>
 
@@ -64,8 +63,8 @@ function PlotAlertsPanel() {
       {alerts.isError ? <ErrorState error={alerts.error} /> : null}
       {alerts.data && alerts.data.items.length === 0 ? (
         <EmptyState
-          title="Aucune alerte"
-          description="Aucun seuil n'a été franchi sur cette parcelle. Un capteur muet déclenche également une alerte."
+          title={t('ui.aucuneAlerte')}
+          description={t('ui.aucunSeuilNAEteFranchi')}
         />
       ) : null}
 
@@ -78,9 +77,9 @@ function PlotAlertsPanel() {
                   {alert.parameterLabel}
                 </Text>
                 <Text preset="caption" color={COLORS.slateGray}>
-                  seuil {alert.referenceLabel}
-                  {alert.observedLabel ? ` · observé ${alert.observedLabel}` : ''}
-                  {alert.deviation !== null ? ` · écart ${alert.deviation}` : ''} ·{' '}
+                  {t('ui.thresholdReference', { referenceLabel: alert.referenceLabel })}
+                  {alert.observedLabel ? t('ui.observe_4c0d9', { observedLabel: alert.observedLabel }) : ''}
+                  {alert.deviation !== null ? t('ui.ecart_6bce9', { deviation: alert.deviation }) : ''} ·{' '}
                   {alert.observedAt ? formatDate(alert.observedAt, locale) : formatDate(alert.createdAt, locale)}
                 </Text>
               </div>
@@ -98,17 +97,17 @@ function PlotAlertsPanel() {
               */}
               {alert.sourceTypeLabel}
               {alert.predictive && alert.predictedBreachAt
-                ? ` — franchissement attendu vers le ${formatDate(alert.predictedBreachAt, locale)}`
+                ? t('ui.franchissementAttenduVersLe', { predictedBreachAt: formatDate(alert.predictedBreachAt, locale) })
                 : ''}
-              {alert.channelsSent.length > 0 ? ` · canaux : ${alert.channelsSent.join(', ')}` : ''}
-              {alert.notificationCount > 1 ? ` · ${alert.notificationCount} notifications` : ''}
+              {alert.channelsSent.length > 0 ? t('ui.canaux', { value: alert.channelsSent.join(', ') }) : ''}
+              {alert.notificationCount > 1 ? t('ui.notifications_533d3', { notificationCount: alert.notificationCount }) : ''}
             </Text>
 
             {alert.status !== 'HANDLED' ? (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {alert.status === 'NEW' ? (
                   <Button
-                    label="Marquer lue"
+                    label={t('ui.marquerLue')}
                     size="sm"
                     variant="outline"
                     loading={mark.isPending}
@@ -116,7 +115,7 @@ function PlotAlertsPanel() {
                   />
                 ) : null}
                 <Button
-                  label="Traiter"
+                  label={t('ui.traiter')}
                   size="sm"
                   variant="primary"
                   loading={mark.isPending}
@@ -133,17 +132,18 @@ function PlotAlertsPanel() {
 
 /** FARMER — capteurs rattachés à la parcelle (IOT-01 → IOT-06) et alertes de seuil. */
 export default function FarmerPlotSensors() {
+  const { t } = useI18n();
   const { locale } = useI18n();
 
   return (
     <PlotModule<IotDeviceList>
-      title="Capteurs"
-      subtitle="Capteurs rattachés à cette parcelle. Un capteur hors ligne affiche ses dernières lectures avec la date, sans extrapolation."
+      title={t('ui.capteurs')}
+      subtitle={t('ui.capteursRattachesACetteParcelleUn')}
       icon="📡"
       queryKey={() => queryKeys.iot.devices}
       fetch={() => iotApi.devices().then((result) => result.data)}
-      emptyTitle="Aucun capteur"
-      emptyDescription="Aucun capteur n'est rattaché à cette parcelle."
+      emptyTitle={t('ui.aucunCapteur')}
+      emptyDescription={t('ui.aucunCapteurNEstRattacheA_d0869')}
       isEmpty={(data) => data.items.length === 0}
       render={(data) => (
         <>
@@ -168,17 +168,13 @@ export default function FarmerPlotSensors() {
                   <Chip label={device.status} tone={device.status === 'ONLINE' ? 'success' : device.status === 'OFFLINE' ? 'error' : 'neutral'} size="sm" />
                 </div>
                 {device.lastSeenAt ? (
-                  <Text preset="caption" style={{ marginTop: 8 }}>
-                    Dernière communication : {formatDate(device.lastSeenAt, locale)}
-                  </Text>
+                  <Text preset="caption" style={{ marginTop: 8 }}>{t('ui.derniereCommunication_1c924', { lastSeenAt: formatDate(device.lastSeenAt, locale) })}</Text>
                 ) : (
-                  <Text preset="caption" style={{ marginTop: 8 }}>
-                    Aucune communication enregistrée.
-                  </Text>
+                  <Text preset="caption" style={{ marginTop: 8 }}>{t('ui.aucuneCommunicationEnregistree')}</Text>
                 )}
                 {device.silent ? (
                   <div style={{ marginTop: 8 }}>
-                    <Chip label="muet depuis +24h" tone="warning" size="sm" />
+                    <Chip label={t('ui.muetDepuis24h')} tone="warning" size="sm" />
                   </div>
                 ) : null}
               </Card>

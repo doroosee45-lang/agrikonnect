@@ -5,30 +5,26 @@ import { AuthGate, Card, Screen, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function AdminCompliance() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Conformité" subtitle="RGPD, conservation des données, droits des personnes." />
+      <AppHeader title={t('ui.conformite')} subtitle={t('ui.rgpdConservationDesDonneesDroitsDes')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Conformité" icon="shield-checkmark-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.conformite')} icon="shield-checkmark-outline">
           <Card tone="white">
-            <Text preset="h3" style={styles.mb}>Registre des traitements</Text>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-              Chaque traitement de données personnelles est documenté : finalité, base légale, durée de conservation, destinataires.
-            </Text>
+            <Text preset="h3" style={styles.mb}>{t('ui.registreDesTraitements')}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.chaqueTraitementDeDonneesPersonnellesEst')}</Text>
           </Card>
           <Card tone="white">
-            <Text preset="h3" style={styles.mb}>Droits des personnes</Text>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-              Accès, rectification, effacement, opposition, portabilité : chaque demande est tracée et traitée dans les délais légaux.
-            </Text>
+            <Text preset="h3" style={styles.mb}>{t('ui.droitsDesPersonnes')}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.accesRectificationEffacementOppositionPortabilit')}</Text>
           </Card>
           <Card tone="pale">
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Les durées de conservation par défaut sont affichées dans les conditions d'utilisation. Aucune donnée n'est conservée au-delà de la durée nécessaire à la finalité déclarée.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lesDureesDeConservationParDefaut')}</Text>
           </Card>
         </AuthGate>
       </Section>

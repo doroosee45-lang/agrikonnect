@@ -621,10 +621,17 @@ export const markVerified = async (id, channel, { reason }, req) => {
 
   const champ = channel === 'email' ? 'emailVerifiedAt' : 'phoneVerifiedAt';
   const precedent = target[champ];
-  await prisma.profile.update({
-    where: { id },
-    data: { [champ]: new Date() },
-  });
+  if (channel === 'email') {
+    await prisma.profile.update({
+      where: { id },
+      data: { emailVerifiedAt: new Date() },
+    });
+  } else {
+    await prisma.profile.update({
+      where: { id },
+      data: { phoneVerifiedAt: new Date() },
+    });
+  }
 
   await audit({
     actorId: req.user.id,

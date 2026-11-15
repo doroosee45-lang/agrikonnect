@@ -1,8 +1,18 @@
 import { COLORS } from '@/theme/colors';
+import { useI18nStore } from '@/i18n';
 
 export type Locale = 'fr' | 'en';
 
 const BCP: Record<Locale, string> = { fr: 'fr-FR', en: 'en-GB' };
+
+/**
+ * Étiquette BCP 47 de la langue d'interface, pour `Intl` et `toLocale*String`.
+ * Sans argument : langue courante (store i18n). Aucune locale ne doit être
+ * écrite en dur dans un écran : passer par ici.
+ */
+export function bcpLocale(locale?: Locale): string {
+  return BCP[locale ?? useI18nStore.getState().locale] ?? BCP.fr;
+}
 
 /** Devise par défaut du réseau (zone UEMOA/CEMAC) ; l'API renvoie la devise du pays. */
 export const DEFAULT_CURRENCY = 'XOF';
@@ -32,7 +42,8 @@ export function formatCurrency(
       style: 'currency',
       currency,
       notation: compact ? 'compact' : 'standard',
-      maximumFractionDigits: compact ? 1 : 0,
+      // Décimales : celles de la devise (Intl) — 0 pour XOF, 2 pour USD/EUR (I18N-07).
+      ...(compact ? { maximumFractionDigits: 1 } : {}),
     }).format(value);
   } catch {
     // Devise inconnue du moteur Intl : on retombe sur un affichage lisible.

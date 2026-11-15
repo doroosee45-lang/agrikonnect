@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerPlotDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,37 +26,37 @@ export default function FarmerPlotDetail() {
   const plot = query.data;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title={plot?.name ?? '—'} subtitle="Fiche parcelle." />
+      <FarmerHeader title={plot?.name ?? '—'} subtitle={t('ui.ficheParcelle')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Parcelle" icon="map-outline">
-          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !plot ? <Text preset="body">Parcelle introuvable.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.parcelle')} icon="map-outline">
+          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !plot ? <Text preset="body">{t('ui.parcelleIntrouvable')}</Text> : (
             <>
               <Card tone="white" style={styles.card}>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Surface</Text>
-                  <Text preset="bodyMedium">{plot.areaHa !== null ? `${plot.areaHa} ha` : 'non renseignée'}</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.surface')}</Text>
+                  <Text preset="bodyMedium">{plot.areaHa !== null ? `${plot.areaHa} ha` : t('ui.nonRenseignee')}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Culture courante</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.cultureCourante')}</Text>
                   <Text preset="bodySm">{plot.currentCrop?.names?.[locale] ?? plot.currentCropId ?? 'aucune'}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                   <Chip label={plot.status} tone="neutral" size="sm" />
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Mise à jour</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.miseAJour')}</Text>
                   <Text preset="bodySm">{formatDate(plot.updatedAt, locale)}</Text>
                 </View>
               </Card>
-              <Button label="Analyses de sol" variant="outline" onPress={() => router.push(`/farmer/plots/${id}/soil`)} />
-              <Button label="Zones de gestion" variant="outline" onPress={() => router.push(`/farmer/plots/${id}/zones`)} />
-              <Button label="Plan de culture" variant="outline" onPress={() => router.push(`/farmer/plots/${id}/plan`)} />
-              <Button label="Rotation" variant="outline" onPress={() => router.push(`/farmer/plots/${id}/rotation`)} />
-              <Button label="Satellite" variant="outline" onPress={() => router.push(`/farmer/plots/${id}/satellite`)} />
-              <Button label="Capteurs" variant="outline" onPress={() => router.push(`/farmer/plots/${id}/sensors`)} />
-              <Button label="Rapport de précision" variant="outline" onPress={() => router.push(`/farmer/plots/${id}/precision-report`)} />
-              <Button label="Recommandations" variant="ghost" onPress={() => router.push(`/farmer/plots/${id}/recommendations`)} />
+              <Button label={t('ui.analysesDeSol')} variant="outline" onPress={() => router.push(`/farmer/plots/${id}/soil`)} />
+              <Button label={t('ui.zonesDeGestion')} variant="outline" onPress={() => router.push(`/farmer/plots/${id}/zones`)} />
+              <Button label={t('ui.planDeCulture')} variant="outline" onPress={() => router.push(`/farmer/plots/${id}/plan`)} />
+              <Button label={t('ui.rotation')} variant="outline" onPress={() => router.push(`/farmer/plots/${id}/rotation`)} />
+              <Button label={t('ui.satellite_d1ffe')} variant="outline" onPress={() => router.push(`/farmer/plots/${id}/satellite`)} />
+              <Button label={t('ui.capteurs')} variant="outline" onPress={() => router.push(`/farmer/plots/${id}/sensors`)} />
+              <Button label={t('ui.rapportDePrecision')} variant="outline" onPress={() => router.push(`/farmer/plots/${id}/precision-report`)} />
+              <Button label={t('ui.recommandations')} variant="ghost" onPress={() => router.push(`/farmer/plots/${id}/recommendations`)} />
             </>
           )}
         </AuthGate>

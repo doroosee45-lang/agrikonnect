@@ -7,11 +7,13 @@ import { Button, Card, Section, Text } from '@/components/ui';
 import { Reveal } from '@/components/ui/Reveal';
 import { HeroCarousel } from '@/components/hero/HeroCarousel';
 import { HOME_SLIDES } from './homeSlides';
-import { publicApi } from '@/services/endpoints';
+import { publicApi } from '@/services/endpoints';
+import { BlogNewsSection } from './BlogNewsSection';
 import { queryClient } from '@/services/query';
 import { SERVICES } from '@/lib/platform';
 import { COLORS, DURATION, EASE } from '@/theme';
 import { VERT, TERRE, CREME, ENCRE } from '@/theme/agrikonnect';
+import { useI18n } from '@/i18n';
 
 const CULTURE_IMAGES = {
   manioc: new URL('../../assets/cultures/manioc.jpg', import.meta.url).href,
@@ -62,6 +64,7 @@ function EmptyBlock({ titre, description }: { titre: string; description: string
  * 3 · Exploitations et producteurs — données réelles (/public/farms).
  * ──────────────────────────────────────────────────────────── */
 function FarmsSection() {
+  const { t } = useI18n();
   const { data, isLoading, error } = useQuery({
     queryKey: ['public', 'farms', { limit: 6 }],
     queryFn: async () => {
@@ -74,9 +77,7 @@ function FarmsSection() {
   if (isLoading) {
     return (
       <Section style={{ padding: '64px 24px', textAlign: 'center' }}>
-        <Text preset="bodyMd" color={ENCRE[500]}>
-          Chargement des exploitations…
-        </Text>
+        <Text preset="bodyMd" color={ENCRE[500]}>{t('ui.chargementDesExploitations')}</Text>
       </Section>
     );
   }
@@ -85,8 +86,8 @@ function FarmsSection() {
   if (items.length === 0) {
     return (
       <EmptyBlock
-        titre="Aucune exploitation publiée pour le moment"
-        description="Les producteurs publient leurs exploitations dès qu’elles sont vérifiées. Revenez bientôt ou créez votre compte pour apparaître ici."
+        titre={t('ui.aucuneExploitationPublieePourLeMoment')}
+        description={t('ui.lesProducteursPublientLeursExploitationsDes')}
       />
     );
   }
@@ -94,8 +95,8 @@ function FarmsSection() {
   if (error) {
     return (
       <EmptyBlock
-        titre="Les exploitations sont temporairement indisponibles"
-        description="Une erreur réseau a empêché le chargement. Réessayez plus tard."
+        titre={t('ui.lesExploitationsSontTemporairementIndisponibles')}
+        description={t('ui.uneErreurReseauAEmpecheLe')}
       />
     );
   }
@@ -103,15 +104,9 @@ function FarmsSection() {
   return (
     <Section>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>
-          Exploitations agricoles
-        </Text>
-        <Text preset="h2" style={{ marginBottom: 8 }}>
-          Découvrez les producteurs de la plateforme
-        </Text>
-        <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-          Toutes les exploitations ci-dessous sont vérifiées et publient volontairement leurs productions.
-        </Text>
+        <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>{t('ui.exploitationsAgricoles')}</Text>
+        <Text preset="h2" style={{ marginBottom: 8 }}>{t('ui.decouvrezLesProducteursDeLaPlateforme')}</Text>
+        <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.toutesLesExploitationsCiDessousSont')}</Text>
       </div>
 
       <div
@@ -138,7 +133,7 @@ function FarmsSection() {
               hover
               style={{ display: 'flex', flexDirection: 'column', gap: 10 }}
             >
-              <img className="home-card-image" src={CULTURE_IMAGE_LIST[index % CULTURE_IMAGE_LIST.length]} alt="Culture produite sur cette exploitation" loading="lazy" decoding="async" />
+              <img className="home-card-image" src={CULTURE_IMAGE_LIST[index % CULTURE_IMAGE_LIST.length]} alt={t('ui.cultureProduiteSurCetteExploitation')} loading="lazy" decoding="async" />
               <Text preset="h4" color={ENCRE[900]}>
                 {nom}
               </Text>
@@ -148,7 +143,7 @@ function FarmsSection() {
                 </Text>
               )}
               <Link to={`/public/farms/${encodeURIComponent(String((farm as any).slug ?? nom))}`}>
-                <Button label="Voir la fiche" variant="ghost" size="sm" />
+                <Button label={t('ui.voirLaFiche')} variant="ghost" size="sm" />
               </Link>
             </Card>
           );
@@ -162,6 +157,7 @@ function FarmsSection() {
  * 12 · Traçabilité et sols — données réelles (/public/soil-stats).
  * ──────────────────────────────────────────────────────────── */
 function SoilsSection() {
+  const { t } = useI18n();
   const { data, isLoading, error } = useQuery({
     queryKey: ['public', 'soil-stats'],
     queryFn: async () => {
@@ -174,9 +170,7 @@ function SoilsSection() {
   if (isLoading) {
     return (
       <Section style={{ padding: '64px 24px', textAlign: 'center' }}>
-        <Text preset="bodyMd" color={ENCRE[500]}>
-          Chargement des statistiques de sol…
-        </Text>
+        <Text preset="bodyMd" color={ENCRE[500]}>{t('ui.chargementDesStatistiquesDeSol')}</Text>
       </Section>
     );
   }
@@ -185,8 +179,8 @@ function SoilsSection() {
   if (rows.length === 0) {
     return (
       <EmptyBlock
-        titre="Aucune statistique de sol disponible"
-        description="Les analyses de sol sont publiées par zones dès qu’au moins 10 exploitations contribuent (k-anonymat). Aucune donnée individuelle n’est jamais révélée."
+        titre={t('ui.aucuneStatistiqueDeSolDisponible')}
+        description={t('ui.lesAnalysesDeSolSontPubliees')}
       />
     );
   }
@@ -194,8 +188,8 @@ function SoilsSection() {
   if (error) {
     return (
       <EmptyBlock
-        titre="Les statistiques de sol sont temporairement indisponibles"
-        description="Réessayez plus tard."
+        titre={t('ui.lesStatistiquesDeSolSontTemporairement')}
+        description={t('ui.reessayezPlusTard')}
       />
     );
   }
@@ -203,15 +197,9 @@ function SoilsSection() {
   return (
     <Section style={{ backgroundColor: CREME[100] }}>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>
-          Santé des sols
-        </Text>
-        <Text preset="h2" style={{ marginBottom: 8 }}>
-          Statistiques agrégées par zone
-        </Text>
-        <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-          Données agrégées et anonymisées — aucune exploitation n’est identifiable individuellement.
-        </Text>
+        <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>{t('ui.santeDesSols')}</Text>
+        <Text preset="h2" style={{ marginBottom: 8 }}>{t('ui.statistiquesAgregeesParZone')}</Text>
+        <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.donneesAgregeesEtAnonymiseesAucuneExploitation')}</Text>
       </div>
 
       <div
@@ -226,7 +214,7 @@ function SoilsSection() {
           const label =
             typeof row === 'object' && row !== null && 'zone' in row
               ? String((row as any).zone)
-              : `Zone ${i + 1}`;
+              : t('ui.zone_cd82b', { value: i + 1 });
           const valeur =
             typeof row === 'object' && row !== null && 'valeur' in row
               ? (row as any).valeur
@@ -248,6 +236,7 @@ function SoilsSection() {
 }
 
 export default function Home() {
+  const { t } = useI18n();
   const location = useLocation();
 
   useEffect(() => {
@@ -272,22 +261,19 @@ export default function Home() {
             <img
               className="home-intro-image"
               src={SECTION_IMAGES.soil}
-              alt="Un agriculteur examine la qualité du sol dans une parcelle cultivée"
+              alt={t('ui.unAgriculteurExamineLaQualiteDu')}
               loading="lazy"
               decoding="async"
             />
             <div className="home-intro-content">
-              <Text preset="overline" className="home-intro-kicker">
-                AGRIKONNECT AFRICA
-              </Text>
+              <Text preset="overline" className="home-intro-kicker">{t('common.appName')}</Text>
               <h2 className="home-intro-title">
-                {'Tra\u00e7abilit\u00e9, donn\u00e9es et mise en relation pour l’agriculture africaine'}
+                {t('ui.tracabiliteDonneesEtMiseEnRelation')}
               </h2>
               <p className="home-intro-description">
-                {'AGRIKONNECT connecte les producteurs, les coop\u00e9ratives, les acheteurs et les investisseurs autour d’une seule plateforme. Chaque donn\u00e9e affich\u00e9e provient d’une source citable ; aucune recommandation n’est jamais invent\u00e9e.'}
+                {t('ui.agrikonnectConnecteLesProducteursLesCooperatives')}
               </p>
-              <Link to="/#services" className="home-intro-cta">
-                Découvrir nos services <span aria-hidden="true">→</span>
+              <Link to="/#services" className="home-intro-cta">{t('ui.decouvrirNosServices')}{' '}<span aria-hidden="true">→</span>
               </Link>
             </div>
           </article>
@@ -299,15 +285,9 @@ export default function Home() {
       {/* 4 · Produits agricoles et productions disponibles */}
       <Section>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>
-            Catalogue
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Produits agricoles et productions
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            Retrouvez les cultures et les productions disponibles auprès des producteurs de la plateforme.
-          </Text>
+          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>{t('ui.catalogue')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.produitsAgricolesEtProductions')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.retrouvezLesCulturesEtLesProductions')}</Text>
         </div>
         <div
           className="home-card-grid"
@@ -318,21 +298,21 @@ export default function Home() {
           }}
         >
           {[
-            { label: 'Cassava / Manioc', icon: '🌿', href: '/public/farmers' },
-            { label: 'Maïs', icon: '🌽', href: '/public/farmers' },
-            { label: 'Riz', icon: '🍚', href: '/public/farmers' },
-            { label: 'Arachide', icon: '🥜', href: '/public/farmers' },
-            { label: 'Plantain', icon: '🍌', href: '/public/farmers' },
-            { label: 'Cacao', icon: '🍫', href: '/public/farmers' },
-            { label: 'Café', icon: '☕', href: '/public/farmers' },
-            { label: 'Légumes-feuilles', icon: '🥬', href: '/public/farmers' },
+            { label: t('ui.cassavaManioc'), icon: '🌿', href: '/public/farmers' },
+            { label: t('ui.mais'), icon: '🌽', href: '/public/farmers' },
+            { label: t('ui.riz'), icon: '🍚', href: '/public/farmers' },
+            { label: t('ui.arachide'), icon: '🥜', href: '/public/farmers' },
+            { label: t('ui.plantain'), icon: '🍌', href: '/public/farmers' },
+            { label: t('ui.cacao'), icon: '🍫', href: '/public/farmers' },
+            { label: t('ui.cafe'), icon: '☕', href: '/public/farmers' },
+            { label: t('ui.legumesFeuilles'), icon: '🥬', href: '/public/farmers' },
           ].map((p, index) => (
             <Card key={p.label} tone="white" hover style={{ textAlign: 'left', padding: 0, overflow: 'hidden' }}>
               <img className="home-product-image" src={CULTURE_IMAGE_LIST[index]} alt={p.label} loading="lazy" decoding="async" />
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 20 }}>
                 <Text preset="h4" color={ENCRE[900]}>{p.label}</Text>
                 <Link to={p.href}>
-                  <Button label="Voir les producteurs" variant="outline" size="sm" />
+                  <Button label={t('ui.voirLesProducteurs')} variant="outline" size="sm" />
                 </Link>
               </div>
             </Card>
@@ -343,15 +323,9 @@ export default function Home() {
       {/* 5 · Filières agricoles et élevage */}
       <Section>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>
-            Filières
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Filières végétales et animales
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            De la production à la commercialisation, chaque filière bénéficie d’un suivi de traçabilité complet.
-          </Text>
+          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>{t('ui.filieres')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.filieresVegetalesEtAnimales')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.deLaProductionALaCommercialisation')}</Text>
         </div>
         <div
           className="home-card-grid"
@@ -363,20 +337,20 @@ export default function Home() {
         >
           {[
             {
-              titre: 'Filières végétales',
-              description: 'Céréales, tubercules, légumineuses et cultures de rente, de la parcelle au marché.',
+              titre: t('ui.filieresVegetales'),
+              description: t('ui.cerealesTuberculesLegumineusesEtCulturesDe'),
             },
             {
-              titre: 'Élevage et cheptel',
-              description: 'Suivi des animaux, déclarations de production et organisation de la vente.',
+              titre: t('ui.elevageEtCheptel'),
+              description: t('ui.suiviDesAnimauxDeclarationsDeProduction'),
             },
             {
-              titre: 'Aquaculture et pisciculture',
-              description: 'Bassins, aliments et traçabilité des poissons élevés.',
+              titre: t('ui.aquacultureEtPisciculture'),
+              description: t('ui.bassinsAlimentsEtTracabiliteDesPoissons'),
             },
             {
-              titre: 'Apiculture',
-              description: 'Ruchers, production de miel et pollinisation des cultures.',
+              titre: t('ui.apiculture'),
+              description: t('ui.ruchersProductionDeMielEtPollinisation'),
             },
           ].map((f, index) => (
             <Card key={f.titre} tone="white" hover style={{ padding: 0, overflow: 'hidden' }}>
@@ -384,7 +358,7 @@ export default function Home() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 20 }}>
                 <Text preset="h4" color={ENCRE[900]}>{f.titre}</Text>
                 <Text preset="bodyMd" color={ENCRE[500]} style={{ flex: 1 }}>{f.description}</Text>
-                <Link to="/auth/register"><Button label="Explorer" variant="ghost" size="sm" /></Link>
+                <Link to="/auth/register"><Button label={t('ui.explorer')} variant="ghost" size="sm" /></Link>
               </div>
             </Card>
           ))}
@@ -394,23 +368,17 @@ export default function Home() {
       {/* 6 · Coopératives et organisations agricoles */}
       <Section style={{ backgroundColor: CREME[100] }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>
-            Coopératives
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Coopératives et organisations agricoles
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            Rejoignez une coopérative pour mutualiser les moyens, négocier collectivement et accéder à de nouveaux marchés.
-          </Text>
+          <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>{t('ui.cooperatives')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.cooperativesEtOrganisationsAgricoles')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.rejoignezUneCooperativePourMutualiserLes')}</Text>
         </div>
-        <img className="home-banner-image" src={SECTION_IMAGES.cooperative} alt="Agricultural cooperative members working together" loading="lazy" decoding="async" />
+        <img className="home-banner-image" src={SECTION_IMAGES.cooperative} alt={t('ui.agriculturalCooperativeMembersWorkingTogether')} loading="lazy" decoding="async" />
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to="/public/cooperatives">
-            <Button label="Voir les coopératives" variant="outline" size="lg" />
+            <Button label={t('ui.voirLesCooperatives')} variant="outline" size="lg" />
           </Link>
           <Link to="/auth/register">
-            <Button label="Créer une coopérative" variant="primary" size="lg" />
+            <Button label={t('ui.creerUneCooperative')} variant="primary" size="lg" />
           </Link>
         </div>
       </Section>
@@ -418,15 +386,9 @@ export default function Home() {
       {/* 7 · Carte agricole et découverte géographique (données réelles) */}
       <Section>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>
-            Carte
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Carte agricole et découverte géographique
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            Localisez les exploitations et les zones de production sur la carte partagée de la plateforme.
-          </Text>
+          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>{t('ui.carte')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.carteAgricoleEtDecouverteGeographique')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.localisezLesExploitationsEtLesZones')}</Text>
         </div>
         <div
           className="home-map-preview"
@@ -442,14 +404,12 @@ export default function Home() {
             justifyContent: 'center',
           }}
         >
-          <img src={SECTION_IMAGES.map} alt="Agricultural plots and production areas" loading="lazy" decoding="async" />
-          <Text preset="bodyMd" color={ENCRE[500]}>
-            Carte interactive — ouvrez la carte complète pour explorer les zones de production.
-          </Text>
+          <img src={SECTION_IMAGES.map} alt={t('ui.agriculturalPlotsAndProductionAreas')} loading="lazy" decoding="async" />
+          <Text preset="bodyMd" color={ENCRE[500]}>{t('ui.carteInteractiveOuvrezLaCarteComplete')}</Text>
         </div>
         <div style={{ marginTop: 16, textAlign: 'center' }}>
           <Link to="/public/map">
-            <Button label="Ouvrir la carte agricole" variant="outline" size="lg" />
+            <Button label={t('ui.ouvrirLaCarteAgricole')} variant="outline" size="lg" />
           </Link>
         </div>
       </Section>
@@ -457,15 +417,9 @@ export default function Home() {
       {/* 8 · Opportunités de marché et mise en relation */}
       <Section>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>
-            Marchés
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Opportunités de marché
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            Publiez vos annonces de vente, recevez des offres d’achat et organisez le transport de vos productions.
-          </Text>
+          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>{t('ui.marches')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.opportunitesDeMarche')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.publiezVosAnnoncesDeVenteRecevez')}</Text>
         </div>
         <div
           className="home-card-grid"
@@ -477,16 +431,16 @@ export default function Home() {
         >
           {[
             {
-              titre: 'Vendre ma production',
-              description: 'Publiez une annonce et recevez des offres d’achat vérifiées.',
+              titre: t('ui.vendreMaProduction'),
+              description: t('ui.publiezUneAnnonceEtRecevezDes'),
             },
             {
-              titre: 'Acheter en gros',
-              description: 'Trouvez des producteurs et coopératives pour vos approvisionnements.',
+              titre: t('ui.acheterEnGros'),
+              description: t('ui.trouvezDesProducteursEtCooperativesPour'),
             },
             {
-              titre: 'Organiser le transport',
-              description: 'Demandez un devis de transport pour vos expéditions.',
+              titre: t('ui.organiserLeTransport'),
+              description: t('ui.demandezUnDevisDeTransportPour'),
             },
           ].map((o, index) => (
             <Card key={o.titre} tone="white" hover style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -498,7 +452,7 @@ export default function Home() {
                 {o.description}
               </Text>
               <Link to="/auth/register">
-                <Button label="Commencer" variant="ghost" size="sm" />
+                <Button label={t('ui.commencer')} variant="ghost" size="sm" />
               </Link>
             </Card>
           ))}
@@ -508,94 +462,29 @@ export default function Home() {
       {/* 9 · Investisseurs, partenaires et coopération */}
       <Section style={{ backgroundColor: CREME[100] }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>
-            Investissement
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Investisseurs, partenaires et coopération
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            Déposez un projet agricole, trouvez des partenaires de financement et suivez son avancement dans une data room sécurisée.
-          </Text>
+          <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>{t('ui.investissement')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.investisseursPartenairesEtCooperation')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.deposezUnProjetAgricoleTrouvezDes')}</Text>
         </div>
-        <img className="home-banner-image" src={SECTION_IMAGES.project} alt="Agricultural project for potential partners" loading="lazy" decoding="async" />
+        <img className="home-banner-image" src={SECTION_IMAGES.project} alt={t('ui.agriculturalProjectForPotentialPartners')} loading="lazy" decoding="async" />
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to="/public/projects">
-            <Button label="Voir les projets" variant="outline" size="lg" />
+            <Button label={t('ui.voirLesProjets')} variant="outline" size="lg" />
           </Link>
           <Link to="/auth/register">
-            <Button label="Déposer un projet" variant="primary" size="lg" />
+            <Button label={t('ui.deposerUnProjet')} variant="primary" size="lg" />
           </Link>
         </div>
       </Section>
 
-      {/* 10 · Actualités, conseils et ressources agricoles */}
-      <Section>
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>
-            Ressources
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Actualités et conseils agricoles
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            Calendriers culturales, conseils de rotation, alertes climatiques et bonnes pratiques pour chaque culture.
-          </Text>
-        </div>
-        <div
-          className="home-card-grid"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: 16,
-          }}
-        >
-          {[
-            {
-              titre: 'Calendriers culturales',
-              description: 'Périodes de semis, d’entretien et de récolte par culture et par zone.',
-            },
-            {
-              titre: 'Conseils de rotation',
-              description: 'Préservez la fertilité de vos sols avec des rotations adaptées.',
-            },
-            {
-              titre: 'Alertes climatiques',
-              description: 'Soyez informé des conditions météorologiques qui affectent vos cultures.',
-            },
-            {
-              titre: 'Bonnes pratiques',
-              description: 'Guides techniques pour chaque filière agricole.',
-            },
-          ].map((r, index) => (
-            <Card key={r.titre} tone="white" hover style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <img className="home-card-image" src={[SECTION_IMAGES.training, SECTION_IMAGES.soil, new URL('../../assets/hero/terres-aeriennes.jpg', import.meta.url).href, new URL('../../assets/hero/sol-analyse.jpg', import.meta.url).href][index]} alt={r.titre} loading="lazy" decoding="async" />
-              <Text preset="h4" color={ENCRE[900]}>
-                {r.titre}
-              </Text>
-              <Text preset="bodyMd" color={ENCRE[500]} style={{ flex: 1 }}>
-                {r.description}
-              </Text>
-              <Link to="/auth/register">
-                <Button label="Lire" variant="ghost" size="sm" />
-              </Link>
-            </Card>
-          ))}
-        </div>
-      </Section>
+      <BlogNewsSection />
 
       {/* 11 · Services et fonctionnalités de la plateforme */}
       <Section id="services">
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>
-            Services
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Une plateforme complète pour l’agriculture africaine
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            De la parcelle au marché, en passant par l’investissement : traçabilité, données et mise en relation.
-          </Text>
+          <Text preset="overline" color={VERT[600]} style={{ marginBottom: 12 }}>{t('ui.services')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.unePlateformeCompletePourLAgriculture')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.deLaParcelleAuMarcheEn')}</Text>
         </div>
         <div
           className="home-card-grid"
@@ -627,7 +516,7 @@ export default function Home() {
                   {service.body}
                 </Text>
                 <Link to="/services">
-                  <Button label="Ouvrir" variant="ghost" size="sm" />
+                  <Button label={t('ui.ouvrir')} variant="ghost" size="sm" />
                 </Link>
               </Card>
             </motion.div>
@@ -641,64 +530,44 @@ export default function Home() {
       {/* 13 · Traçabilité des lots */}
       <Section>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>
-            Traçabilité
-          </Text>
-          <Text preset="h2" style={{ marginBottom: 16 }}>
-            Traçabilité de la parcelle au marché
-          </Text>
-          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>
-            Chaque lot reçoit un QR code et un historique vérifié : origine, traitements, récolte et destination.
-          </Text>
+          <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12 }}>{t('ui.tracabilite')}</Text>
+          <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.tracabiliteDeLaParcelleAuMarche')}</Text>
+          <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto' }}>{t('ui.chaqueLotRecoitUnQrCode')}</Text>
         </div>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to="/auth/register">
-            <Button label="Traçer un lot" variant="primary" size="lg" />
+            <Button label={t('ui.tracerUnLot')} variant="primary" size="lg" />
           </Link>
           <Link to="/public/lots/demo">
-            <Button label="Voir un exemple" variant="outline" size="lg" />
+            <Button label={t('ui.voirUnExemple')} variant="outline" size="lg" />
           </Link>
         </div>
       </Section>
 
       {/* 14 · Appel à l’action destiné aux producteurs */}
       <Section style={{ backgroundColor: VERT[800], color: COLORS.pureWhite, textAlign: 'center', padding: '80px 24px' }}>
-        <Text preset="overline" color={COLORS.goldSurface} style={{ marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          Producteurs
-        </Text>
-        <Text preset="h2" style={{ marginBottom: 16, color: COLORS.pureWhite }}>
-          Rejoignez AGRIKONNECT en tant que producteur
-        </Text>
-        <Text preset="bodyLg" color="rgba(255,255,255,0.9)" style={{ maxWidth: 600, margin: '0 auto 32px', lineHeight: 1.7 }}>
-          Créez votre compte, publiez vos exploitations et vos productions, et accédez aux marchés et aux investisseurs de la plateforme.
-        </Text>
+        <Text preset="overline" color={COLORS.goldSurface} style={{ marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('ui.producteurs')}</Text>
+        <Text preset="h2" style={{ marginBottom: 16, color: COLORS.pureWhite }}>{t('ui.rejoignezAgrikonnectEnTantQueProducteur')}</Text>
+        <Text preset="bodyLg" color="rgba(255,255,255,0.9)" style={{ maxWidth: 600, margin: '0 auto 32px', lineHeight: 1.7 }}>{t('ui.creezVotreComptePubliezVosExploitations')}</Text>
         <Link to="/auth/register">
-          <Button label="Créer mon compte producteur" variant="primary" size="lg" style={{ backgroundColor: COLORS.goldSurface, color: COLORS.onGoldSurface, border: 'none' }} />
+          <Button label={t('ui.creerMonCompteProducteur')} variant="primary" size="lg" style={{ backgroundColor: COLORS.goldSurface, color: COLORS.onGoldSurface, border: 'none' }} />
         </Link>
       </Section>
 
       {/* 15 · Appel à l’action partenaires + accès utilisateurs */}
       <Section style={{ backgroundColor: CREME[100], textAlign: 'center', padding: '64px 24px' }}>
-        <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-          Partenaires et investisseurs
-        </Text>
-        <Text preset="h2" style={{ marginBottom: 16 }}>
-          Investissez dans l’agriculture africaine
-        </Text>
-        <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto 32px' }}>
-          Déposez un projet, suivez son avancement et collaborez avec les organisations agricoles de la plateforme.
-        </Text>
+        <Text preset="overline" color={TERRE[700]} style={{ marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{t('ui.partenairesEtInvestisseurs')}</Text>
+        <Text preset="h2" style={{ marginBottom: 16 }}>{t('ui.investissezDansLAgricultureAfricaine')}</Text>
+        <Text preset="bodyMd" color={ENCRE[500]} style={{ maxWidth: 600, margin: '0 auto 32px' }}>{t('ui.deposezUnProjetSuivezSonAvancement')}</Text>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link to="/public/projects">
-            <Button label="Voir les projets" variant="outline" size="lg" />
+            <Button label={t('ui.voirLesProjets')} variant="outline" size="lg" />
           </Link>
           <Link to="/auth/register">
-            <Button label="Créer un compte" variant="primary" size="lg" />
+            <Button label={t('ui.creerUnCompte')} variant="primary" size="lg" />
           </Link>
         </div>
-        <div style={{ marginTop: 32, fontSize: 12, color: ENCRE[500] }}>
-          AGRIKONNECT AFRICA — Traçabilité agricole, marchés et investissement.
-        </div>
+        <div style={{ marginTop: 32, fontSize: 12, color: ENCRE[500] }}>{t('ui.agrikonnectAfricaTracabiliteAgricoleMarchesEt')}</div>
       </Section>
     </div>
   );

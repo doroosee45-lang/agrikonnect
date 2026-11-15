@@ -8,9 +8,11 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 import { publicApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
+import { useI18n } from '@/i18n';
 
 /** PUB-01 — annuaire public des exploitations (accès anonyme). */
 export default function PublicSiteFarmers() {
+  const { t } = useI18n();
   const query = useQuery({
     queryKey: queryKeys.public.farms({ limit: 100 }),
     queryFn: () => publicApi.farms({ limit: 100 }).then((r) => r.data),
@@ -19,9 +21,9 @@ export default function PublicSiteFarmers() {
   const items = query.data ?? [];
   return (
     <PublicShell active="farmers">
-      <PageHeader index="01" eyebrow="Annuaire" title="Producteurs" subtitle="Exploitations publiées par leurs propriétaires." />
+      <PageHeader index="01" eyebrow={t('ui.annuaire')} title={t('ui.producteurs')} subtitle={t('ui.exploitationsPublieesParLeursProprietaires')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun producteur" description="Aucune exploitation publique pour le moment." icon="people-outline" /> : (
+        {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunProducteur')} description={t('ui.aucuneExploitationPubliquePourLeMoment')} icon="people-outline" /> : (
           <View style={styles.list}>
             {items.map((farm, index) => (
               <Reveal key={farm.slug} index={index} variant="up">
@@ -30,7 +32,7 @@ export default function PublicSiteFarmers() {
                     <View style={styles.rowBody}>
                       <Text preset="bodyMedium">{farm.name}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {farm.countryCode}{farm.province ? ` · ${farm.province}` : ''}{farm.totalAreaHa !== null ? ` · ${farm.totalAreaHa} ha` : ''}
+                        {farm.countryCode}{farm.province ? ` · ${farm.province}` : ''}{farm.totalAreaHa !== null ? t('ui.ha', { totalAreaHa: farm.totalAreaHa }) : ''}
                       </Text>
                     </View>
                     {farm.verificationStatus ? <Chip label={farm.verificationStatus} tone={farm.verificationStatus === 'VERIFIED' ? 'success' : 'neutral'} size="sm" /> : null}

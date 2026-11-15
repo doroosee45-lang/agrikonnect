@@ -270,6 +270,70 @@ test('Supervision : le déclenchement manuel est audité, un nom inconnu renvoie
   }
 });
 
+test('Verrou scheduler : PostgreSQL acquiert puis libère le verrou en cas de succès', async () => {
+  const { fake, restore } = await withFakePrisma(prisma, baseStore());
+  const calls = [];
+  fake.$queryRaw = async (query, ...values) => {
+    const sql = Array.isArray(query) ? query.join('?') : String(query);
+    calls.push({ sql, values });
+    if (sql.includes('pg_try_advisory_lock')) return [{ locked: true }];
+    if (sql.includes('pg_advisory_unlock')) return [{ unlocked: true }];
+    return [];
+  };
+  try {
+    const outcome = await runJob('notifications.purge');
+    assert.equal(outcome.ok, true);
+    assert.equal(calls.length, 2);
+    assert.match(calls[0].sql, /pg_try_advisory_lock\(hashtext\(\?\)\)/);
+    assert.match(calls[1].sql, /pg_advisory_unlock\(hashtext\(\?\)\)/);
+    assert.deepEqual(calls.map((call) => call.values), [['notifications.purge'], ['notifications.purge']]);
+  } finally {
+    restore();
+  }
+});
+
+test('Verrou scheduler : libération garantie si le job échoue', async () => {
+  const { fake, restore } = await withFakePrisma(prisma, baseStore());
+  const name = 'notifications.purge';
+  const originalRun = JOBS[name].run;
+  const calls = [];
+  JOBS[name].run = async () => { throw new Error('échec de test'); };
+  fake.$queryRaw = async (query, ...values) => {
+    const sql = Array.isArray(query) ? query.join('?') : String(query);
+    calls.push({ sql, values });
+    if (sql.includes('pg_try_advisory_lock')) return [{ locked: true }];
+    if (sql.includes('pg_advisory_unlock')) return [{ unlocked: true }];
+    return [];
+  };
+  try {
+    await assert.rejects(() => runJob(name), /échec de test/);
+    assert.equal(calls.length, 2, 'le déverrouillage est appelé après l’échec');
+    assert.match(calls[1].sql, /pg_advisory_unlock/);
+  } finally {
+    JOBS[name].run = originalRun;
+    restore();
+  }
+});
+
+test('Verrou scheduler : un verrou détenu par un autre processus saute le job', async () => {
+  const { fake, restore } = await withFakePrisma(prisma, baseStore());
+  const name = 'notifications.purge';
+  const originalRun = JOBS[name].run;
+  let ran = false;
+  let calls = 0;
+  JOBS[name].run = async () => { ran = true; return {}; };
+  fake.$queryRaw = async () => { calls += 1; return [{ locked: false }]; };
+  try {
+    const outcome = await runJob(name);
+    assert.equal(outcome.skipped, true);
+    assert.equal(ran, false);
+    assert.equal(calls, 1, 'aucun déverrouillage si le verrou n’a pas été acquis');
+  } finally {
+    JOBS[name].run = originalRun;
+    restore();
+  }
+});
+
 test('Planificateur : démarrage et arrêt sans laisser de minuteur actif', async () => {
   const { restore } = await withFakePrisma(prisma, baseStore());
   try {

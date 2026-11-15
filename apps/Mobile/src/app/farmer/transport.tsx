@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerTransport() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,17 +24,17 @@ export default function FarmerTransport() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Transport" subtitle="Vos demandes de transport." />
+      <FarmerHeader title={t('ui.transport')} subtitle={t('ui.vosDemandesDeTransport')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Transport" icon="car-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune demande" description="Vos demandes de transport apparaîtront ici." icon="car-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.transport')} icon="car-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneDemande')} description={t('ui.vosDemandesDeTransportApparaitrontIci')} icon="car-outline" /> : (
             <View style={styles.list}>
               {items.map((request, index) => (
                 <Reveal key={request.id} index={index} variant="up">
                   <Card tone="white" style={styles.row}>
                     <View style={styles.rowBody}>
-                      <Text preset="bodyMedium">Commande rattachée</Text>
-                      <Text preset="caption" color={COLORS.slateGray}>{formatDate(request.createdAt, locale)} · {request.transporterOrgId ? 'transporteur assigné' : 'en attente d\u2019assignation'}</Text>
+                      <Text preset="bodyMedium">{t('ui.commandeRattachee')}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{formatDate(request.createdAt, locale)} · {request.transporterOrgId ? t('ui.transporteurAssigne') : t('ui.enAttenteDAssignation')}</Text>
                     </View>
                     <Chip label={request.status} tone="neutral" size="sm" />
                   </Card>

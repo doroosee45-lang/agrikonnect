@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminPrices() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function AdminPrices() {
   const items = query.data?.items ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Prix" subtitle="Prix de marché observés." />
+      <AppHeader title={t('ui.prix')} subtitle={t('ui.prixDeMarcheObserves')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Prix" icon="cash-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun prix" description="Aucun prix enregistré." icon="cash-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.prix')} icon="cash-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunPrix')} description={t('ui.aucunPrixEnregistre')} icon="cash-outline" /> : (
             <View style={styles.list}>
               {items.map((price, index) => (
                 <Reveal key={price.id} index={index} variant="up">

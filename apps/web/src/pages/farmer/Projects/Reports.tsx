@@ -18,6 +18,7 @@ interface Reports {
 
 /** FARMER — rapports d'avancement et d'impact du projet. */
 export default function FarmerProjectReports() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
@@ -31,9 +32,7 @@ export default function FarmerProjectReports() {
 
   const renderList = (entries: ReportEntry[], kind: string) =>
     entries.length === 0 ? (
-      <Text preset="caption" color={COLORS.slateGray}>
-        Aucun rapport {kind}.
-      </Text>
+      <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunRapport_fed3e', { kind })}</Text>
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {entries.map((entry, index) => (
@@ -46,13 +45,13 @@ export default function FarmerProjectReports() {
           >
             <Card tone="white">
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 8, flexWrap: 'wrap' }}>
-                <Text preset="h4">{String(entry.title ?? `Rapport ${index + 1}`)}</Text>
+                <Text preset="h4">{String(entry.title ?? t('ui.rapport_f4343', { value: index + 1 }))}</Text>
                 {entry.createdAt ? <Text preset="caption">{formatDate(String(entry.createdAt), locale)}</Text> : null}
               </div>
               {entry.summary ? <Text preset="bodySm" style={{ lineHeight: 1.7 }}>{String(entry.summary)}</Text> : null}
               {entry.period ? (
                 <div style={{ marginTop: 8 }}>
-                  <Chip label={`Période ${String(entry.period)}`} tone="neutral" size="sm" />
+                  <Chip label={t('ui.periode', { period: String(entry.period) })} tone="neutral" size="sm" />
                 </div>
               ) : null}
             </Card>
@@ -63,35 +62,27 @@ export default function FarmerProjectReports() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Rapports" description="Rapports d'avancement et d'impact du projet." icon="📊">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.rapports')} description={t('ui.rapportsDAvancementEtDImpact')} icon="📊">
         <div style={{ marginBottom: 24 }}>
-          <a href={`/farmer/projects/${id}`} style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour au projet
-          </a>
+          <a href={`/farmer/projects/${id}`} style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourAuProjet')}</a>
         </div>
 
-        <Text preset="h1" style={{ marginBottom: 32 }}>
-          Rapports
-        </Text>
+        <Text preset="h1" style={{ marginBottom: 32 }}>{t('ui.rapports')}</Text>
 
         {query.isLoading ? (
           <LoadingState count={2} height={110} />
         ) : query.isError ? (
           <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
         ) : !query.data || (query.data.progress.length === 0 && query.data.impact.length === 0) ? (
-          <EmptyState title="Aucun rapport" description="Les rapports d'avancement et d'impact apparaîtront ici." icon="📊" />
+          <EmptyState title={t('ui.aucunRapport')} description={t('ui.lesRapportsDAvancementEtD')} icon="📊" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <div>
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Avancement
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.avancement')}</Text>
               {renderList(query.data.progress, "d'avancement")}
             </div>
             <div>
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Impact
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.impact')}</Text>
               {renderList(query.data.impact, "d'impact")}
             </div>
           </div>

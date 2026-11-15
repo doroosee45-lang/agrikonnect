@@ -18,7 +18,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatDate } from '@/lib/format';
 import { alertApi } from '@/services/api/endpoints';
 import type { AlertFilterOption, AlertSourceType, DescribedAlert } from '@/services/api/types';
@@ -61,8 +61,8 @@ type EtatFiltre = 'TOUS' | 'OUVERTS' | 'NEW' | 'READ' | 'HANDLED';
  */
 function etatOptions(statuts: AlertFilterOption[]): { value: EtatFiltre; label: string }[] {
   return [
-    { value: 'TOUS', label: 'Toutes' },
-    { value: 'OUVERTS', label: 'Non traitées' },
+    { value: 'TOUS', label: tr('ui.toutes') },
+    { value: 'OUVERTS', label: tr('ui.nonTraitees') },
     ...statuts
       .filter((s) => s.value === 'NEW' || s.value === 'READ' || s.value === 'HANDLED')
       .map((s) => ({ value: s.value as EtatFiltre, label: s.label })),
@@ -83,6 +83,7 @@ function AlertCard({
   onRead: () => void;
   onHandled: () => void;
 }) {
+  const { t } = useI18n();
   const plage = alert.range;
   const reference = alert.observedAt ?? alert.predictedBreachAt ?? alert.createdAt;
 
@@ -103,21 +104,19 @@ function AlertCard({
 
       <Text preset="caption" color={COLORS.textPrimary} style={styles.observation}>
         {alert.observedLabel
-          ? `Observé ${alert.observedLabel}`
+          ? t('ui.observe', { observedLabel: alert.observedLabel })
           : alert.predictive
-            ? 'Aucune valeur observée : franchissement anticipé'
-            : 'Aucune valeur observée transmise'}
-        {' · seuil '}
+            ? t('ui.aucuneValeurObserveeFranchissementAnticipe')
+            : t('ui.aucuneValeurObserveeTransmise')}
+        {t('ui.seuil_c5cb9')}
         {alert.referenceLabel}
       </Text>
 
       {plage?.label ? (
-        <Text preset="caption" color={COLORS.slateGray}>
-          Plage de référence {plage.label}
-          {plage.status === 'PROVISIONAL'
-            ? ' — provisoire : cette alerte ne repose pas sur un seuil validé'
+        <Text preset="caption" color={COLORS.slateGray}>{t('ui.plageDeReference', { label: plage.label })}{plage.status === 'PROVISIONAL'
+            ? t('ui.provisoireCetteAlerteNeReposePas')
             : plage.status
-              ? ' — validée'
+              ? t('ui.validee_a1416')
               : ''}
         </Text>
       ) : (
@@ -125,18 +124,16 @@ function AlertCard({
          * Absence de plage affichée comme telle : sans bornes, on peut dire
          * qu'un seuil a été franchi, pas situer la valeur observée.
          */
-        <Text preset="caption" color={COLORS.slateGray}>
-          Plage de référence non disponible pour cette grandeur
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray}>{t('ui.plageDeReferenceNonDisponiblePour')}</Text>
       )}
 
       {alert.status !== 'HANDLED' ? (
         <View style={styles.actions}>
           {alert.status === 'NEW' ? (
-            <Button label="Marquer lue" variant="outline" size="sm" loading={busy} onPress={onRead} />
+            <Button label={t('ui.marquerLue')} variant="outline" size="sm" loading={busy} onPress={onRead} />
           ) : null}
           <Button
-            label="Marquer traitée"
+            label={t('ui.marquerTraitee')}
             variant="primary"
             size="sm"
             loading={busy}
@@ -144,15 +141,14 @@ function AlertCard({
           />
         </View>
       ) : (
-        <Text preset="caption" color={COLORS.slateGray} style={styles.cloture}>
-          Traitée : elle ne sera plus rappelée.
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray} style={styles.cloture}>{t('ui.traiteeElleNeSeraPlusRappelee')}</Text>
       )}
     </Card>
   );
 }
 
 export default function FarmerAlerts() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const queryClient = useQueryClient();
@@ -211,25 +207,20 @@ export default function FarmerAlerts() {
   return (
     <Screen background={COLORS.naturalWhite}>
       <FarmerHeader
-        title="Boîte d’alertes"
-        subtitle="Franchissements, prévisions et capteurs silencieux. Le SMS reste le canal principal."
+        title={t('ui.boiteDAlertes_6a179')}
+        subtitle={t('ui.franchissementsPrevisionsEtCapteursSilencieuxLe')}
       />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Boîte d’alertes" icon="notifications-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.boiteDAlertes_6a179')} icon="notifications-outline">
           {meta && meta.openCount > 0 ? (
             <Card tone="gold" style={styles.compteur}>
-              <Text preset="caption" color={COLORS.textPrimary}>
-                {meta.openCount} alerte{meta.openCount > 1 ? 's' : ''} non traitée
-                {meta.openCount > 1 ? 's' : ''} dans votre organisation.
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary}>{t(meta.openCount > 1 ? 'ui.openAlertsInOrgOther' : 'ui.openAlertsInOrgOne', { openCount: meta.openCount })}</Text>
             </Card>
           ) : null}
 
           {options ? (
             <View style={styles.filtres}>
-              <Text preset="overline" color={COLORS.slateGray}>
-                État
-              </Text>
+              <Text preset="overline" color={COLORS.slateGray}>{t('ui.etat')}</Text>
               <ChipRow>
                 {etatOptions(options.statuses).map((o) => (
                   <FilterChip
@@ -244,12 +235,10 @@ export default function FarmerAlerts() {
                 ))}
               </ChipRow>
 
-              <Text preset="overline" color={COLORS.slateGray}>
-                Source
-              </Text>
+              <Text preset="overline" color={COLORS.slateGray}>{t('ui.source_6da13')}</Text>
               <ChipRow>
                 <FilterChip
-                  label="Toutes"
+                  label={t('ui.toutes')}
                   active={source === undefined}
                   onPress={() => {
                     setSource(undefined);
@@ -277,8 +266,8 @@ export default function FarmerAlerts() {
             <ErrorState error={alertes.error} onRetry={() => void alertes.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucune alerte pour ce filtre"
-              description="Soit aucune alerte n’a été déclenchée, soit le filtre sélectionné n’en retient aucune. Élargissez l’état ou la source pour vérifier."
+              title={t('ui.aucuneAlertePourCeFiltre')}
+              description={t('ui.soitAucuneAlerteNAEte_14232')}
               icon="notifications-outline"
             />
           ) : (
@@ -300,7 +289,7 @@ export default function FarmerAlerts() {
           {meta && meta.totalPages > 1 ? (
             <View style={styles.pagination}>
               <Button
-                label="Précédent"
+                label={t('common.previous')}
                 variant="outline"
                 size="sm"
                 disabled={page <= 1}
@@ -310,7 +299,7 @@ export default function FarmerAlerts() {
                 {meta.page}/{meta.totalPages}
               </Text>
               <Button
-                label="Suivant"
+                label={t('common.next')}
                 variant="outline"
                 size="sm"
                 disabled={page >= meta.totalPages}

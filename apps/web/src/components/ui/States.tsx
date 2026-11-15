@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 
 import { Button } from './Button';
 import { COLORS, RADIUS } from '@/theme';
+import { useI18n, type TranslationKey } from '@/i18n';
+import { ERROR_KIND_I18N, RequestError } from '@/services/types';
 
 export function LoadingState({ count = 3, height = 100 }: { count?: number; height?: number }) {
   return (
@@ -67,8 +69,21 @@ export function ErrorState({
   onRetry?: () => void;
   showRequestId?: boolean;
 }) {
-  const message = error instanceof Error ? error.message : 'Une erreur est survenue';
-  const requestId = error && typeof error === 'object' && 'requestId' in error ? String((error as any).requestId) : null;
+  const { t } = useI18n();
+  /*
+   * I18N-06 — message affiché :
+   * - erreur réseau (statut 0) : libellé traduit, jamais « Network Error » brut ;
+   * - erreur HTTP : message du serveur, déjà rendu dans la langue demandée
+   *   (`Accept-Language`), sinon le libellé traduit de sa famille ;
+   * - toute autre erreur : libellé générique traduit.
+   */
+  const requestError = error instanceof RequestError ? error : null;
+  const message = requestError
+    ? requestError.status !== 0 && requestError.message
+      ? requestError.message
+      : t(ERROR_KIND_I18N[requestError.kind] as TranslationKey)
+    : t('ui.uneErreurEstSurvenue');
+  const requestId = requestError?.requestId ?? null;
 
   return (
     <div
@@ -88,9 +103,9 @@ export function ErrorState({
       <div style={{ fontSize: 32, opacity: 0.5 }}>⚠</div>
       <p style={{ fontSize: 14, color: COLORS.error, maxWidth: 400 }}>{message}</p>
       {showRequestId && requestId ? (
-        <p style={{ fontSize: 12, color: COLORS.slateGray, fontFamily: 'monospace' }}>ID : {requestId}</p>
+        <p style={{ fontSize: 12, color: COLORS.slateGray, fontFamily: 'monospace' }}>{t('ui.id', { requestId })}</p>
       ) : null}
-      {onRetry ? <Button label="Réessayer" onClick={onRetry} variant="outline" size="sm" /> : null}
+      {onRetry ? <Button label={t('common.retry')} onClick={onRetry} variant="outline" size="sm" /> : null}
     </div>
   );
 }

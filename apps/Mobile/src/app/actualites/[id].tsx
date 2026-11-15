@@ -6,6 +6,7 @@ import { Button, Card, EmptyState, Reveal, Section, Text } from '@/components/ui
 import { RELEASE_TRACK } from '@/lib/platform';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Détail d'une entrée du journal.
@@ -15,12 +16,13 @@ import { SPACING } from '@/theme/space';
  * dans `RELEASE_TRACK`, la même source que la page liste.
  */
 export default function ActualiteDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const entry = RELEASE_TRACK.find((item) => item.tag.toLowerCase() === String(id ?? '').toLowerCase());
 
   return (
     <PublicShell active="actualites">
-      <PageHeader index="—" eyebrow="Journal" title={entry ? `${entry.tag} · ${entry.name}` : 'Entrée introuvable'} subtitle={entry ? 'Périmètre fonctionnel réellement livré.' : undefined} />
+      <PageHeader index="—" eyebrow={t('ui.journal')} title={entry ? `${entry.tag} · ${entry.name}` : t('ui.entreeIntrouvable')} subtitle={entry ? t('ui.perimetreFonctionnelReellementLivre') : undefined} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         {entry ? (
           <Reveal index={0} variant="up">
@@ -29,13 +31,13 @@ export default function ActualiteDetail() {
               <Text preset="h2">{entry.name}</Text>
               <Text preset="body">{entry.body}</Text>
               <View style={styles.actions}>
-                <Button label="Voir les flux opérationnels" variant="outline" onPress={() => router.push('/explore')} />
-                <Button label="Retour au journal" variant="ghost" onPress={() => router.push('/actualites')} />
+                <Button label={t('ui.voirLesFluxOperationnels')} variant="outline" onPress={() => router.push('/explore')} />
+                <Button label={t('ui.retourAuJournal')} variant="ghost" onPress={() => router.push('/actualites')} />
               </View>
             </Card>
           </Reveal>
         ) : (
-          <EmptyState title="Entrée introuvable" description="Aucune entrée du journal ne correspond à cet identifiant." icon="newspaper-outline" />
+          <EmptyState title={t('ui.entreeIntrouvable')} description={t('ui.aucuneEntreeDuJournalNeCorrespond')} icon="newspaper-outline" />
         )}
       </Section>
     </PublicShell>

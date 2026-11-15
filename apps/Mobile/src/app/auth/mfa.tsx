@@ -80,11 +80,9 @@ export default function Mfa() {
 
   if (!isAuthenticated) {
     return (
-      <AuthShell title={t('auth.mfaTitle')} subtitle="Connectez-vous pour gérer votre double authentification.">
+      <AuthShell title={t('auth.mfaTitle')} subtitle={t('ui.connectezVousPourGererVotreDouble')}>
         <Card tone="pale">
-          <Text preset="bodySm" color={COLORS.slateGray}>
-            Cette page est réservée aux comptes connectés.
-          </Text>
+          <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.cettePageEstReserveeAuxComptes')}</Text>
         </Card>
       </AuthShell>
     );
@@ -101,12 +99,12 @@ export default function Mfa() {
           />
           <View style={styles.statusBody}>
             <Text preset="bodyMedium" color={COLORS.textPrimary}>
-              {status.isLoading ? 'Vérification…' : status.data?.enabled ? 'Activée' : 'Désactivée'}
+              {status.isLoading ? t('ui.verification') : status.data?.enabled ? t('ui.activee') : t('ui.desactivee')}
             </Text>
             <Text preset="caption" color={COLORS.slateGray}>
               {status.data?.enabled
-                ? `Méthode : ${status.data.method ?? 'TOTP'}`
-                : 'Recommandée dès que vous publiez des lots ou des annonces.'}
+                ? t('ui.methode', { value: status.data.method ?? 'TOTP' })
+                : t('ui.recommandeeDesQueVousPubliezDes')}
             </Text>
           </View>
         </Card>
@@ -115,9 +113,7 @@ export default function Mfa() {
         {secours ? (
           <Card tone="white" style={styles.secours}>
             <Ionicons name="shield-checkmark-outline" size={22} color={COLORS.onGoldSurface} />
-            <Text preset="overline" color={COLORS.onGoldSurface}>
-              Codes de secours
-            </Text>
+            <Text preset="overline" color={COLORS.onGoldSurface}>{t('ui.codesDeSecours')}</Text>
             {/*
               L'avertissement **vient de l'API** (`warning`) : si le backend
               change la formulation, l'écran suit au lieu d'afficher un texte
@@ -134,11 +130,7 @@ export default function Mfa() {
                 </Text>
               ))}
             </View>
-            <Text preset="caption" color={COLORS.onGoldSurface} style={styles.lineHeight}>
-              Recopiez-les maintenant sur un support hors ligne. Une fois cet
-              écran quitté, ils ne seront plus affichés et le support ne pourra
-              pas les retrouver.
-            </Text>
+            <Text preset="caption" color={COLORS.onGoldSurface} style={styles.lineHeight}>{t('ui.recopiezLesMaintenantSurUnSupport')}</Text>
             {/*
               Pas de copie dans le presse-papiers : l'application mobile n'a
               aucune dépendance de presse-papiers installée, et en ajouter une
@@ -146,7 +138,7 @@ export default function Mfa() {
               besoin — recopier ou capturer l'écran.
             */}
             <Button
-              label="J’ai conservé mes codes"
+              label={t('ui.jAiConserveMesCodes_196fa')}
               onPress={() => setSecours(null)}
               variant="primary"
               fullWidth
@@ -171,24 +163,20 @@ export default function Mfa() {
              * version web.
              */
             <Card tone="white" style={styles.qr}>
-              <Text preset="overline" color={COLORS.forestGreen}>
-                1. Scannez ce QR code
-              </Text>
+              <Text preset="overline" color={COLORS.forestGreen}>{t('ui.n1ScannezCeQrCode')}</Text>
               <AppImage
                 uri={setup.qrDataUri}
                 style={styles.qrImage}
                 radius={12}
                 accessible
-                accessibilityLabel="QR code à scanner avec votre application d’authentification"
-                fallbackLabel="QR code indisponible"
+                accessibilityLabel={t('ui.qrCodeAScannerAvecVotre_03f06')}
+                fallbackLabel={t('ui.qrCodeIndisponible')}
               />
-              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                2. Saisissez ci-dessous le code à {setup.digits} chiffres affiché par l’application.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.n2SaisissezCiDessousLeCode_1545c', { digits: setup.digits })}</Text>
             </Card>
           ) : (
             <Button
-              label="Générer un secret"
+              label={t('ui.genererUnSecret')}
               onPress={() => startSetup.mutate()}
               variant="primary"
               icon="key-outline"
@@ -208,12 +196,12 @@ export default function Mfa() {
               icon="keypad-outline"
               keyboardType="number-pad"
               maxLength={14}
-              helper="6 chiffres (TOTP) ou un code de secours."
+              helper={t('ui.n6ChiffresTotpOuUnCode_3001f')}
             />
 
             {setup ? (
               <Button
-                label="Activer la double authentification"
+                label={t('ui.activerLaDoubleAuthentification')}
                 onPress={() => confirm.mutate()}
                 variant="primary"
                 fullWidth
@@ -222,12 +210,10 @@ export default function Mfa() {
             ) : (
               <>
                 {verify.isSuccess ? (
-                  <Text preset="bodySm" color={COLORS.success}>
-                    ✓ Code valide. Votre second facteur fonctionne.
-                  </Text>
+                  <Text preset="bodySm" color={COLORS.success}>{t('ui.codeValideVotreSecondFacteurFonctionne')}</Text>
                 ) : null}
                 <Button
-                  label="Vérifier un code"
+                  label={t('ui.verifierUnCode')}
                   onPress={() => verify.mutate()}
                   variant="outline"
                   fullWidth
@@ -237,15 +223,13 @@ export default function Mfa() {
                 <Divider />
 
                 <Button
-                  label="Désactiver"
+                  label={t('ui.desactiver')}
                   onPress={() => disable.mutate()}
                   variant="outline"
                   fullWidth
                   loading={disable.isPending}
                 />
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  La désactivation exige elle aussi un code valide.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.laDesactivationExigeElleAussiUn')}</Text>
               </>
             )}
           </>
@@ -257,10 +241,7 @@ export default function Mfa() {
 
         <Divider />
 
-        <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-          Les codes de secours sont à usage unique. Une fois la double authentification activée, le mot de
-          passe seul ne permet plus d’ouvrir une session.
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.lesCodesDeSecoursSontA_054dd')}</Text>
       </View>
     </AuthShell>
   );

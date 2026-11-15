@@ -52,7 +52,7 @@ export function FarmerHeader({ title, subtitle }: { title: string; subtitle?: st
           </PressableScale>
 
           <View style={styles.actions}>
-            <IconButton icon="globe-outline" onPress={() => router.push('/accueil')} accessibilityLabel="Visiter le site public" />
+            <IconButton icon="globe-outline" onPress={() => router.push('/accueil')} accessibilityLabel={t('ui.visiterLeSitePublic')} />
             <IconButton icon="notifications-outline" onPress={() => router.push('/notifications')} accessibilityLabel={t('nav.notifications')} />
             <IconButton icon="settings-outline" onPress={() => router.push('/profil')} accessibilityLabel={t('nav.profile')} />
           </View>
@@ -73,13 +73,9 @@ export function FarmerHeader({ title, subtitle }: { title: string; subtitle?: st
           <PressableScale onPress={() => router.push('/profil')} style={styles.completeness}>
             <View style={styles.completenessRow}>
               <Ionicons name="checkmark-done-outline" size={14} color={COLORS.livingGreen} />
-              <Text preset="caption" color={COLORS.slateGray}>
-                Dossier complété à {completeness.percent} %
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.dossierCompleteA', { percent: completeness.percent })}</Text>
               {completeness.missing.length > 0 ? (
-                <Text preset="caption" color={COLORS.forestGreen}>
-                  {completeness.missing.length} restant(s)
-                </Text>
+                <Text preset="caption" color={COLORS.forestGreen}>{t('ui.restantS', { length: completeness.missing.length })}</Text>
               ) : null}
             </View>
             <View style={styles.track}>

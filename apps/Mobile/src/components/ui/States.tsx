@@ -90,9 +90,7 @@ export function ErrorState({ error, onRetry, showRequestId = true, light = false
             {message}
           </Text>
           {showRequestId && requestError?.requestId ? (
-            <Text preset="caption" color={light ? DARK.textFaint : COLORS.slateGray} style={styles.requestId}>
-              réf. {requestError.requestId}
-            </Text>
+            <Text preset="caption" color={light ? DARK.textFaint : COLORS.slateGray} style={styles.requestId}>{t('ui.ref_571f6', { requestId: requestError.requestId })}</Text>
           ) : null}
         </View>
       </View>

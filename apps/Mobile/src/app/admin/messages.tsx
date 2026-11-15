@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminMessages() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function AdminMessages() {
   const items = query.data?.items ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Conversations" subtitle="Messagerie interne." />
+      <AppHeader title={t('ui.conversations')} subtitle={t('ui.messagerieInterne')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Conversations" icon="chatbubbles-outline">
-          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune conversation" description="Aucune conversation." icon="chatbubbles-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.conversations')} icon="chatbubbles-outline">
+          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneConversation')} description={t('ui.aucuneConversation_c4c91')} icon="chatbubbles-outline" /> : (
             <View style={styles.list}>
               {items.map((conversation, index) => (
                 <Reveal key={conversation.id} index={index} variant="up">
@@ -39,7 +40,7 @@ export default function AdminMessages() {
                     </View>
                     <View style={styles.rowAside}>
                       <Chip label={conversation.status} tone={conversation.status === 'BLOCKED' ? 'error' : 'neutral'} size="sm" />
-                      {conversation.unread > 0 ? <Chip label={`${conversation.unread} non lus`} tone="warning" size="sm" /> : null}
+                      {conversation.unread > 0 ? <Chip label={t('ui.nonLus_dcc11', { unread: conversation.unread })} tone="warning" size="sm" /> : null}
                     </View>
                   </Card>
                 </Reveal>

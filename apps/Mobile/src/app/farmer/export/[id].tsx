@@ -33,6 +33,7 @@ const STATUS_TONE = {
 } as const;
 
 export default function FarmerExportDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { locale } = useI18n();
@@ -49,63 +50,51 @@ export default function FarmerExportDetail() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title={order?.reference ?? '—'} subtitle="Dossier d'exportation." />
+      <FarmerHeader title={order?.reference ?? '—'} subtitle={t('ui.dossierDExportation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Exportation" icon="boat-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.exportation')} icon="boat-outline">
           {query.isLoading ? (
             <LoadingState count={1} height={120} />
           ) : query.isError ? (
             <ErrorState error={query.error} onRetry={() => void query.refetch()} />
           ) : !detail || !order ? (
-            <Text preset="body">Dossier d’exportation introuvable.</Text>
+            <Text preset="body">{t('ui.dossierDExportationIntrouvable')}</Text>
           ) : (
             <>
               <Card tone="white" style={styles.card}>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Référence
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.reference')}</Text>
                   <Text preset="bodyMedium" style={{ fontFamily: 'monospace' }}>
                     {order.reference}
                   </Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Statut
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                   <Chip label={order.status} tone={STATUS_TONE[order.status]} size="sm" />
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Destination
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.destination')}</Text>
                   <Text preset="bodySm">{order.destinationCountry}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Incoterm
-                  </Text>
-                  <Text preset="bodySm">{order.incoterm ?? 'non précisé'}</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.incoterm')}</Text>
+                  <Text preset="bodySm">{order.incoterm ?? t('ui.nonPrecise')}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Créé le
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.creeLe')}</Text>
                   <Text preset="bodySm">{formatDate(order.createdAt, locale)}</Text>
                 </View>
               </Card>
 
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Conformité documentaire
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.conformiteDocumentaire')}</Text>
                 {detail.compliance.required.map((item) => (
                   <View key={item.type} style={styles.row}>
                     <Text preset="bodySm" color={COLORS.textPrimary} style={{ flex: 1 }}>
                       {item.label}
                     </Text>
                     <Chip
-                      label={item.present ? 'présent' : 'manquant'}
+                      label={item.present ? t('ui.present') : t('ui.manquant')}
                       tone={item.present ? 'success' : 'error'}
                       size="sm"
                     />
@@ -117,33 +106,27 @@ export default function FarmerExportDetail() {
                   style={styles.lineHeight}
                 >
                   {detail.compliance.canBeCertified
-                    ? 'Les quatre pièces obligatoires sont présentes : le dossier peut être certifié.'
-                    : `Certification impossible tant que ${detail.compliance.missing.join(', ')} manque(nt). Contrôle appliqué côté serveur.`}
+                    ? t('ui.lesQuatrePiecesObligatoiresSontPresentes')
+                    : t('ui.certificationImpossibleTantQueManqueNt_d2a08', { value: detail.compliance.missing.join(', ') })}
                 </Text>
               </Card>
 
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Montant et change
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.montantEtChange')}</Text>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Montant
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.montant')}</Text>
                   <Text preset="bodySm">
                     {detail.finance.totalAmount !== null
                       ? `${detail.finance.totalAmount} ${detail.finance.currency}`
-                      : 'non renseigné'}
+                      : t('ui.nonRenseigne')}
                   </Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Conversion
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.conversion')}</Text>
                   <Text preset="bodySm">
                     {detail.finance.conversion.amount !== null
                       ? String(detail.finance.conversion.amount)
-                      : 'non converti'}
+                      : t('ui.nonConverti')}
                   </Text>
                 </View>
                 {/* Aucune conversion n'est inventée : le message du serveur est repris. */}
@@ -157,8 +140,8 @@ export default function FarmerExportDetail() {
               <Button
                 label={
                   order.documents.length > 0
-                    ? `Documents du dossier (${order.documents.length})`
-                    : 'Documents du dossier'
+                    ? t('ui.documentsDuDossier_26c4f', { length: order.documents.length })
+                    : t('ui.documentsDuDossier')
                 }
                 variant="outline"
                 onPress={() => router.push(`/farmer/export/${order.id}/documents`)}

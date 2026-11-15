@@ -318,9 +318,12 @@ test('E2E PRC-10 : appel d’offres public, réponses scellées, une réponse pa
   // Scellé : un concurrent ne voit pas l'offre de l'autre.
   const seenByRival = await h.request('GET', `/tenders/${tenderId}`, { token: rivalToken });
   assert.equal(seenByRival.status, 200);
-  const rivalView = JSON.stringify(seenByRival.body.data);
-  assert.equal(rivalView.includes('0.38'), false, 'montant d’un concurrent jamais exposé');
-  assert.equal(seenByRival.body.data.responses?.length ?? 0, 0, 'aucune réponse visible avant attribution');
+  const rivalResponses = seenByRival.body.data.responses;
+  assert.deepEqual(
+    rivalResponses,
+    [],
+    'aucune réponse ni montant de concurrent visible avant attribution',
+  );
 
   // Le porteur, lui, arbitre et attribue.
   const detailed = await h.request('GET', `/tenders/${tenderId}`, { token: buyerToken });

@@ -4,38 +4,40 @@ import { PageHeader, PublicShell } from '@/components/public-site/PublicShell';
 import { Card, Reveal, Section, Text } from '@/components/ui';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 const BLOCKS = [
   {
-    title: 'Comptes',
-    body: 'L’inscription en libre-service ouvre les rôles opérationnels : producteur, coopérative, société agricole, acheteur, fournisseur, transporteur, agronome, investisseur, agent d’appui. Les rôles de gouvernance (administrateur, modérateur, vérificateur, partenaire laboratoire, client API) sont attribués par un administrateur et ne peuvent jamais être auto-déclarés.',
+    get title() { return tr('ui.comptes'); },
+    get body() { return tr('ui.lInscriptionEnLibreServiceOuvre'); },
   },
   {
-    title: 'Exactitude des données',
-    body: 'Chaque information porte sa provenance : mesurée, vérifiée, estimée ou déclarée. La plateforme ne corrige pas une donnée manquante par une estimation, et ne publie aucun chiffre sans source.',
+    get title() { return tr('ui.exactitudeDesDonnees'); },
+    get body() { return tr('ui.chaqueInformationPorteSaProvenanceMesuree'); },
   },
   {
-    title: 'Échanges commerciaux',
-    body: 'Les annonces, offres et commandes sont journalisées. Les coordonnées des parties ne sont pas échangées par défaut : la relation passe par la messagerie interne, avec signalement et blocage possibles.',
+    get title() { return tr('ui.echangesCommerciaux'); },
+    get body() { return tr('ui.lesAnnoncesOffresEtCommandesSont'); },
   },
   {
-    title: 'Vérification',
-    body: 'Une demande de vérification est instruite puis horodatée. Le statut « vérifié » remplace « déclaré » sur la fiche publique ; il ne vaut pas certification de produit.',
+    get title() { return tr('ui.verification_bb27a'); },
+    get body() { return tr('ui.uneDemandeDeVerificationEstInstruite'); },
   },
   {
-    title: 'Accès aux documents',
-    body: 'Une dataroom donne un accès limité dans le temps (30 jours par défaut, 90 au plus), journalisé. L’expiration met fin à l’accès sans action du titulaire.',
+    get title() { return tr('ui.accesAuxDocuments'); },
+    get body() { return tr('ui.uneDataroomDonneUnAccesLimite'); },
   },
   {
-    title: 'API et exports',
-    body: 'L’API publique fonctionne par clé, avec un périmètre d’autorisation par clé et une journalisation des appels. Les exports sont produits à la demande et tracés.',
+    get title() { return tr('ui.apiEtExports'); },
+    get body() { return tr('ui.lApiPubliqueFonctionneParCle'); },
   },
 ];
 
 export default function Conditions() {
+  const { t } = useI18n();
   return (
     <PublicShell active="accueil">
-      <PageHeader index={1} eyebrow="Légal" title="Conditions d’utilisation" subtitle="Les règles d’usage de la plateforme, écrites à partir de son comportement réel." compact />
+      <PageHeader index={1} eyebrow={t('ui.legal')} title={t('ui.conditionsDUtilisation_9074e')} subtitle={t('ui.lesReglesDUsageDeLa')} compact />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         {BLOCKS.map((block, index) => (
           <Reveal key={block.title} index={index % 3} variant="up">

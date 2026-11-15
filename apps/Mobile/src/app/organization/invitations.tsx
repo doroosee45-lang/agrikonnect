@@ -13,6 +13,7 @@ import { SPACING } from '@/theme/space';
 
 /** Adhésions en attente : le backend ne sépare pas « invitation » et « adhésion PENDING ». */
 export default function OrganizationInvitations() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const me = useQuery({ queryKey: queryKeys.me, queryFn: () => authApi.me().then((r) => r.data), enabled: isAuthenticated, retry: false });
@@ -26,17 +27,17 @@ export default function OrganizationInvitations() {
   const items = (query.data?.memberships ?? []).filter((m) => m.status !== 'ACTIVE');
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Invitations" subtitle="Adhésions en attente de confirmation." />
+      <AppHeader title={t('ui.invitations')} subtitle={t('ui.adhesionsEnAttenteDeConfirmation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Invitations" icon="mail-outline">
-          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune invitation" description="Aucune adhésion en attente." icon="mail-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.invitations')} icon="mail-outline">
+          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneInvitation')} description={t('ui.aucuneAdhesionEnAttente')} icon="mail-outline" /> : (
             <View style={styles.list}>
               {items.map((membership, index) => (
                 <Reveal key={membership.id} index={index} variant="up">
                   <Card tone="white" style={styles.row}>
                     <View style={styles.rowBody}>
-                      <Text preset="bodyMedium">{membership.user ? `${membership.user.firstName} ${membership.user.lastName}` : 'Invitation'}</Text>
-                      <Text preset="caption" color={COLORS.slateGray}>{membership.user?.email ?? 'adresse non renseignée'} · {formatDate(membership.joinedAt, locale)}</Text>
+                      <Text preset="bodyMedium">{membership.user ? `${membership.user.firstName} ${membership.user.lastName}` : t('ui.invitation')}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{membership.user?.email ?? t('ui.adresseNonRenseignee')} · {formatDate(membership.joinedAt, locale)}</Text>
                     </View>
                     <Chip label={membership.status} tone="warning" size="sm" />
                   </Card>

@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function OrganizationDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -24,22 +25,22 @@ export default function OrganizationDetail() {
   const org = query.data as Record<string, unknown> | undefined;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={String(org?.name ?? '—')} subtitle="Fiche organisation." />
+      <AppHeader title={String(org?.name ?? '—')} subtitle={t('ui.ficheOrganisation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Organisation" icon="business-outline">
-          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !org ? <Text preset="body">Organisation introuvable.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.organisation_6e99c')} icon="business-outline">
+          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !org ? <Text preset="body">{t('ui.organisationIntrouvable')}</Text> : (
             <Card tone="white" style={styles.card}>
               <Text preset="h3">{String(org.name ?? '—')}</Text>
               <View style={styles.field}>
-                <Text preset="caption" color={COLORS.slateGray}>Type</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.type')}</Text>
                 <Text preset="bodySm">{String(org.type ?? '—')}</Text>
               </View>
               <View style={styles.field}>
-                <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                 <Chip label={String(org.status ?? '—')} tone="neutral" size="sm" />
               </View>
               <View style={styles.field}>
-                <Text preset="caption" color={COLORS.slateGray}>Pays</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.pays')}</Text>
                 <Text preset="bodySm">{String(org.countryCode ?? '—')}</Text>
               </View>
             </Card>

@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerVerification() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,30 +24,30 @@ export default function FarmerVerification() {
   const verifications = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Vérification" subtitle="Statut de vérification de votre exploitation." />
+      <FarmerHeader title={t('ui.verification_bb27a')} subtitle={t('ui.statutDeVerificationDeVotreExploitation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Vérification" icon="shield-checkmark-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.verification_bb27a')} icon="shield-checkmark-outline">
           {query.isLoading ? <LoadingState count={2} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : verifications.length === 0 ? (
             <Card tone="pale">
-              <Text preset="bodySm" color={COLORS.slateGray}>Aucune demande de vérification en cours.</Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneDemandeDeVerificationEnCours')}</Text>
             </Card>
           ) : (
             <View style={styles.list}>
               {verifications.map((verification, index) => (
                 <Card key={String(verification.id ?? index)} tone="white" style={styles.card}>
                   <View style={styles.field}>
-                    <Text preset="caption" color={COLORS.slateGray}>Niveau</Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.niveau_05881')}</Text>
                     <Text preset="bodySm">{verification.level}</Text>
                   </View>
                   <View style={styles.field}>
-                    <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                     <Chip label={verification.status} tone={verification.status === 'APPROVED' ? 'success' : 'neutral'} size="sm" />
                   </View>
                   <View style={styles.field}>
-                    <Text preset="caption" color={COLORS.slateGray}>Mis à jour</Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.misAJour_176a1')}</Text>
                     <Text preset="bodySm">{verification.reviewedAt ? formatDate(verification.reviewedAt, locale) : '—'}</Text>
                   </View>
-                  {verification.reason ? <Text preset="caption" color={COLORS.slateGray}>Motif : {verification.reason}</Text> : null}
+                  {verification.reason ? <Text preset="caption" color={COLORS.slateGray}>{t('ui.motif_9f241', { reason: verification.reason })}</Text> : null}
                 </Card>
               ))}
             </View>

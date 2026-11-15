@@ -10,6 +10,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Cooperatives() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -38,46 +39,40 @@ export default function Cooperatives() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Coopérative"
-        description="Connectez-vous pour gérer votre coopérative, ses membres et ses volumes."
+        title={t('ui.cooperative')}
+        description={t('ui.connectezVousPourGererVotreCooperative')}
         icon="👥"
       >
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Coopérative
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Membres, consentement et volumes consolidés — rien n'est agrégé sans accord explicite.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.cooperative')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.membresConsentementEtVolumesConsolidesRien')}</Text>
         </div>
 
         {cooperative.isLoading ? (
           <LoadingState count={2} height={120} />
         ) : cooperative.isError || !cooperative.data ? (
           <EmptyState
-            title="Aucune coopérative"
-            description="Votre organisation n'est pas encore rattachée à une coopérative."
+            title={t('ui.aucuneCooperative')}
+            description={t('ui.votreOrganisationNEstPasEncore')}
             icon="👥"
           />
         ) : (
           <>
             <Card tone="ink" style={{ marginBottom: 24, padding: 32 }}>
-              <Text preset="overline" color={COLORS.gold} style={{ marginBottom: 8 }}>
-                Coopérative active
-              </Text>
+              <Text preset="overline" color={COLORS.gold} style={{ marginBottom: 8 }}>{t('ui.cooperativeActive')}</Text>
               <Text preset="h2" color={COLORS.pureWhite} style={{ marginBottom: 8 }}>
-                {cooperative.data.organization?.name ?? 'Coopérative'}
+                {cooperative.data.organization?.name ?? t('ui.cooperative')}
               </Text>
               <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
                 {cooperative.data.organization?.countryCode ?? '—'}
                 {cooperative.data.province ? ` · ${cooperative.data.province}` : ''}
                 {cooperative.data.territory ? ` · ${cooperative.data.territory}` : ''}
-                {' · créée le '}
+                {t('ui.creeeLe_78e11')}
                 {formatDate(cooperative.data.createdAt, locale)}
               </Text>
               {cooperative.data.legalStatus || cooperative.data.foundedYear !== null ? (
                 <Text preset="caption" color="rgba(246, 247, 242, 0.6)" style={{ marginTop: 8 }}>
-                  {[cooperative.data.legalStatus, cooperative.data.foundedYear !== null ? `fondée en ${cooperative.data.foundedYear}` : null]
+                  {[cooperative.data.legalStatus, cooperative.data.foundedYear !== null ? t('ui.foundedInYear', { year: cooperative.data.foundedYear }) : null]
                     .filter(Boolean)
                     .join(' · ')}
                 </Text>
@@ -86,26 +81,17 @@ export default function Cooperatives() {
 
             {overview.data ? (
               <Card tone="white" style={{ marginBottom: 24 }}>
-                <Text preset="h3" style={{ marginBottom: 16 }}>
-                  Vue d'ensemble
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.vueDEnsemble')}</Text>
                 <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
                   <div>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Membres
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.membres')}</Text>
                     <Text preset="numeric" color={COLORS.forestGreen}>
                       {formatNumber(overview.data.members.total, locale)}
                     </Text>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      {formatNumber(overview.data.members.withPlotsConsent, locale)} ont autorisé la portée « parcelles » ·{' '}
-                      {formatNumber(overview.data.members.withProductionsConsent, locale)} la portée « productions »
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.ontAutoriseLaPorteeParcellesLa', { withPlotsConsent: formatNumber(overview.data.members.withPlotsConsent, locale), withProductionsConsent: formatNumber(overview.data.members.withProductionsConsent, locale) })}</Text>
                   </div>
                   <div>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Parcelles
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.parcelles')}</Text>
                     <Text preset="numeric" color={COLORS.forestGreen}>
                       {formatNumber(overview.data.plots.count, locale)}
                     </Text>
@@ -114,9 +100,7 @@ export default function Cooperatives() {
                     </Text>
                   </div>
                   <div>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Cultures
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.cultures')}</Text>
                     <Text preset="numeric" color={COLORS.forestGreen}>
                       {formatNumber(overview.data.crops.length, locale)}
                     </Text>
@@ -125,22 +109,17 @@ export default function Cooperatives() {
                     </Text>
                   </div>
                 </div>
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 16, lineHeight: 1.7 }}>
-                  {overview.data.plots.scope}. Rien n'est agrégé sans consentement explicite de chaque
-                  membre : un volume absent du total est un volume non autorisé, pas un volume nul.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 16, lineHeight: 1.7 }}>{t('ui.rienNEstAgregeSansConsentement', { scope: overview.data.plots.scope })}</Text>
               </Card>
             ) : null}
 
-            <Text preset="h3" style={{ marginBottom: 16 }}>
-              Membres
-            </Text>
+            <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.membres')}</Text>
             {members.isLoading ? (
               <LoadingState count={2} height={80} />
             ) : members.isError ? (
               <ErrorState error={members.error} onRetry={() => void members.refetch()} />
             ) : (members.data ?? []).length === 0 ? (
-              <EmptyState title="Aucun membre" description="Les membres rejoignent la coopérative avec leur consentement." icon="👥" />
+              <EmptyState title={t('ui.aucunMembre')} description={t('ui.lesMembresRejoignentLaCooperativeAvec')} icon="👥" />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {(members.data ?? []).map((member, index) => (
@@ -158,7 +137,7 @@ export default function Cooperatives() {
                         </Text>
                         <Text preset="caption" color={COLORS.slateGray}>
                           {member.status}
-                          {member.joinedAt ? ` · rejoint le ${formatDate(member.joinedAt, locale)}` : ''}
+                          {member.joinedAt ? t('ui.rejointLe', { joinedAt: formatDate(member.joinedAt, locale) }) : ''}
                         </Text>
                       </div>
                       <ChipRow>
@@ -166,7 +145,7 @@ export default function Cooperatives() {
                           <Chip key={scope} label={scope} tone="success" size="sm" />
                         ))}
                         {member.consentRecordedAt ? (
-                          <Chip label={`Consentement ${formatDate(member.consentRecordedAt, locale)}`} tone="neutral" size="sm" />
+                          <Chip label={t('ui.consentement_86270', { consentRecordedAt: formatDate(member.consentRecordedAt, locale) })} tone="neutral" size="sm" />
                         ) : null}
                       </ChipRow>
                     </Card>

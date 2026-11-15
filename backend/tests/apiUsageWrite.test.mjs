@@ -162,3 +162,76 @@ test('ApiUsage : le quota journalier compte réellement les lignes écrites', as
    */
   assert.ok(compte > 0, 'un compteur à 0 rendrait le quota journalier inopérant');
 });
+
+const activerUniciteIdempotency = () => {
+  const create = fake.idempotencyKey.create.bind(fake.idempotencyKey);
+  fake.idempotencyKey.create = async ({ data }) => {
+    if (fake._store.idempotencyKey.some((row) => row.key === data.key && row.scope === data.scope)) {
+      const error = new Error('Duplicate idempotency scope');
+      error.code = 'P2002';
+      throw error;
+    }
+    return create({ data });
+  };
+};
+
+const reponseJson = () => ({
+  statusCode: 200,
+  headers: {},
+  body: undefined,
+  setHeader(name, value) { this.headers[name] = value; },
+  status(code) { this.statusCode = code; return this; },
+  json(body) { this.body = body; return this; },
+});
+
+test('Idempotency: reserve before next, persist and replay a sub-500 response', async () => {
+  const { idempotency } = await import('../src/middleware/idempotency.js');
+  await monter({ idempotencyKey: [] });
+  activerUniciteIdempotency();
+  const req = { headers: { 'idempotency-key': 'idem-key-success-01' }, user: { id: 'user_1' } };
+  const first = reponseJson();
+  let nextCalls = 0;
+  await idempotency('orders.create')(req, first, () => {
+    nextCalls += 1;
+    assert.equal(fake._store.idempotencyKey.length, 1, 'reservation exists before next');
+    assert.equal(fake._store.idempotencyKey[0].responseStatus, null, 'the key is pending');
+  });
+  assert.equal(nextCalls, 1);
+  await first.status(201).json({ orderId: 'ord_1' });
+  assert.equal(fake._store.idempotencyKey[0].responseStatus, 201);
+  assert.deepEqual(fake._store.idempotencyKey[0].responseBody, { orderId: 'ord_1' });
+
+  const replay = reponseJson();
+  let replayNext = false;
+  await idempotency('orders.create')(req, replay, () => { replayNext = true; });
+  assert.equal(replayNext, false, 'replay does not execute the controller');
+  assert.equal(replay.statusCode, 201);
+  assert.equal(replay.headers['Idempotent-Replayed'], 'true');
+  assert.deepEqual(replay.body, { orderId: 'ord_1' });
+});
+
+test('Idempotency: a collision on a pending key returns 409 without running next', async () => {
+  const { idempotency } = await import('../src/middleware/idempotency.js');
+  await monter({ idempotencyKey: [] });
+  activerUniciteIdempotency();
+  const req = { headers: { 'idempotency-key': 'idem-key-pending-01' }, user: { id: 'user_1' } };
+  await idempotency('inventory.movement')(req, reponseJson(), () => {});
+  let conflict;
+  let nextCalls = 0;
+  await idempotency('inventory.movement')(req, reponseJson(), (error) => { conflict = error; nextCalls += 1; });
+  assert.equal(nextCalls, 1);
+  assert.equal(conflict.status, 409);
+  assert.equal(fake._store.idempotencyKey.length, 1);
+});
+
+test('Idempotency: a 5xx response deletes the pending reservation', async () => {
+  const { idempotency } = await import('../src/middleware/idempotency.js');
+  await monter({ idempotencyKey: [] });
+  activerUniciteIdempotency();
+  const req = { headers: { 'idempotency-key': 'idem-key-server-error-01' }, user: { id: 'user_1' } };
+  const res = reponseJson();
+  await idempotency('ai.analyze')(req, res, () => {});
+  assert.equal(fake._store.idempotencyKey.length, 1);
+  await res.status(503).json({ error: 'temporary' });
+  assert.equal(fake._store.idempotencyKey.length, 0, 'no pending key remains after a 5xx');
+});

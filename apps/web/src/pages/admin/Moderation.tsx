@@ -8,23 +8,24 @@ import { useI18n } from '@/i18n';
 
 /** ADMIN — litiges à instruire. */
 export default function AdminModeration() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Dispute>
-      title="Modération et litiges"
-      subtitle="Litiges ouverts sur les commandes."
+      title={t('ui.moderationEtLitiges')}
+      subtitle={t('ui.litigesOuvertsSurLesCommandes')}
       icon="⚖️"
       queryKey={[...queryKeys.orders.all, 'disputes']}
       fetch={() => orderApi.adminDisputes().then((result) => result.data)}
       rowKey={(dispute) => dispute.id}
       columns={[
-        { key: 'orderId', label: 'Commande', render: (dispute) => dispute.orderId },
-        { key: 'reason', label: 'Motif', render: (dispute) => dispute.reason },
-        { key: 'status', label: 'Statut', render: (dispute) => <StatusChip value={dispute.status} /> },
-        { key: 'createdAt', label: 'Ouvert le', render: (dispute) => formatDate(dispute.createdAt, locale) },
+        { key: 'orderId', label: t('ui.commande'), render: (dispute) => dispute.orderId },
+        { key: 'reason', label: t('ui.motif'), render: (dispute) => dispute.reason },
+        { key: 'status', label: t('ui.statut'), render: (dispute) => <StatusChip value={dispute.status} /> },
+        { key: 'createdAt', label: t('ui.ouvertLe'), render: (dispute) => formatDate(dispute.createdAt, locale) },
       ]}
-      emptyTitle="Aucun litige"
-      emptyDescription="Aucun litige n'est ouvert."
+      emptyTitle={t('ui.aucunLitige')}
+      emptyDescription={t('ui.aucunLitigeNEstOuvert')}
     />
   );
 }

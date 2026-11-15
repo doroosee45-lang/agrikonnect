@@ -9,8 +9,10 @@ import { authApi } from '@/services/api/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function AgentRegistration() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -28,21 +30,21 @@ export default function AgentRegistration() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Inscription d'un producteur" subtitle="Enregistrez un producteur pour lequel vous intervenez." />
+      <AppHeader title={t('ui.inscriptionDUnProducteur')} subtitle={t('ui.enregistrezUnProducteurPourLequelVous')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Inscription d'un producteur" description="Vous agissez pour le compte d'un producteur. Le consentement doit être enregistré avant toute saisie." icon="person-add-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.inscriptionDUnProducteur')} description={t('ui.vousAgissezPourLeCompteD')} icon="person-add-outline">
           <Card tone="white">
             <View style={styles.form}>
               <View style={styles.row2}>
-                <Input label="Prénom" value={firstName} onChangeText={setFirstName} />
-                <Input label="Nom" value={lastName} onChangeText={setLastName} />
+                <Input label={t('ui.prenom')} value={firstName} onChangeText={setFirstName} />
+                <Input label={t('ui.nom')} value={lastName} onChangeText={setLastName} />
               </View>
-              <Input label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-              <Input label="Téléphone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-              <Input label="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
-              <Input label="Code pays" value={countryCode} onChangeText={(v) => setCountryCode(v.toUpperCase().slice(0, 2))} maxLength={2} />
+              <Input label={t('ui.email')} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+              <Input label={t('ui.telephone_d3b02')} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+              <Input label={t('ui.motDePasse')} value={password} onChangeText={setPassword} secureTextEntry />
+              <Input label={t('ui.codePays')} value={countryCode} onChangeText={(v) => setCountryCode(v.toUpperCase().slice(0, 2))} maxLength={2} />
               {error ? <ErrorState error={error} /> : null}
-              <Button label="Créer le compte" onPress={() => register.mutate()} loading={register.isPending} disabled={!firstName.trim() || !lastName.trim() || !password} />
+              <Button label={t('ui.creerLeCompte')} onPress={() => register.mutate()} loading={register.isPending} disabled={!firstName.trim() || !lastName.trim() || !password} />
             </View>
           </Card>
         </AuthGate>

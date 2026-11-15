@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '../lib/utils';
+import { useI18n } from '@/i18n';
 
 /**
  * StatCard (kit 8) : valeur principale, libelle, evolution, periode, icone,
@@ -41,6 +42,7 @@ const SENS_ICONE: Record<StatTendance['sens'], ReactNode> = {
 };
 
 export function StatCard({ label, valeur, unite, periode, icone, source, tendance, pied, className }: StatCardProps) {
+  const { t } = useI18n();
   return (
     <section className={cn('flex flex-col gap-2 rounded-carte border border-bordure bg-surface p-5', className)}>
       <header className="flex items-start justify-between gap-3">
@@ -61,7 +63,7 @@ export function StatCard({ label, valeur, unite, periode, icone, source, tendanc
             </span>
           ) : null}
           {periode ? <span>{periode}</span> : null}
-          {source ? <span>Source : {source}</span> : null}
+          {source ? <span>{t('ui.source', { source })}</span> : null}
           {pied ? <div className="w-full">{pied}</div> : null}
         </footer>
       ) : null}

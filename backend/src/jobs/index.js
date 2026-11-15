@@ -337,7 +337,27 @@ export const runJob = async (name, { actorId = null, req = null, reason = null }
   running.add(name);
   const startedAt = Date.now();
   try {
-    const result = await job.run();
+    const execution = await prisma.$transaction(
+      async (tx) => {
+        const [lock] = await tx.$queryRaw`
+          SELECT pg_try_advisory_lock(hashtext(${name})) AS locked
+        `;
+        if (!lock?.locked) return { acquired: false };
+
+        try {
+          return { acquired: true, result: await job.run() };
+        } finally {
+          await tx.$queryRaw`
+            SELECT pg_advisory_unlock(hashtext(${name}))
+          `;
+        }
+      },
+      { maxWait: 10_000, timeout: 30 * 60 * 1000 },
+    );
+    if (!execution.acquired) {
+      return { skipped: true, reason: 'déjà en cours sur un autre processus' };
+    }
+    const result = execution.result;
 
     if (actorId) {
       await audit({

@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function InternationalTenders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,10 +25,10 @@ export default function InternationalTenders() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Appels d'offres" subtitle="Appels d'offres internationaux." />
+      <AppHeader title={t('ui.appelsDOffres_907ea')} subtitle={t('ui.appelsDOffresInternationaux')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Appels d'offres" icon="megaphone-outline">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun appel d'offres" description="Les appels d'offres internationaux apparaîtront ici." icon="megaphone-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.appelsDOffres_907ea')} icon="megaphone-outline">
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunAppelDOffres')} description={t('ui.lesAppelsDOffresInternationauxApparaitront')} icon="megaphone-outline" /> : (
             <View style={styles.list}>
               {items.map((tender, index) => (
                 <Reveal key={tender.id} index={index} variant="up">

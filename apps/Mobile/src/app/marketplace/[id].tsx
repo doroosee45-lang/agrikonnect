@@ -41,6 +41,7 @@ const NEXT_STATUS: Record<string, string[]> = {
 
 /** Détail commande : transitions, paiement, litige et journal d'événements. */
 export default function OrderDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -96,13 +97,13 @@ export default function OrderDetail() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={data?.number ?? 'Commande'} subtitle="Transitions validées côté serveur, journal complet." />
+      <AppHeader title={data?.number ?? t('ui.commande')} subtitle={t('ui.transitionsValideesCoteServeurJournalComplet')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour suivre cette commande."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourSuivreCetteCommande')}
           icon="receipt-outline"
         >
           {order.isLoading ? (
@@ -120,46 +121,33 @@ export default function OrderDetail() {
 
                 <View style={styles.facts}>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Montant
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.montant')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                      {data.totalAmount !== null ? formatCurrency(data.totalAmount, data.currency, locale) : 'à confirmer'}
+                      {data.totalAmount !== null ? formatCurrency(data.totalAmount, data.currency, locale) : t('ui.aConfirmer')}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Passée le
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.passeeLe')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {formatDate(data.createdAt, locale)}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Mise à jour
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.miseAJour')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {formatDate(data.updatedAt, locale)}
                     </Text>
                   </View>
                 </View>
 
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Instantané figé à la commande : {Object.keys(snapshot).length > 0 ? Object.keys(snapshot).join(', ') : 'aucun champ supplémentaire'}.
-                  Les prix et quantités ne varient plus après validation.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.instantaneFigeALaCommande')}{' '}{Object.keys(snapshot).length > 0 ? Object.keys(snapshot).join(', ') : t('ui.aucunChampSupplementaire')}{t('ui.lesPrixEtQuantitesNeVarient')}</Text>
               </Card>
 
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Faire avancer la commande
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.faireAvancerLaCommande')}</Text>
                 {error ? <ErrorState error={error} showRequestId /> : null}
                 {(NEXT_STATUS[data.status] ?? []).length === 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    Cette commande est close : aucune transition supplémentaire n’est possible.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.cetteCommandeEstCloseAucuneTransition')}</Text>
                 ) : (
                   <View style={styles.actions}>
                     {(NEXT_STATUS[data.status] ?? []).map((status) => (
@@ -177,12 +165,10 @@ export default function OrderDetail() {
               </Card>
 
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Paiement
-                </Text>
-                <Input label="Référence de paiement" value={paymentRef} onChangeText={setPaymentRef} placeholder="Mobile Money / virement" icon="card-outline" optionalLabel="facultatif" />
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.paiement')}</Text>
+                <Input label={t('ui.referenceDePaiement')} value={paymentRef} onChangeText={setPaymentRef} placeholder={t('ui.mobileMoneyVirement')} icon="card-outline" optionalLabel={t('common.optional')} />
                 <Button
-                  label="Marquer comme payé"
+                  label={t('ui.marquerCommePaye')}
                   onPress={() => setPayment.mutate()}
                   variant="outline"
                   size="sm"
@@ -193,12 +179,10 @@ export default function OrderDetail() {
               </Card>
 
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Ouvrir un litige
-                </Text>
-                <TextArea label="Motif" value={disputeReason} onChangeText={setDisputeReason} placeholder="Quantité non conforme, retard de livraison…" minHeight={80} />
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.ouvrirUnLitige')}</Text>
+                <TextArea label={t('ui.motif')} value={disputeReason} onChangeText={setDisputeReason} placeholder={t('ui.quantiteNonConformeRetardDeLivraison')} minHeight={80} />
                 <Button
-                  label="Ouvrir le litige"
+                  label={t('ui.ouvrirLeLitige')}
                   onPress={() => openDispute.mutate()}
                   variant="ghost"
                   size="sm"
@@ -206,20 +190,16 @@ export default function OrderDetail() {
                   loading={openDispute.isPending}
                   disabled={disputeReason.trim().length < 5}
                 />
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Un litige gèle la commande et alerte la modération : aucune décision automatique n’est prise.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.unLitigeGeleLaCommandeEt')}</Text>
               </Card>
 
-              <Text preset="overline" color={COLORS.forestGreen}>
-                Journal
-              </Text>
+              <Text preset="overline" color={COLORS.forestGreen}>{t('ui.journal')}</Text>
               {events.isLoading ? (
                 <LoadingState count={2} height={70} />
               ) : events.isError ? (
                 <ErrorState error={events.error} onRetry={() => void events.refetch()} />
               ) : (events.data ?? []).length === 0 ? (
-                <EmptyState title="Aucun événement" description="Chaque transition alimente ce journal." icon="time-outline" />
+                <EmptyState title={t('ui.aucunEvenement_61431')} description={t('ui.chaqueTransitionAlimenteCeJournal')} icon="time-outline" />
               ) : (
                 <View style={styles.timeline}>
                   {(events.data ?? []).map((event, index) => (

@@ -14,6 +14,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function ConversationDetail() {
+  const { t } = useI18n();
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -38,9 +39,9 @@ export default function ConversationDetail() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Conversation" subtitle="Fil de discussion." />
+      <AppHeader title={t('ui.conversation')} subtitle={t('ui.filDeDiscussion')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Conversation" icon="chatbubbles-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.conversation')} icon="chatbubbles-outline">
           {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : (
             <>
               <FlatList
@@ -56,8 +57,8 @@ export default function ConversationDetail() {
               />
               <Card tone="white">
                 <View style={styles.inputRow}>
-                  <Input label="" value={body} onChangeText={setBody} placeholder="Écrire un message…" containerStyle={styles.input} />
-                  <Button label="Envoyer" onPress={() => send.mutate()} loading={send.isPending} disabled={body.trim().length === 0} />
+                  <Input label="" value={body} onChangeText={setBody} placeholder={t('ui.ecrireUnMessage')} containerStyle={styles.input} />
+                  <Button label={t('ui.envoyer')} onPress={() => send.mutate()} loading={send.isPending} disabled={body.trim().length === 0} />
                 </View>
                 {error ? <ErrorState error={error} /> : null}
               </Card>

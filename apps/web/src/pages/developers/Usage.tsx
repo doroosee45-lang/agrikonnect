@@ -8,22 +8,23 @@ import { useI18n } from '@/i18n';
 
 /** DEVELOPERS — consommation API : quotas et historique des appels. */
 export default function DevelopersUsage() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<ApiClient>
-      title="Consommation API"
-      subtitle="Quotas et historique des appels par clé."
+      title={t('ui.consommationApi')}
+      subtitle={t('ui.quotasEtHistoriqueDesAppelsPar')}
       icon="📊"
       queryKey={queryKeys.apiClients.all}
       fetch={() => apiClientApi.clients().then((result) => result.data)}
       rowKey={(client) => client.id}
       columns={[
-        { key: 'name', label: 'Client', render: (client) => client.name },
-        { key: 'status', label: 'Statut', render: (client) => <Chip label={client.status} tone="neutral" size="sm" /> },
-        { key: 'createdAt', label: 'Créé le', render: (client) => formatDate(client.createdAt, locale) },
+        { key: 'name', label: t('ui.client'), render: (client) => client.name },
+        { key: 'status', label: t('ui.statut'), render: (client) => <Chip label={client.status} tone="neutral" size="sm" /> },
+        { key: 'createdAt', label: t('ui.creeLe'), render: (client) => formatDate(client.createdAt, locale) },
       ]}
-      emptyTitle="Aucun client"
-      emptyDescription="Aucun client API n'a encore été créé."
+      emptyTitle={t('ui.aucunClient')}
+      emptyDescription={t('ui.aucunClientApiNAEncore')}
     />
   );
 }

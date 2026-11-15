@@ -1,27 +1,30 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 
 import { AppHeader } from '@/components/app/AppHeader';
 import {
-  AuthGate, Card, ChipRow, EmptyState, ErrorState, FilterChip, LoadingState, Reveal,
-  Screen, Section, StatCard, Text,
+  AuthGate,
+  ChipRow,
+  ErrorState,
+  FilterChip,
+  LoadingState,
+  MobileHorizonAreaCard,
+  MobileHorizonDonutCard,
+  MobileHorizonOverviewCard,
+  Screen,
+  Section,
+  StatCard,
+  Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
+import { formatNumber } from '@/lib/format';
 import { adminApi, referenceApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
-
-/**
- * ADMIN — Tableau de bord centralisé (SPEC-SUPER-ADMIN M1, miroir mobile).
- *
- * Même contrat que le web : `GET /admin/dashboard` avec filtres pays/période,
- * valeurs calculées à la requête (RG-M1-1). Chaque carte mène à la liste
- * correspondante (drill-down).
- */
 
 type DashboardData = {
   series?: { signups?: Array<{ month: string; count: number }> };
@@ -29,61 +32,11 @@ type DashboardData = {
   note?: string;
 } & Record<string, unknown>;
 
-type Kpi = { cle: string; label: string; vers: string };
-type Bloc = { titre: string; kpis: Kpi[] };
-
-const BLOCS: Bloc[] = [
-  {
-    titre: 'Comptes',
-    kpis: [
-      { cle: 'users', label: 'Comptes créés', vers: '/admin/users' },
-      { cle: 'usersActive', label: 'Actifs', vers: '/admin/users' },
-      { cle: 'usersSuspended', label: 'Suspendus', vers: '/admin/users' },
-      { cle: 'usersUnverifiedEmail', label: 'E-mails non vérifiés', vers: '/admin/users' },
-      { cle: 'usersMfa', label: 'MFA active', vers: '/admin/users' },
-      { cle: 'usersNewInPeriod', label: 'Nouveaux (période)', vers: '/admin/users' },
-    ],
-  },
-  {
-    titre: 'Organisations',
-    kpis: [
-      { cle: 'organizationsIndividual', label: 'Individuelles', vers: '/admin/farmers' },
-      { cle: 'organizationsCooperative', label: 'Coopératives', vers: '/admin/cooperatives' },
-      { cle: 'organizationsCompany', label: 'Sociétés', vers: '/admin/producers' },
-    ],
-  },
-  {
-    titre: 'Activité',
-    kpis: [
-      { cle: 'farms', label: 'Exploitations', vers: '/admin/farms' },
-      { cle: 'plots', label: 'Parcelles', vers: '/admin/plots' },
-      { cle: 'productions', label: 'Productions', vers: '/admin/productions' },
-      { cle: 'soilAssessments', label: 'Analyses de sol', vers: '/admin/farms' },
-      { cle: 'cooperatives', label: 'Coopératives actives', vers: '/admin/cooperatives' },
-    ],
-  },
-  {
-    titre: 'Marché',
-    kpis: [
-      { cle: 'listingsPublished', label: 'Annonces publiées', vers: '/admin/marketplace' },
-      { cle: 'ordersInPeriod', label: 'Commandes (période)', vers: '/admin/orders' },
-      { cle: 'disputesOpen', label: 'Litiges ouverts', vers: '/admin/moderation' },
-    ],
-  },
-  {
-    titre: 'Qualité',
-    kpis: [
-      { cle: 'pendingVerifications', label: 'Vérifications en attente', vers: '/admin/verifications' },
-      { cle: 'openReports', label: 'Signalements ouverts', vers: '/admin/reports' },
-    ],
-  },
-];
-
 const PERIODES = [
   { id: '30', label: '30 j' },
   { id: '90', label: '90 j' },
-  { id: '365', label: '12 mois' },
-  { id: 'all', label: 'Tout' },
+  { id: '365', get label() { return tr('ui.n12Mois'); } },
+  { id: 'all', get label() { return tr('ui.tout'); } },
 ];
 
 const bornesPeriode = (periode: string): { from?: string; to?: string } => {
@@ -96,7 +49,9 @@ const bornesPeriode = (periode: string): { from?: string; to?: string } => {
   };
 };
 
+/** ADMIN Mobile — Tableau de bord Horizon 100 % API reelle (GET /admin/dashboard). */
 export default function AdminDashboard() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [pays, setPays] = useState<string | null>(null);
@@ -122,17 +77,31 @@ export default function AdminDashboard() {
   });
 
   const data = query.data ?? {};
-  const serie = data.series?.signups ?? [];
+  const num = (cle: string) => Number(data[cle] ?? 0) || 0;
+  const seriePoints = useMemo(
+    () =>
+      (data.series?.signups ?? []).slice(-8).map((pt) => ({
+        label: String(pt.month).slice(2),
+        value: Number(pt.count) || 0,
+      })),
+    [data.series?.signups],
+  );
+
+  const totalOrgs =
+    num('organizationsIndividual') + num('organizationsCooperative') + num('organizationsCompany');
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Tableau de bord" subtitle="Vue consolidée de la plateforme." />
+      <AppHeader
+        title={t('ui.tableauDeBord')}
+        subtitle={t('ui.pilotageConsolideDeLaPlateforme')}
+        ctaLabel={t('ui.comptes')}
+        onCtaPress={() => router.push('/admin/users')}
+      />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Tableau de bord" icon="stats-chart-outline">
-          {/* Filtres pays (RG-M1-1) */}
-          <Text preset="caption" color={COLORS.slateGray}>Pays</Text>
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.tableauDeBord')} icon="stats-chart-outline">
           <ChipRow>
-            <FilterChip label="Tous" active={pays === null} onPress={() => setPays(null)} />
+            <FilterChip label={t('ui.tousPays')} active={pays === null} onPress={() => setPays(null)} />
             {(paysQuery.data ?? []).map((p) => (
               <FilterChip
                 key={p.code}
@@ -143,8 +112,6 @@ export default function AdminDashboard() {
             ))}
           </ChipRow>
 
-          {/* Filtre période */}
-          <Text preset="caption" color={COLORS.slateGray}>Période</Text>
           <ChipRow>
             {PERIODES.map((item) => (
               <FilterChip
@@ -157,57 +124,95 @@ export default function AdminDashboard() {
           </ChipRow>
 
           {query.isLoading ? (
-            <LoadingState count={3} height={90} />
+            <LoadingState count={3} height={110} />
           ) : query.isError ? (
             <ErrorState error={query.error} onRetry={() => void query.refetch()} />
           ) : (
             <View style={styles.blocks}>
-              {BLOCS.map((bloc, blocIndex) => (
-                <Reveal key={bloc.titre} index={blocIndex} variant="up">
-                  <View style={styles.block}>
-                    <Text preset="h3">{bloc.titre}</Text>
-                    <View style={styles.grid}>
-                      {bloc.kpis.map((kpi) => (
-                        <View key={kpi.cle} style={styles.kpiWrap}>
-                          <StatCard
-                            label={kpi.label}
-                            valeur={String(data[kpi.cle] ?? 0)}
-                            onPress={() => router.push(kpi.vers)}
-                          />
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </Reveal>
-              ))}
+              <MobileHorizonOverviewCard
+                title={t('ui.vueDEnsembleDesOperations')}
+                updatedLabel={
+                  data.generatedAt ? new Date(String(data.generatedAt)).toLocaleTimeString(locale) : undefined
+                }
+                items={[
+                  {
+                    id: 'users',
+                    label: t('ui.comptesInscrits'),
+                    value: formatNumber(num('users'), locale),
+                    subtitle: t('ui.actifsMfa', { value: formatNumber(num('usersActive'), locale), value2: formatNumber(num('usersMfa'), locale) }),
+                    badge: `+${formatNumber(num('usersNewInPeriod'), locale)}`,
+                    tone: 'green',
+                    icon: 'people-outline',
+                    onPress: () => router.push('/admin/users'),
+                  },
+                  {
+                    id: 'farms',
+                    label: t('ui.exploitations'),
+                    value: formatNumber(num('farms'), locale),
+                    subtitle: t('ui.parcellesRec', { value: formatNumber(num('plots'), locale), value2: formatNumber(num('productions'), locale) }),
+                    badge: t('ui.coop', { value: formatNumber(num('cooperatives'), locale) }),
+                    tone: 'blue',
+                    icon: 'leaf-outline',
+                    onPress: () => router.push('/admin/farms'),
+                  },
+                  {
+                    id: 'market',
+                    label: t('ui.marcheCommandes'),
+                    value: formatNumber(num('listingsPublished'), locale),
+                    subtitle: t('ui.commandeS', { value: formatNumber(num('ordersInPeriod'), locale) }),
+                    badge: t('ui.litigeS', { value: formatNumber(num('disputesOpen'), locale) }),
+                    tone: num('disputesOpen') > 0 ? 'amber' : 'green',
+                    icon: 'cart-outline',
+                    onPress: () => router.push('/admin/marketplace'),
+                  },
+                  {
+                    id: 'verif',
+                    label: t('ui.qualiteAlertes'),
+                    value: formatNumber(num('pendingVerifications'), locale),
+                    subtitle: t('ui.signalementS', { value: formatNumber(num('openReports'), locale) }),
+                    badge: num('pendingVerifications') > 0 ? t('ui.aTraiter') : t('ui.aJour'),
+                    tone: num('pendingVerifications') > 0 ? 'red' : 'green',
+                    icon: 'shield-checkmark-outline',
+                    onPress: () => router.push('/admin/verifications'),
+                  },
+                ]}
+              />
 
-              {/* Série des inscriptions */}
-              <Reveal index={BLOCS.length} variant="up">
-                <View style={styles.block}>
-                  <Text preset="h3">Inscriptions — 12 derniers mois</Text>
-                  {serie.length === 0 ? (
-                    <EmptyState
-                      title="Aucune inscription"
-                      description="Aucun compte créé sur la période."
-                      icon="person-add-outline"
+              <MobileHorizonAreaCard
+                title={t('ui.dynamiqueDesInscriptions')}
+                seriesLabel={t('ui.n12Mois')}
+                points={seriePoints}
+                emptyMessage={t('ui.aucuneInscriptionEnregistreeSurCettePeriode')}
+              />
+
+              <MobileHorizonDonutCard
+                title={t('ui.repartitionDesOrganisations')}
+                totalValue={formatNumber(totalOrgs, locale)}
+                totalLabel={t('ui.structures')}
+                segments={[
+                  { label: t('ui.individuelles'), value: num('organizationsIndividual'), tone: 'green' },
+                  { label: t('ui.cooperatives'), value: num('organizationsCooperative'), tone: 'blue' },
+                  { label: t('ui.entreprises'), value: num('organizationsCompany'), tone: 'amber' },
+                  { label: t('ui.comptesSuspendus'), value: num('usersSuspended'), tone: 'red' },
+                ]}
+              />
+
+              <View style={styles.grid}>
+                {[
+                  { label: t('ui.analysesDeSol'), val: num('soilAssessments'), vers: '/admin/farms' },
+                  { label: t('ui.commandesPeriode'), val: num('ordersInPeriod'), vers: '/admin/orders' },
+                  { label: t('ui.eMailsNonVerifies'), val: num('usersUnverifiedEmail'), vers: '/admin/users' },
+                  { label: t('ui.moderation'), val: num('disputesOpen'), vers: '/admin/moderation' },
+                ].map((extra) => (
+                  <View key={extra.label} style={styles.kpiWrap}>
+                    <StatCard
+                      label={extra.label}
+                      valeur={formatNumber(extra.val, locale)}
+                      onPress={() => router.push(extra.vers)}
                     />
-                  ) : (
-                    <Card tone="white" style={styles.kpi}>
-                      {serie.map((point) => (
-                        <View key={point.month} style={styles.serieRow}>
-                          <Text preset="caption" color={COLORS.slateGray}>{point.month}</Text>
-                          <Text preset="bodyMedium">{String(point.count)}</Text>
-                        </View>
-                      ))}
-                    </Card>
-                  )}
-                </View>
-              </Reveal>
-
-              <Text preset="caption" color={COLORS.slateGray}>
-                {data.note ? `${String(data.note)} — ` : ''}
-                Calculé le {data.generatedAt ? new Date(String(data.generatedAt)).toLocaleString(locale) : '—'}.
-              </Text>
+                  </View>
+                ))}
+              </View>
             </View>
           )}
         </AuthGate>
@@ -218,10 +223,7 @@ export default function AdminDashboard() {
 
 const styles = StyleSheet.create({
   section: { paddingTop: SPACING.sm, paddingBottom: SPACING.xxl, gap: SPACING.md },
-  blocks: { gap: SPACING.lg },
-  block: { gap: SPACING.sm },
+  blocks: { gap: SPACING.md },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
-  kpiWrap: { flexGrow: 1, flexBasis: '45%' },
-  kpi: { gap: 4 },
-  serieRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
+  kpiWrap: { flexGrow: 1, flexBasis: '46%' },
 });

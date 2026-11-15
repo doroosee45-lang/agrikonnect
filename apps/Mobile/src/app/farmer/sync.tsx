@@ -20,6 +20,7 @@ import { SPACING } from '@/theme/space';
  * donne la date du dernier point de synchronisation connu.
  */
 export default function FarmerSync() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -44,31 +45,31 @@ export default function FarmerSync() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Synchronisation" subtitle="État de la synchronisation hors ligne." />
+      <FarmerHeader title={t('ui.synchronisation')} subtitle={t('ui.etatDeLaSynchronisationHorsLigne')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Synchronisation" icon="sync-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.synchronisation')} icon="sync-outline">
           {loading ? <LoadingState count={2} height={120} /> : error ? <ErrorState error={error} onRetry={() => { void collections.refetch(); void pull.refetch(); }} /> : (
             <>
               <Card tone="white" style={styles.card}>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Collections synchronisables</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.collectionsSynchronisables')}</Text>
                   <Text preset="bodyMedium">{items.length}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Changements sur 7 jours</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.changementsSur7Jours')}</Text>
                   <Text preset="bodyMedium">{changed}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Curseur</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.curseur')}</Text>
                   <Text preset="bodySm">{pull.data?.cursor ? formatDate(pull.data.cursor, locale) : '—'}</Text>
                 </View>
-                {pull.data?.hasMore ? <Chip label="d'autres changements disponibles" tone="warning" size="sm" /> : null}
+                {pull.data?.hasMore ? <Chip label={t('ui.dAutresChangementsDisponibles')} tone="warning" size="sm" /> : null}
               </Card>
               <Card tone="pale">
                 <Text preset="caption" color={COLORS.slateGray}>{collections.data?.policy ?? pull.data?.policy.conflictResolution}</Text>
               </Card>
-              <Button label="Rafraîchir" variant="primary" onPress={() => { void collections.refetch(); void pull.refetch(); }} />
-              <Button label="Voir les conflits" variant="outline" onPress={() => router.push('/farmer/sync/conflicts')} />
+              <Button label={t('ui.rafraichir')} variant="primary" onPress={() => { void collections.refetch(); void pull.refetch(); }} />
+              <Button label={t('ui.voirLesConflits')} variant="outline" onPress={() => router.push('/farmer/sync/conflicts')} />
             </>
           )}
         </AuthGate>

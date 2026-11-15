@@ -2,7 +2,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatNumber } from '@/lib/format';
 import { COLORS, DARK, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
@@ -49,7 +49,7 @@ export function MapSection() {
   return (
     <Section
       index={4}
-      eyebrow="Territoires"
+      eyebrow={t('ui.territoires')}
       title={t('home.mapTitle')}
       subtitle={t('home.mapSubtitle')}
       background={COLORS.naturalWhite}
@@ -80,21 +80,13 @@ export function MapSection() {
 
         <Reveal index={1} variant="right" style={styles.mapAside}>
           <Card tone="ink" style={styles.asideCard}>
-            <Text preset="overline" color={COLORS.gold}>
-              Pays représentés
-            </Text>
-            <Text preset="bodySm" color={DARK.textMuted} style={styles.asideNote}>
-              Comptage effectué sur les points réellement publiés, pas sur une liste de pays cible.
-            </Text>
+            <Text preset="overline" color={COLORS.gold}>{t('ui.paysRepresentes_1440b')}</Text>
+            <Text preset="bodySm" color={DARK.textMuted} style={styles.asideNote}>{t('ui.comptageEffectueSurLesPointsReellement')}</Text>
 
             {isLoading ? (
-              <Text preset="bodySm" color={DARK.textFaint}>
-                Chargement…
-              </Text>
+              <Text preset="bodySm" color={DARK.textFaint}>{t('common.loading')}</Text>
             ) : entries.length === 0 ? (
-              <Text preset="bodySm" color={DARK.textFaint}>
-                Aucun point publié pour l’instant.
-              </Text>
+              <Text preset="bodySm" color={DARK.textFaint}>{t('ui.aucunPointPubliePourLInstant')}</Text>
             ) : (
               <View style={styles.countryList}>
                 {entries.map(([code, count]) => (
@@ -121,9 +113,7 @@ export function MapSection() {
             )}
 
             <View style={styles.asideFooter}>
-              <Text preset="caption" color={DARK.textFaint}>
-                Regroupement des points : côté client ({data?.meta.clustering ?? '—'}).
-              </Text>
+              <Text preset="caption" color={DARK.textFaint}>{t('ui.regroupementDesPointsCoteClient', { value: data?.meta.clustering ?? '—' })}</Text>
             </View>
           </Card>
         </Reveal>
@@ -144,9 +134,9 @@ export function FarmersSection() {
   return (
     <Section
       index={5}
-      eyebrow="Producteurs"
-      title="Des profils, pas des promesses"
-      subtitle="Chaque fiche publique affiche la surface déclarée, les cultures et le statut de vérification. Les coordonnées restent masquées tant que le producteur ne les publie pas."
+      eyebrow={t('ui.producteurs')}
+      title={t('ui.desProfilsPasDesPromesses')}
+      subtitle={t('ui.chaqueFichePubliqueAfficheLaSurface')}
       background={COLORS.pureWhite}
       action={{ label: t('common.seeAll'), onPress: () => router.push('/farmers') }}
     >
@@ -156,8 +146,8 @@ export function FarmersSection() {
         <ErrorState error={error} onRetry={() => void refetch()} />
       ) : farms.length === 0 ? (
         <EmptyState
-          title="Aucun profil publié"
-          description="Les producteurs publient leur fiche depuis leur espace. Revenez bientôt ou créez la vôtre."
+          title={t('ui.aucunProfilPublie')}
+          description={t('ui.lesProducteursPublientLeurFicheDepuis')}
           action={{ label: t('nav.signup'), onPress: () => router.push('/auth/register') }}
         />
       ) : (
@@ -175,7 +165,7 @@ export function FarmersSection() {
                     </Text>
                   </View>
                   <Chip
-                    label={farm.verificationStatus ? 'Vérifié' : 'Déclaré'}
+                    label={farm.verificationStatus ? t('common.verified') : t('common.declared')}
                     tone={farm.verificationStatus ? 'success' : 'neutral'}
                     icon={farm.verificationStatus ? 'shield-checkmark' : 'document-text-outline'}
                     size="sm"
@@ -205,9 +195,7 @@ export function FarmersSection() {
                       {formatNumber(farm.totalAreaHa, locale, 1)} ha
                     </Text>
                   ) : (
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Surface non déclarée
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.surfaceNonDeclaree')}</Text>
                   )}
                   <ProvenanceTag kind={farm.verificationStatus ? 'verified' : 'declared'} />
                 </View>
@@ -229,8 +217,8 @@ export function FarmersSection() {
         <View style={styles.farmCta}>
           <Text preset="bodySm" color={COLORS.slateGray}>
             {total !== undefined
-              ? `${formatNumber(total, locale)} profils publics au total — pagination côté serveur.`
-              : 'Annuaire chargé depuis GET /public/farms.'}
+              ? t('ui.profilsPublicsAuTotalPaginationCote', { total: formatNumber(total, locale) })
+              : t('ui.annuaireChargeDepuisGetPublicFarms')}
           </Text>
           <Button label={t('common.seeAll')} onPress={() => router.push('/farmers')} variant="outline" size="sm" />
         </View>
@@ -240,8 +228,8 @@ export function FarmersSection() {
 }
 
 function cropLabel(names: Record<string, string> | null, locale: string): string {
-  if (!names) return 'Culture';
-  return names[locale] ?? names.fr ?? Object.values(names)[0] ?? 'Culture';
+  if (!names) return tr('ui.culture');
+  return names[locale] ?? names.fr ?? Object.values(names)[0] ?? tr('ui.culture');
 }
 
 const styles = StyleSheet.create({

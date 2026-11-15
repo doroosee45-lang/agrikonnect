@@ -6,18 +6,20 @@ import { IconeCarte, IconeCloche, IconeFeuille, IconeHorloge, IconePlant, IconeS
 import { COLORS, DURATION, EASE, LAYOUT } from '@/theme';
 import { useAuthStore } from '@/store/auth';
 import { getUserInitialRoute } from '@/lib/redirects';
+import { useI18n, tr } from '@/i18n';
 
 const NAV = [
-  { label: 'Accueil', href: '/' },
-  { label: '\u00c0 propos', href: '/a-propos' },
-  { label: 'Services', href: '/services' },
-  { label: 'March\u00e9', href: '/market' },
-  { label: 'Producteurs', href: '/public/farmers' },
-  { label: 'Investissement', href: '/investment' },
-  { label: 'Donn\u00e9es', href: '/insights' },
+  { get label() { return tr('ui.accueil'); }, href: '/' },
+  { get label() { return tr('ui.aPropos'); }, href: '/a-propos' },
+  { get label() { return tr('ui.services'); }, href: '/services' },
+  { get label() { return tr('ui.marche'); }, href: '/market' },
+  { get label() { return tr('ui.producteurs'); }, href: '/public/farmers' },
+  { get label() { return tr('ui.investissement'); }, href: '/public/projects' },
+  { get label() { return tr('ui.donnees'); }, href: '/insights' },
 ];
 
 export function Header() {
+  const { t } = useI18n();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -45,14 +47,14 @@ export function Header() {
     <div className="site-topbar-shell">
       <div className="site-topbar">
         <div className="site-topbar-intro">
-          <span className="site-topbar-kicker">Conseils agricoles</span>
-          <span className="site-topbar-title">Du sol au calendrier de semis</span>
+          <span className="site-topbar-kicker">{t('ui.conseilsAgricoles')}</span>
+          <span className="site-topbar-title">{t('ui.duSolAuCalendrierDeSemis')}</span>
         </div>
-        <nav className="site-topbar-links" aria-label="Accès rapides aux données agricoles">
-          <Link to="/farmer/soil"><IconeSonde /><span>Sol &amp; sous-sol</span></Link>
-          <Link to="/public/agriculture/CD"><IconePlant /><span>Cultures en RDC</span></Link>
-          <Link to="/farmer/plots"><IconeHorloge /><span>Quand semer ?</span></Link>
-          <Link to="/public/map"><IconeCarte /><span>Carte agricole</span></Link>
+        <nav className="site-topbar-links" aria-label={t('ui.accesRapidesAuxDonneesAgricoles')}>
+          <Link to="/farmer/soil"><IconeSonde /><span>{t('ui.solSousSol')}</span></Link>
+          <Link to="/public/agriculture/CD"><IconePlant /><span>{t('ui.culturesEnRdc')}</span></Link>
+          <Link to="/farmer/plots"><IconeHorloge /><span>{t('ui.quandSemer')}</span></Link>
+          <Link to="/public/map"><IconeCarte /><span>{t('ui.carteAgricole')}</span></Link>
         </nav>
       </div>
     </div>
@@ -79,15 +81,15 @@ export function Header() {
           gap: 16,
         }}
       >
-        <Link to="/" className="site-brand" aria-label="AGRIKONNECT AFRICA, accueil">
+        <Link to="/" className="site-brand" aria-label={t('ui.agrikonnectAfricaAccueil')}>
           <span className="site-brand-mark"><IconeFeuille /></span>
           <span className="site-brand-copy">
             <span className="site-brand-name">AGRIKONNECT</span>
-            <span className="site-brand-tagline">RDC · AFRICA</span>
+            <span className="site-brand-tagline">{t('ui.rdcAfrica')}</span>
           </span>
         </Link>
 
-        <nav className="site-nav" aria-label="Navigation principale">
+        <nav className="site-nav" aria-label={t('ui.navigationPrincipale')}>
           {NAV.map((item) => {
             const targetPath = item.href.split('#')[0] || '/';
             const active = location.pathname === targetPath;
@@ -137,11 +139,11 @@ export function Header() {
                   textDecoration: 'none',
                 }}
               >
-                {dansEspace ? 'Visiter le site public' : 'Retour à mon espace'}
+                {dansEspace ? t('ui.visiterLeSitePublic') : t('ui.retourAMonEspace')}
               </Link>
               <Link
                 to="/app/notifications"
-                aria-label="Notifications"
+                aria-label={t('ui.notifications')}
                 style={{
                   fontSize: 13,
                   color: COLORS.slateGray,
@@ -159,7 +161,7 @@ export function Header() {
                   textDecoration: 'none',
                 }}
               >
-                {user?.firstName ?? 'Profil'}
+                {user?.firstName ?? t('ui.profil')}
               </Link>
             </>
           ) : (
@@ -172,9 +174,7 @@ export function Header() {
                   color: COLORS.forestGreen,
                   textDecoration: 'none',
                 }}
-              >
-                Connexion
-              </Link>
+              >{t('ui.connexion')}</Link>
               <Link
                 to="/auth/register"
                 style={{
@@ -186,16 +186,14 @@ export function Header() {
                   borderRadius: 'var(--radius-md)',
                   textDecoration: 'none',
                 }}
-              >
-                S'inscrire
-              </Link>
+              >{t('ui.sInscrire')}</Link>
             </>
           )}
         </div>
         <button
           type="button"
           className="site-menu-toggle"
-          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+          aria-label={menuOpen ? t('ui.fermerLeMenu') : t('ui.ouvrirLeMenu')}
           aria-expanded={menuOpen}
           aria-controls="site-mobile-menu"
           onClick={() => setMenuOpen((open) => !open)}
@@ -207,7 +205,7 @@ export function Header() {
       </div>
       <div id="site-mobile-menu" className="site-mobile-menu" data-open={menuOpen}>
         <div>
-          <nav aria-label="Navigation mobile">
+          <nav aria-label={t('ui.navigationMobile')}>
             {NAV.map((item) => (
               <Link key={item.href} to={item.href} onClick={() => setMenuOpen(false)}>
                 {item.label}
@@ -216,14 +214,14 @@ export function Header() {
             {isAuthenticated ? (
               <>
                 <Link to={dansEspace ? '/' : destinationEspace} onClick={() => setMenuOpen(false)}>
-                  {dansEspace ? 'Visiter le site public' : 'Retour à mon espace'}
+                  {dansEspace ? t('ui.visiterLeSitePublic') : t('ui.retourAMonEspace')}
                 </Link>
-                <Link to="/app/profile" onClick={() => setMenuOpen(false)}>{user?.firstName ?? 'Mon profil'}</Link>
+                <Link to="/app/profile" onClick={() => setMenuOpen(false)}>{user?.firstName ?? t('ui.monProfil')}</Link>
               </>
             ) : (
               <>
-                <Link to="/auth/login" onClick={() => setMenuOpen(false)}>Connexion</Link>
-                <Link to="/auth/register" onClick={() => setMenuOpen(false)}>S’inscrire</Link>
+                <Link to="/auth/login" onClick={() => setMenuOpen(false)}>{t('ui.connexion')}</Link>
+                <Link to="/auth/register" onClick={() => setMenuOpen(false)}>{t('ui.sInscrire_c08ce')}</Link>
               </>
             )}
           </nav>

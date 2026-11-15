@@ -9,9 +9,11 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /** PROF-01 — aperçu du profil : complétude, compteurs et vérifications en attente. */
 export default function PublicSiteProfil() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
     queryKey: queryKeys.me,
@@ -22,21 +24,21 @@ export default function PublicSiteProfil() {
   const me = query.data;
   return (
     <PublicShell active="profil" heroCarousel={false}>
-      <PageHeader index="14" eyebrow="Profil" title="Mon profil" subtitle="Complétude, compteurs et éléments manquants." />
+      <PageHeader index="14" eyebrow={t('ui.profil')} title={t('ui.monProfil')} subtitle={t('ui.completudeCompteursEtElementsManquants')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Mon profil" icon="person-outline" description="Connectez-vous pour consulter et compléter votre profil.">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.monProfil')} icon="person-outline" description={t('ui.connectezVousPourConsulterEtCompleter')}>
           {query.isLoading ? <LoadingState count={2} height={120} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !me ? null : (
             <>
               <Card tone="white" style={styles.card}>
                 <Text preset="h2">{me.user.firstName} {me.user.lastName}</Text>
                 <View style={styles.chips}>
                   <Chip label={me.user.countryCode} tone="neutral" size="sm" />
-                  <Chip label={me.user.emailVerified ? 'email vérifié' : 'email non vérifié'} tone={me.user.emailVerified ? 'success' : 'warning'} size="sm" />
-                  <Chip label={me.user.phoneVerified ? 'téléphone vérifié' : 'téléphone non vérifié'} tone={me.user.phoneVerified ? 'success' : 'warning'} size="sm" />
+                  <Chip label={me.user.emailVerified ? t('ui.emailVerifie') : t('ui.emailNonVerifie')} tone={me.user.emailVerified ? 'success' : 'warning'} size="sm" />
+                  <Chip label={me.user.phoneVerified ? t('ui.telephoneVerifie_4fdf8') : t('ui.telephoneNonVerifie')} tone={me.user.phoneVerified ? 'success' : 'warning'} size="sm" />
                 </View>
-                <Text preset="bodySm" color={COLORS.slateGray}>Complétude : {me.completeness.percent} % ({me.completeness.done}/{me.completeness.total} critères)</Text>
+                <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.completudeCriteres', { percent: me.completeness.percent, done: me.completeness.done, total: me.completeness.total })}</Text>
                 {me.completeness.missing.length > 0 ? (
-                  <Text preset="caption" color={COLORS.warning}>Manquant : {me.completeness.missing.join(', ')}</Text>
+                  <Text preset="caption" color={COLORS.warning}>{t('ui.manquant_45da8', { value: me.completeness.missing.join(', ') })}</Text>
                 ) : null}
               </Card>
               <Card tone="white" style={styles.card}>
@@ -55,8 +57,8 @@ export default function PublicSiteProfil() {
                   </View>
                 </View>
               </Card>
-              <Button label="Compléter mon profil" variant="primary" onPress={() => router.push('/farmer/profile')} />
-              <Button label="Ma fiche publique" variant="outline" onPress={() => router.push('/farmer/public-profile')} />
+              <Button label={t('ui.completerMonProfil')} variant="primary" onPress={() => router.push('/farmer/profile')} />
+              <Button label={t('ui.maFichePublique')} variant="outline" onPress={() => router.push('/farmer/public-profile')} />
             </>
           )}
         </AuthGate>

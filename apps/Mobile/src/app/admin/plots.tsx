@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminPlots() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminPlots() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Parcelles" subtitle="Toutes les parcelles." />
+      <AppHeader title={t('ui.parcelles')} subtitle={t('ui.toutesLesParcelles')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Parcelles" icon="map-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune parcelle" description="Aucune parcelle enregistrée." icon="map-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.parcelles')} icon="map-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneParcelle')} description={t('ui.aucuneParcelleEnregistree')} icon="map-outline" /> : (
             <View style={styles.list}>
               {items.map((plot, index) => (
                 <Reveal key={plot.id} index={index} variant="up">

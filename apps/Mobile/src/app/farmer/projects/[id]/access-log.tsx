@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerProjectAccessLog() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,10 +26,10 @@ export default function FarmerProjectAccessLog() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Journal d'accès" subtitle="Qui a consulté votre data room." />
+      <FarmerHeader title={t('ui.journalDAcces')} subtitle={t('ui.quiAConsulteVotreDataRoom')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Journal d'accès" icon="eye-outline">
-          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun accès" description="Les consultations apparaîtront ici." icon="eye-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.journalDAcces')} icon="eye-outline">
+          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunAcces')} description={t('ui.lesConsultationsApparaitrontIci')} icon="eye-outline" /> : (
             <View style={styles.list}>
               {items.map((entry, index) => (
                 <Reveal key={String(entry.id ?? index)} index={index} variant="up">

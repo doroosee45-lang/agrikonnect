@@ -29,6 +29,7 @@ import { SPACING } from '@/theme/space';
 
 /** Espace vérificateur : file de vérification, escalades IA, litiges, certifications. */
 export default function Reviewer() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -77,34 +78,29 @@ export default function Reviewer() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Vérification" subtitle="File de contrôle, escalades IA, litiges et certifications." />
+      <AppHeader title={t('ui.verification_bb27a')} subtitle={t('ui.fileDeControleEscaladesIaLitiges')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Accès vérificateur"
-          description="Connectez-vous avec un rôle vérificateur ou administrateur pour instruire les demandes."
+          title={t('ui.accesVerificateur')}
+          description={t('ui.connectezVousAvecUnRoleVerificateur')}
           icon="shield-checkmark-outline"
         >
           <Card tone="pale" style={styles.note}>
             <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.info} />
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Chaque décision est tracée : auteur, date, motif. Un refus doit être motivé pour être notifié à
-              l’organisation concernée. Aucune validation automatique n’est possible.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.chaqueDecisionEstTraceeAuteurDate')}</Text>
           </Card>
 
           {error ? <ErrorState error={error} showRequestId /> : null}
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            File de vérification
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.fileDeVerification')}</Text>
           {queue.isLoading ? (
             <LoadingState count={2} height={100} />
           ) : queue.isError ? (
             <ErrorState error={queue.error} onRetry={() => void queue.refetch()} />
           ) : (queue.data ?? []).length === 0 ? (
-            <EmptyState title="File vide" description="Aucune demande de vérification en attente." icon="checkmark-done-outline" />
+            <EmptyState title={t('ui.fileVide')} description={t('ui.aucuneDemandeDeVerificationEnAttente_8fc0f')} icon="checkmark-done-outline" />
           ) : (
             <View style={styles.list}>
               {(queue.data ?? []).map((item, index) => (
@@ -112,12 +108,8 @@ export default function Reviewer() {
                   <Card tone="white" style={styles.card}>
                     <View style={styles.head}>
                       <View style={styles.headText}>
-                        <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                          {item.subjectType} · niveau {item.level}
-                        </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          demandée le {formatDate(item.createdAt, locale)} · organisation {item.organizationId}
-                        </Text>
+                        <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.niveau', { subjectType: item.subjectType, level: item.level })}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.demandeeLeOrganisation', { createdAt: formatDate(item.createdAt, locale), organizationId: item.organizationId })}</Text>
                       </View>
                       <Chip
                         label={item.status}
@@ -127,9 +119,7 @@ export default function Reviewer() {
                     </View>
 
                     {item.reason ? (
-                      <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                        Motif : {item.reason}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.motif_9f241', { reason: item.reason })}</Text>
                     ) : null}
 
                     {(item.documents ?? []).length > 0 ? (
@@ -143,14 +133,14 @@ export default function Reviewer() {
                     {item.status === 'PENDING' ? (
                       decisionFor === item.id ? (
                         <View style={styles.decision}>
-                          <TextArea label="Motif de la décision" value={reason} onChangeText={setReason} placeholder="Pièces conformes / manquantes…" minHeight={70} optionalLabel="recommandé" />
+                          <TextArea label={t('ui.motifDeLaDecision')} value={reason} onChangeText={setReason} placeholder={t('ui.piecesConformesManquantes')} minHeight={70} optionalLabel={t('ui.recommande')} />
                           <View style={styles.actions}>
-                            <Button label="Approuver" onPress={() => decide.mutate({ id: item.id, status: 'APPROVED' })} variant="primary" size="sm" icon="checkmark-outline" loading={decide.isPending} />
-                            <Button label="Rejeter" onPress={() => decide.mutate({ id: item.id, status: 'REJECTED' })} variant="ghost" size="sm" icon="close-outline" loading={decide.isPending} />
+                            <Button label={t('ui.approuver')} onPress={() => decide.mutate({ id: item.id, status: 'APPROVED' })} variant="primary" size="sm" icon="checkmark-outline" loading={decide.isPending} />
+                            <Button label={t('ui.rejeter')} onPress={() => decide.mutate({ id: item.id, status: 'REJECTED' })} variant="ghost" size="sm" icon="close-outline" loading={decide.isPending} />
                           </View>
                         </View>
                       ) : (
-                        <Button label="Instruire" onPress={() => setDecisionFor(item.id)} variant="outline" size="sm" icon="document-text-outline" />
+                        <Button label={t('ui.instruire')} onPress={() => setDecisionFor(item.id)} variant="outline" size="sm" icon="document-text-outline" />
                       )
                     ) : null}
                   </Card>
@@ -159,15 +149,13 @@ export default function Reviewer() {
             </View>
           )}
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Analyses IA escaladées
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.analysesIaEscaladees')}</Text>
           {escalations.isLoading ? (
             <LoadingState count={1} height={90} />
           ) : escalations.isError ? (
             <ErrorState error={escalations.error} onRetry={() => void escalations.refetch()} />
           ) : (escalations.data ?? []).length === 0 ? (
-            <EmptyState title="Aucune escalade" description="Les analyses IA envoyées vers un humain apparaissent ici." icon="sparkles-outline" />
+            <EmptyState title={t('ui.aucuneEscalade')} description={t('ui.lesAnalysesIaEnvoyeesVersUn')} icon="sparkles-outline" />
           ) : (
             <View style={styles.list}>
               {(escalations.data ?? []).map((item, index) => (
@@ -176,11 +164,11 @@ export default function Reviewer() {
                     <View style={styles.head}>
                       <View style={styles.headText}>
                         <Text preset="bodyMedium" color={COLORS.textPrimary} numberOfLines={2}>
-                          {item.prompt ?? `Analyse ${item.type}`}
+                          {item.prompt ?? t('ui.analyse_211fa', { type: item.type })}
                         </Text>
                         <Text preset="caption" color={COLORS.slateGray}>
                           {item.type} · {formatDate(item.createdAt, locale)}
-                          {item.escalatedAt ? ` · escaladée le ${formatDate(item.escalatedAt, locale)}` : ''}
+                          {item.escalatedAt ? t('ui.escaladeeLe_6f1c2', { escalatedAt: formatDate(item.escalatedAt, locale) }) : ''}
                         </Text>
                       </View>
                       <Chip label={item.status} tone="info" size="sm" />
@@ -196,15 +184,13 @@ export default function Reviewer() {
             </View>
           )}
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Litiges
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.litiges')}</Text>
           {disputes.isLoading ? (
             <LoadingState count={1} height={90} />
           ) : disputes.isError ? (
             <ErrorState error={disputes.error} onRetry={() => void disputes.refetch()} />
           ) : (disputes.data ?? []).length === 0 ? (
-            <EmptyState title="Aucun litige" description="Les litiges ouverts sur les commandes arrivent ici." icon="alert-circle-outline" />
+            <EmptyState title={t('ui.aucunLitige')} description={t('ui.lesLitigesOuvertsSurLesCommandes')} icon="alert-circle-outline" />
           ) : (
             <View style={styles.list}>
               {(disputes.data ?? []).map((dispute, index) => (
@@ -212,20 +198,13 @@ export default function Reviewer() {
                   <Card tone="white" style={styles.card}>
                     <View style={styles.head}>
                       <View style={styles.headText}>
-                        <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                          Commande {dispute.orderId}
-                        </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          ouvert le {formatDate(dispute.createdAt, locale)} · {dispute.reason}
-                        </Text>
+                        <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.commande_b516d', { orderId: dispute.orderId })}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.ouvertLe_0b576', { createdAt: formatDate(dispute.createdAt, locale), reason: dispute.reason })}</Text>
                       </View>
                       <Chip label={dispute.status} tone={dispute.status === 'RESOLVED' ? 'success' : 'error'} size="sm" />
                     </View>
                     {dispute.decision ? (
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Décision : {dispute.decision}
-                        {dispute.decidedAt ? ` · ${formatDate(dispute.decidedAt, locale)}` : ''}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.decision_f5267', { decision: dispute.decision, value: dispute.decidedAt ? ` · ${formatDate(dispute.decidedAt, locale)}` : '' })}</Text>
                     ) : null}
                   </Card>
                 </Reveal>
@@ -233,15 +212,13 @@ export default function Reviewer() {
             </View>
           )}
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Certifications à contrôler
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.certificationsAControler')}</Text>
           {certifications.isLoading ? (
             <LoadingState count={1} height={90} />
           ) : certifications.isError ? (
             <ErrorState error={certifications.error} onRetry={() => void certifications.refetch()} />
           ) : (certifications.data ?? []).length === 0 ? (
-            <EmptyState title="Aucune certification" description="Les certifications déclarées apparaîtront ici pour contrôle documentaire." icon="ribbon-outline" />
+            <EmptyState title={t('ui.aucuneCertification')} description={t('ui.lesCertificationsDeclareesApparaitrontIciPour')} icon="ribbon-outline" />
           ) : (
             <View style={styles.list}>
               {(certifications.data ?? []).map((item, index) => (
@@ -253,15 +230,15 @@ export default function Reviewer() {
                           {item.type} · {item.issuer}
                         </Text>
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {item.reference ? `réf. ${item.reference} · ` : ''}
-                          {item.expiresAt ? `expire le ${formatDate(item.expiresAt, locale)}` : 'sans échéance'}
+                          {item.reference ? t('ui.ref', { reference: item.reference }) : ''}
+                          {item.expiresAt ? t('ui.expireLe_a6243', { expiresAt: formatDate(item.expiresAt, locale) }) : t('ui.sansEcheance')}
                         </Text>
                       </View>
-                      <Chip label={item.status === 'VERIFIED' ? 'Vérifiée' : 'Déclarée'} tone={item.status === 'VERIFIED' ? 'success' : 'warning'} size="sm" />
+                      <Chip label={item.status === 'VERIFIED' ? t('ui.verifiee') : t('ui.declaree')} tone={item.status === 'VERIFIED' ? 'success' : 'warning'} size="sm" />
                     </View>
                     {item.status !== 'VERIFIED' ? (
                       <Button
-                        label="Marquer comme vérifiée"
+                        label={t('ui.marquerCommeVerifiee')}
                         onPress={() => moderateCert.mutate(item.id)}
                         variant="outline"
                         size="sm"

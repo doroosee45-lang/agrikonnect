@@ -10,6 +10,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 type Dict = Record<string, unknown>;
 
@@ -24,13 +25,14 @@ const asNombre = (value: unknown): number | null => (typeof value === 'number' ?
 
 const messageErreur = (error: unknown): string => {
   const dict = asDict(error);
-  const base = typeof dict.message === 'string' && dict.message ? dict.message : 'Erreur inattendue';
+  const base = typeof dict.message === 'string' && dict.message ? dict.message : tr('ui.unexpectedError');
   const details = asDict(dict.details);
-  return details.mfaRequired === true ? `${base} — palier 2 : second facteur (MFA) requis.` : base;
+  return details.mfaRequired === true ? tr('ui.palier2SecondFacteurMfaRequis', { base }) : base;
 };
 
 /** M5 U-M5-2 — console des tâches planifiées : exécution manuelle audité (RG-M5-2), pause/reprise (palier 2). */
 export default function AdminJobs() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const queryClient = useQueryClient();
   const [motif, setMotif] = useState('');
@@ -53,9 +55,9 @@ export default function AdminJobs() {
       setErreur('');
       const sortie = asDict(result.data);
       if (sortie.skipped === true) {
-        setAvis(`Tâche « ${name} » non exécutée : ${asText(sortie.reason, 'déjà en cours')}`);
+        setAvis(t('ui.jobSkipped', { name, reason: asText(sortie.reason, t('ui.alreadyRunning')) }));
       } else {
-        setAvis(`Tâche « ${name} » exécutée en ${asNombre(sortie.durationMs) ?? 0} ms.`);
+        setAvis(t('ui.tacheExecuteeEnMs', { name, value: asNombre(sortie.durationMs) ?? 0 }));
       }
       void rafraichir();
     },
@@ -66,7 +68,7 @@ export default function AdminJobs() {
     mutationFn: (name: string) => adminApi.pauseJob(name),
     onSuccess: (_result, name) => {
       setErreur('');
-      setAvis(`Tâche « ${name} » mise en pause.`);
+      setAvis(t('ui.tacheMiseEnPause', { name }));
       void rafraichir();
     },
     onError: (caught) => setErreur(messageErreur(caught)),
@@ -76,7 +78,7 @@ export default function AdminJobs() {
     mutationFn: (name: string) => adminApi.resumeJob(name),
     onSuccess: (_result, name) => {
       setErreur('');
-      setAvis(`Tâche « ${name} » reprise.`);
+      setAvis(t('ui.tacheReprise', { name }));
       void rafraichir();
     },
     onError: (caught) => setErreur(messageErreur(caught)),
@@ -86,9 +88,9 @@ export default function AdminJobs() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Tâches planifiées" subtitle="Console des jobs : état, exécution manuelle audité (RG-M5-2), pause/reprise (palier 2)." />
+      <AppHeader title={t('ui.tachesPlanifiees_8a786')} subtitle={t('ui.consoleDesJobsEtatExecutionManuelle')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Tâches planifiées" icon="timer-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.tachesPlanifiees_8a786')} icon="timer-outline">
           {jobs.isLoading ? (
             <LoadingState count={3} height={110} />
           ) : jobs.isError ? (
@@ -96,8 +98,8 @@ export default function AdminJobs() {
           ) : (
             <View style={styles.list}>
               <Input
-                label="Motif (facultatif)"
-                placeholder="Ex. : purge demandée par l'exploitation"
+                label={t('ui.motifFacultatif')}
+                placeholder={t('ui.exPurgeDemandeeParLExploitation')}
                 value={motif}
                 onChangeText={setMotif}
                 icon="document-text-outline"
@@ -113,7 +115,7 @@ export default function AdminJobs() {
                 </Card>
               ) : null}
               {liste.length === 0 ? (
-                <EmptyState title="Aucune tâche" description="Aucune tâche planifiée exposée par l'API." icon="timer-outline" />
+                <EmptyState title={t('ui.aucuneTache')} description={t('ui.aucuneTachePlanifieeExposeeParL')} icon="timer-outline" />
               ) : (
                 liste.map((job) => {
                   const name = asText(job.name, 'tâche');
@@ -121,46 +123,41 @@ export default function AdminJobs() {
                     <Card key={name} tone="white">
                       <View style={styles.rowHead}>
                         <Text preset="bodySm">{name}</Text>
-                        {job.running === true ? <Chip label="en cours" tone="warning" size="sm" /> : null}
-                        {job.paused === true ? <Chip label="en pause" tone="neutral" size="sm" /> : null}
-                        {job.running !== true && job.paused !== true && job.lastOk === false ? <Chip label="en échec" tone="error" size="sm" /> : null}
+                        {job.running === true ? <Chip label={t('ui.enCours')} tone="warning" size="sm" /> : null}
+                        {job.paused === true ? <Chip label={t('ui.enPause')} tone="neutral" size="sm" /> : null}
+                        {job.running !== true && job.paused !== true && job.lastOk === false ? <Chip label={t('ui.enEchec')} tone="error" size="sm" /> : null}
                         {job.running !== true && job.paused !== true && job.lastOk === true ? <Chip label="ok" tone="success" size="sm" /> : null}
                       </View>
                       {typeof job.description === 'string' && job.description ? (
                         <Text preset="caption" color={COLORS.slateGray}>{job.description}</Text>
                       ) : null}
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Cadence : {asText(job.intervalHuman)} · Dernière exécution : {formatDate(String(job.lastRunAt ?? ''))} ·
-                        Durée : {asNombre(job.lastDurationMs) !== null ? `${asNombre(job.lastDurationMs)} ms` : '—'}
-                      </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Prochaine échéance : {formatDate(String(job.nextRunAt ?? ''))}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.cadenceDerniereExecutionDuree', { intervalHuman: asText(job.intervalHuman), value: formatDate(String(job.lastRunAt ?? '')), value2: asNombre(job.lastDurationMs) !== null ? `${asNombre(job.lastDurationMs)} ms` : '—' })}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.prochaineEcheance', { value: formatDate(String(job.nextRunAt ?? '')) })}</Text>
                       {asNombre(job.consecutiveFailures) !== null && (asNombre(job.consecutiveFailures) as number) > 0 ? (
-                        <Text preset="caption" color={COLORS.slateGray}>Échecs consécutifs : {asNombre(job.consecutiveFailures)}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.echecsConsecutifs', { consecutiveFailures: asNombre(job.consecutiveFailures) })}</Text>
                       ) : null}
                       {typeof job.lastError === 'string' && job.lastError ? (
-                        <Text preset="caption" color={COLORS.slateGray}>Dernière erreur : {job.lastError}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.derniereErreur', { lastError: job.lastError })}</Text>
                       ) : null}
                       {job.lastResult !== null && job.lastResult !== undefined ? (
-                        <Text preset="caption" color={COLORS.slateGray}>Résultat : {JSON.stringify(job.lastResult)}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.resultat', { lastResult: JSON.stringify(job.lastResult) })}</Text>
                       ) : null}
                       <View style={styles.actions}>
                         <Button
-                          label="Exécuter"
+                          label={t('ui.executer')}
                           size="sm"
                           onPress={() => executer.mutate(name)}
                           disabled={executer.isPending || job.paused === true || job.running === true}
                         />
                         <Button
-                          label="Mettre en pause"
+                          label={t('ui.mettreEnPause')}
                           variant="outline"
                           size="sm"
                           onPress={() => mettreEnPause.mutate(name)}
                           disabled={mettreEnPause.isPending || job.paused === true}
                         />
                         <Button
-                          label="Reprendre"
+                          label={t('ui.reprendre')}
                           variant="outline"
                           size="sm"
                           onPress={() => reprendre.mutate(name)}

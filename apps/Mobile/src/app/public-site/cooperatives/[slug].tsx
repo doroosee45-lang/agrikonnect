@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function PublicSiteCooperativeDetail() {
+  const { t } = useI18n();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { locale } = useI18n();
   const query = useQuery({
@@ -21,15 +22,15 @@ export default function PublicSiteCooperativeDetail() {
   const farm = query.data?.farm;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={farm?.name ?? '—'} subtitle="Fiche coopérative publique." />
+      <AppHeader title={farm?.name ?? '—'} subtitle={t('ui.ficheCooperativePublique')} />
       <Section bare contentStyle={styles.section}>
-        {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !farm ? <Text preset="body">Coopérative introuvable.</Text> : (
+        {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !farm ? <Text preset="body">{t('ui.cooperativeIntrouvable_5211e')}</Text> : (
           <Card tone="white" style={styles.card}>
             <Text preset="h3">{farm.name}</Text>
             <View style={styles.chips}>
               <Chip label={farm.countryCode} tone="neutral" size="sm" />
             </View>
-            <Text preset="bodySm" color={COLORS.slateGray}>Surface : {farm.totalAreaHa ? `${farm.totalAreaHa} ha` : '—'}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.surface_1fb7a', { value: farm.totalAreaHa ? `${farm.totalAreaHa} ha` : '—' })}</Text>
           </Card>
         )}
       </Section>

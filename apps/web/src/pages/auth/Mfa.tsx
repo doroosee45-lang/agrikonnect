@@ -6,6 +6,7 @@ import { AuthGate, Button, Card, Chip, ErrorState, Input, Section, Text } from '
 import { authApi } from '@/services/endpoints';
 import { COLORS, DURATION, EASE } from '@/theme';
 import { useAuthStore } from '@/store/auth';
+import { useI18n } from '@/i18n';
 
 type Setup = Awaited<ReturnType<typeof authApi.mfaSetup>>['data'];
 
@@ -28,6 +29,7 @@ type Setup = Awaited<ReturnType<typeof authApi.mfaSetup>>['data'];
  * secret, l'`otpauthUrl` ni le code saisi.
  */
 export default function AuthMfa() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -131,8 +133,8 @@ export default function AuthMfa() {
   return (
     <AuthGate
       isAuthenticated={isAuthenticated}
-      title="Double authentification"
-      description="Connectez-vous pour gérer votre double authentification."
+      title={t('ui.doubleAuthentification')}
+      description={t('ui.connectezVousPourGererVotreDouble')}
       icon="🔐"
     >
       <Section>
@@ -142,12 +144,8 @@ export default function AuthMfa() {
           transition={{ duration: DURATION.slow / 1000, ease: EASE.out }}
           style={{ maxWidth: 520, margin: '0 auto' }}
         >
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Double authentification
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>
-            Un code à 6 chiffres, généré par votre application d'authentification, en plus du mot de passe.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.doubleAuthentification')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>{t('ui.unCodeA6ChiffresGenere')}</Text>
 
           <Card tone="white" style={{ padding: 28, display: 'flex', flexDirection: 'column', gap: 20 }}>
             {/* ── Codes de secours : affichage unique ──────────── */}
@@ -164,9 +162,7 @@ export default function AuthMfa() {
                   backgroundColor: COLORS.goldSurface,
                 }}
               >
-                <Text preset="h3" style={{ color: COLORS.onGoldSurface }}>
-                  Codes de secours
-                </Text>
+                <Text preset="h3" style={{ color: COLORS.onGoldSurface }}>{t('ui.codesDeSecours')}</Text>
                 {/*
                   L'avertissement **vient de l'API** (`warning`), il n'est pas
                   recopié ici : si le backend change la formulation, l'écran
@@ -206,44 +202,37 @@ export default function AuthMfa() {
                 </div>
                 <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                   <Button
-                    label={copie ? 'Copiés' : 'Copier les codes'}
+                    label={copie ? t('ui.copies') : t('ui.copierLesCodes')}
                     variant="outline"
                     onClick={() => void copierSecours()}
                   />
                   <Button
-                    label="J'ai conservé mes codes"
+                    label={t('ui.jAiConserveMesCodes')}
                     onClick={() => setSecours(null)}
                   />
                 </div>
-                <Text preset="caption" style={{ color: COLORS.onGoldSurface }}>
-                  Une fois fermés, ils ne seront plus affichés et le support ne pourra pas les retrouver.
-                </Text>
+                <Text preset="caption" style={{ color: COLORS.onGoldSurface }}>{t('ui.uneFoisFermesIlsNeSeront')}</Text>
               </div>
             ) : null}
 
             {/* ── État ─────────────────────────────────────────── */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Chip
-                label={statut.isLoading ? 'Vérification…' : active ? 'Activée' : 'Désactivée'}
+                label={statut.isLoading ? t('ui.verification') : active ? t('ui.activee') : t('ui.desactivee')}
                 tone={statut.isLoading ? 'neutral' : active ? 'success' : 'warning'}
               />
               {active ? (
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Méthode : {statut.data?.method ?? 'TOTP'}
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.methode', { value: statut.data?.method ?? 'TOTP' })}</Text>
               ) : null}
             </div>
 
             {/* ── Activation ───────────────────────────────────── */}
             {!active && !setup ? (
               <>
-                <Text preset="bodySm" color={COLORS.slateGray}>
-                  Vous scannerez un QR code avec votre application d'authentification, puis saisirez un
-                  premier code pour activer.
-                </Text>
+                <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.vousScannerezUnQrCodeAvec')}</Text>
                 {demarrer.isError ? <ErrorState error={demarrer.error} showRequestId /> : null}
                 <Button
-                  label="Commencer l'activation"
+                  label={t('ui.commencerLActivation')}
                   loading={demarrer.isPending}
                   onClick={() => demarrer.mutate()}
                   fullWidth
@@ -254,7 +243,7 @@ export default function AuthMfa() {
             {/* ── QR code : le secret n'est jamais affiché ─────── */}
             {setup ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <Text preset="h3">1. Scannez ce QR code</Text>
+                <Text preset="h3">{t('ui.n1ScannezCeQrCode')}</Text>
                 {/*
                   `referrerPolicy="no-referrer"` : l'image est une data URI, mais
                   la précaution vaut si elle est un jour servie par URL.
@@ -262,15 +251,13 @@ export default function AuthMfa() {
                 */}
                 <img
                   src={setup.qrDataUri}
-                  alt="QR code à scanner avec votre application d'authentification"
+                  alt={t('ui.qrCodeAScannerAvecVotre')}
                   width={240}
                   height={240}
                   referrerPolicy="no-referrer"
                   style={{ borderRadius: 12, border: `1px solid ${COLORS.lightBorder}`, backgroundColor: COLORS.pureWhite }}
                 />
-                <Text preset="caption" color={COLORS.slateGray} style={{ textAlign: 'center' }}>
-                  2. Saisissez ci-dessous le code à {setup.digits} chiffres affiché par l'application.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ textAlign: 'center' }}>{t('ui.n2SaisissezCiDessousLeCode', { digits: setup.digits })}</Text>
                 <button
                   type="button"
                   onClick={() => void copierSecret()}
@@ -285,7 +272,7 @@ export default function AuthMfa() {
                     minHeight: 44,
                   }}
                 >
-                  {copie ? 'Secret copié dans le presse-papiers' : 'Saisie manuelle : copier le secret'}
+                  {copie ? t('ui.secretCopieDansLePressePapiers') : t('ui.saisieManuelleCopierLeSecret')}
                 </button>
               </div>
             ) : null}
@@ -294,21 +281,21 @@ export default function AuthMfa() {
             {setup || active ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <Input
-                  label={setup ? 'Code à 6 chiffres' : 'Code de vérification'}
+                  label={setup ? t('ui.codeA6Chiffres') : t('ui.codeDeVerification')}
                   value={code}
                   onChange={(event) => setCode(event.target.value)}
                   placeholder="123456"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   maxLength={14}
-                  hint="6 chiffres (TOTP), ou un code de secours à usage unique."
+                  hint={t('ui.n6ChiffresTotpOuUnCode')}
                 />
 
                 {setup ? (
                   <>
                     {confirmer.isError ? <ErrorState error={confirmer.error} showRequestId /> : null}
                     <Button
-                      label="Activer la double authentification"
+                      label={t('ui.activerLaDoubleAuthentification')}
                       loading={confirmer.isPending}
                       disabled={!codePret}
                       onClick={() => confirmer.mutate()}
@@ -323,13 +310,11 @@ export default function AuthMfa() {
                       votre second facteur en main, ici et maintenant.
                     */}
                     {verifier.isSuccess ? (
-                      <Text preset="bodySm" color={COLORS.success}>
-                        ✓ Code valide. Votre second facteur fonctionne.
-                      </Text>
+                      <Text preset="bodySm" color={COLORS.success}>{t('ui.codeValideVotreSecondFacteurFonctionne')}</Text>
                     ) : null}
                     {verifier.isError ? <ErrorState error={verifier.error} showRequestId /> : null}
                     <Button
-                      label="Vérifier un code"
+                      label={t('ui.verifierUnCode')}
                       variant="outline"
                       loading={verifier.isPending}
                       disabled={!codePret}
@@ -340,16 +325,14 @@ export default function AuthMfa() {
                     <div style={{ borderTop: `1px solid ${COLORS.lightBorder}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {desactiver.isError ? <ErrorState error={desactiver.error} showRequestId /> : null}
                       <Button
-                        label="Désactiver la double authentification"
+                        label={t('ui.desactiverLaDoubleAuthentification')}
                         variant="danger"
                         size="sm"
                         loading={desactiver.isPending}
                         disabled={!codePret}
                         onClick={() => desactiver.mutate()}
                       />
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        La désactivation exige elle aussi un code valide.
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.laDesactivationExigeElleAussiUn')}</Text>
                     </div>
                   </>
                 )}
@@ -357,10 +340,7 @@ export default function AuthMfa() {
             ) : null}
 
             {!active ? (
-              <Text preset="caption" color={COLORS.slateGray}>
-                Les codes de secours sont à usage unique. Une fois la double authentification activée, le
-                mot de passe seul ne permet plus d'ouvrir une session.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.lesCodesDeSecoursSontA')}</Text>
             ) : null}
           </Card>
         </motion.div>

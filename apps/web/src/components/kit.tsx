@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { IconeAttention, IconeCheck, IconeInfo } from './Icons';
 import { CREME, ENCRE, ROUGE, SEMANTIQUE, TERRE, VERT } from '@/theme/agrikonnect';
+import { useI18n } from '@/i18n';
 
 /**
  * Kit de composants AGRIKONNET AFRICA.
@@ -199,12 +200,13 @@ interface BadgeFiabiliteProps {
  * `aria-label` complet.
  */
 export function BadgeFiabilite({ niveau, source }: BadgeFiabiliteProps) {
+  const { t } = useI18n();
   const borne = Math.min(5, Math.max(1, Math.round(niveau)));
   const haute = borne >= 4;
   const config = haute ? SEMANTIQUE.fiabiliteHaute : SEMANTIQUE.fiabiliteBasse;
   const libelle = source
-    ? `Niveau de fiabilité ${borne} sur 5 — ${source}`
-    : `Niveau de fiabilité ${borne} sur 5`;
+    ? t('ui.niveauDeFiabiliteSur5', { borne, source })
+    : t('ui.niveauDeFiabiliteSur5_68f47', { borne });
 
   return (
     <span

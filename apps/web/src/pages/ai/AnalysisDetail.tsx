@@ -11,47 +11,46 @@ import { COLORS } from '@/theme';
 
 /** AI — détail d'une analyse et son disclaimer produit. */
 export default function AiAnalysisDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
 
   return (
     <DetailPage<AiAnalysis>
-      title={() => 'Analyse'}
-      subtitle="Détail de l'analyse et avertissement produit."
+      title={() => t('ui.analyse')}
+      subtitle={t('ui.detailDeLAnalyseEtAvertissement')}
       backHref="/ai/analyses"
-      backLabel="Retour aux analyses"
+      backLabel={t('ui.retourAuxAnalyses')}
       queryKey={queryKeys.ai.one(id ?? '')}
       fetch={() => aiApi.get(id ?? '').then((result) => result.data)}
       actions={() => (
         <Link to="/ai/assistant">
-          <Button label="Nouvelle analyse" variant="outline" size="sm" />
+          <Button label={t('ui.nouvelleAnalyse')} variant="outline" size="sm" />
         </Link>
       )}
       sections={(analysis) => [
         {
-          title: 'Métadonnées',
+          title: t('ui.metadonnees'),
           fields: [
-            { label: 'Type', value: <Chip label={analysis.type} tone="neutral" size="sm" /> },
-            { label: 'Statut', value: <Chip label={analysis.status} tone={analysis.status === 'ESCALATED' ? 'warning' : 'neutral'} size="sm" /> },
-            { label: 'Créée le', value: formatDate(analysis.createdAt, locale) },
-            { label: 'Escaladée le', value: analysis.escalatedAt ? formatDate(analysis.escalatedAt, locale) : '—' },
+            { label: t('ui.type'), value: <Chip label={analysis.type} tone="neutral" size="sm" /> },
+            { label: t('ui.statut'), value: <Chip label={analysis.status} tone={analysis.status === 'ESCALATED' ? 'warning' : 'neutral'} size="sm" /> },
+            { label: t('ui.creeeLe'), value: formatDate(analysis.createdAt, locale) },
+            { label: t('ui.escaladeeLe'), value: analysis.escalatedAt ? formatDate(analysis.escalatedAt, locale) : '—' },
           ],
         },
         {
-          title: 'Question',
-          fields: [{ label: 'Prompt', value: <Text preset="bodySm" style={{ lineHeight: 1.7 }}>{analysis.prompt}</Text> }],
+          title: t('ui.question'),
+          fields: [{ label: t('ui.prompt'), value: <Text preset="bodySm" style={{ lineHeight: 1.7 }}>{analysis.prompt}</Text> }],
         },
         {
-          title: 'Avertissement produit',
+          title: t('ui.avertissementProduit'),
           notice: analysis.disclaimer ?? undefined,
           fields: [
             {
-              label: 'Rappel',
+              label: t('ui.rappel'),
               value: (
                 <Card tone="pale">
-                  <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-                    Cette réponse est générée par une IA. Elle ne constitue pas un avis agronomique et ne remplace pas un contrôle de terrain.
-                  </Text>
+                  <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.cetteReponseEstGenereeParUne')}</Text>
                 </Card>
               ),
             },

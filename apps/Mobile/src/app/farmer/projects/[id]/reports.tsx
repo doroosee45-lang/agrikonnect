@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerProjectReports() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -26,31 +27,31 @@ export default function FarmerProjectReports() {
   const impact = query.data?.impact ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Rapports" subtitle="Rapports d'avancement et d'impact." />
+      <FarmerHeader title={t('ui.rapports')} subtitle={t('ui.rapportsDAvancementEtDImpact_dda60')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Rapports" icon="bar-chart-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : progress.length === 0 && impact.length === 0 ? <EmptyState title="Aucun rapport" description="Les rapports d'avancement et d'impact apparaîtront ici." icon="bar-chart-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.rapports')} icon="bar-chart-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : progress.length === 0 && impact.length === 0 ? <EmptyState title={t('ui.aucunRapport')} description={t('ui.lesRapportsDAvancementEtD')} icon="bar-chart-outline" /> : (
             <>
-              <Text preset="h3">Avancement</Text>
-              {progress.length === 0 ? <Text preset="caption" color={COLORS.slateGray}>Aucun rapport d'avancement.</Text> : (
+              <Text preset="h3">{t('ui.avancement')}</Text>
+              {progress.length === 0 ? <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunRapportDAvancement')}</Text> : (
                 <View style={styles.list}>
                   {progress.map((report, index) => (
                     <Reveal key={report.id} index={index} variant="up">
                       <Card tone="white">
-                        <Text preset="bodyMedium">Période {report.period}</Text>
-                        <Text preset="caption" color={COLORS.slateGray}>{formatDate(report.publishedAt, locale)} · {report.photos.length} photo(s)</Text>
+                        <Text preset="bodyMedium">{t('ui.periode', { period: report.period })}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.photoS', { publishedAt: formatDate(report.publishedAt, locale), length: report.photos.length })}</Text>
                       </Card>
                     </Reveal>
                   ))}
                 </View>
               )}
-              <Text preset="h3" style={styles.mt}>Impact</Text>
-              {impact.length === 0 ? <Text preset="caption" color={COLORS.slateGray}>Aucun rapport d'impact.</Text> : (
+              <Text preset="h3" style={styles.mt}>{t('ui.impact')}</Text>
+              {impact.length === 0 ? <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunRapportDImpact')}</Text> : (
                 <View style={styles.list}>
                   {impact.map((report, index) => (
                     <Reveal key={report.id} index={index} variant="up">
                       <Card tone="white">
-                        <Text preset="bodyMedium">Période {report.period}</Text>
+                        <Text preset="bodyMedium">{t('ui.periode', { period: report.period })}</Text>
                         <Text preset="caption" color={COLORS.slateGray}>{formatDate(report.publishedAt, locale)}</Text>
                       </Card>
                     </Reveal>

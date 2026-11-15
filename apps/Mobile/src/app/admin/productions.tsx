@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminProductions() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function AdminProductions() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Productions" subtitle="Toutes les productions déclarées." />
+      <AppHeader title={t('ui.productions')} subtitle={t('ui.toutesLesProductionsDeclarees')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Productions" icon="leaf-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune production" description="Aucune production enregistrée." icon="leaf-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.productions')} icon="leaf-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneProduction')} description={t('ui.aucuneProductionEnregistree')} icon="leaf-outline" /> : (
             <View style={styles.list}>
               {items.map((production, index) => (
                 <Reveal key={production.id} index={index} variant="up">

@@ -12,6 +12,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Messages() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -49,25 +50,19 @@ export default function Messages() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Messagerie"
-        description="Connectez-vous pour échanger avec les autres organisations."
+        title={t('ui.messagerie')}
+        description={t('ui.connectezVousPourEchangerAvecLes')}
         icon="💬"
       >
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Messagerie
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Chaque conversation est rattachée à un objet métier : annonce, commande, transport, litige ou projet.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.messagerie')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.chaqueConversationEstRattacheeAUn')}</Text>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 340px) minmax(0, 1fr)', gap: 24, alignItems: 'start' }}>
           <Card tone="white" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '16px 20px', borderBottom: `1px solid ${COLORS.lightBorder}` }}>
-              <Text preset="overline" color={COLORS.forestGreen}>
-                Conversations
-              </Text>
+              <Text preset="overline" color={COLORS.forestGreen}>{t('ui.conversations')}</Text>
             </div>
 
             {conversations.isLoading ? (
@@ -79,7 +74,7 @@ export default function Messages() {
                 <ErrorState error={conversations.error} onRetry={() => void conversations.refetch()} />
               </div>
             ) : items.length === 0 ? (
-              <EmptyState title="Aucune conversation" description="Contactez un vendeur depuis une annonce pour ouvrir un fil." icon="💬" />
+              <EmptyState title={t('ui.aucuneConversation')} description={t('ui.contactezUnVendeurDepuisUneAnnonce')} icon="💬" />
             ) : (
               <div style={{ maxHeight: 520, overflowY: 'auto' }}>
                 {items.map((conversation) => {
@@ -98,12 +93,12 @@ export default function Messages() {
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
                         <Text preset="bodySm" color={COLORS.textPrimary} style={{ fontWeight: conversation.unread > 0 ? 600 : 400 }}>
-                          {conversation.subjectType ?? 'Conversation'}
+                          {conversation.subjectType ?? t('ui.conversation')}
                         </Text>
                         {conversation.unread > 0 ? <Chip label={String(conversation.unread)} tone="forest" size="sm" /> : null}
                       </div>
                       <Text preset="caption" color={COLORS.slateGray} style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {conversation.lastMessage?.body ?? 'Aucun message'}
+                        {conversation.lastMessage?.body ?? t('ui.aucunMessage')}
                       </Text>
                       <Text preset="caption" color={COLORS.slateGray}>
                         {formatRelative(conversation.updatedAt, locale)}
@@ -117,7 +112,7 @@ export default function Messages() {
 
           <Card tone="white" style={{ display: 'flex', flexDirection: 'column', minHeight: 480 }}>
             {!id ? (
-              <EmptyState title="Sélectionnez une conversation" description="Choisissez un fil dans la liste pour afficher les messages." icon="💬" />
+              <EmptyState title={t('ui.selectionnezUneConversation')} description={t('ui.choisissezUnFilDansLaListe')} icon="💬" />
             ) : thread.isLoading ? (
               <LoadingState count={4} height={60} />
             ) : thread.isError ? (
@@ -126,7 +121,7 @@ export default function Messages() {
               <>
                 <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16, maxHeight: 420 }}>
                   {messages.length === 0 ? (
-                    <EmptyState title="Aucun message" description="Envoyez le premier message de cette conversation." icon="✉️" />
+                    <EmptyState title={t('ui.aucunMessage')} description={t('ui.envoyezLePremierMessageDeCette')} icon="✉️" />
                   ) : (
                     messages.map((message, index) => (
                       <motion.div
@@ -168,14 +163,14 @@ export default function Messages() {
                 >
                   <div style={{ flex: 1 }}>
                     <Input
-                      label="Message"
+                      label={t('ui.message')}
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
-                      placeholder="Écrivez votre message…"
+                      placeholder={t('ui.ecrivezVotreMessage')}
                       maxLength={3000}
                     />
                   </div>
-                  <Button label="Envoyer" type="submit" loading={send.isPending} disabled={!draft.trim()} />
+                  <Button label={t('ui.envoyer')} type="submit" loading={send.isPending} disabled={!draft.trim()} />
                 </form>
               </>
             )}

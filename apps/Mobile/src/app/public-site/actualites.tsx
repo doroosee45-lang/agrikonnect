@@ -6,6 +6,7 @@ import { Card, Chip, PressableCard, Reveal, Section, Text } from '@/components/u
 import { RELEASE_TRACK } from '@/lib/platform';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Journal du réseau (surface publique).
@@ -14,9 +15,10 @@ import { SPACING } from '@/theme/space';
  * fonctionnel réellement livré, lu dans `RELEASE_TRACK`.
  */
 export default function PublicSiteActualites() {
+  const { t } = useI18n();
   return (
     <PublicShell active="actualites">
-      <PageHeader index="08" eyebrow="Journal" title="Ce que la plateforme sait faire" subtitle="Périmètre livré version par version, sans communiqué sans substance." />
+      <PageHeader index="08" eyebrow={t('ui.journal')} title={t('ui.ceQueLaPlateformeSaitFaire_003d4')} subtitle={t('ui.perimetreLivreVersionParVersionSans')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <View style={styles.list}>
           {RELEASE_TRACK.map((release, index) => (

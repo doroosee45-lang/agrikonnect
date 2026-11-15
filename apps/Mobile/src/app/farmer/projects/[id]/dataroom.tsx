@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerProjectDataRoom() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,14 +26,14 @@ export default function FarmerProjectDataRoom() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Data room" subtitle="Documents partagés avec les investisseurs." />
+      <FarmerHeader title={t('ui.dataRoom')} subtitle={t('ui.documentsPartagesAvecLesInvestisseurs')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Data room" icon="folder-open-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Data room vide" description="Ajoutez des documents pour les partager." icon="folder-open-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.dataRoom')} icon="folder-open-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.dataRoomVide')} description={t('ui.ajoutezDesDocumentsPourLesPartager')} icon="folder-open-outline" /> : (
             <View style={styles.list}>
               {items.map((document, index) => {
                 const doc = document as Record<string, unknown>;
-                const label = String(doc.name ?? doc.kind ?? 'Document');
+                const label = String(doc.name ?? doc.kind ?? t('ui.document'));
                 const kind = String(doc.kind ?? '—');
                 const createdAt = typeof doc.createdAt === 'string' ? doc.createdAt : null;
                 return (
@@ -40,7 +41,7 @@ export default function FarmerProjectDataRoom() {
                     <Card tone="white" style={styles.row}>
                       <View style={styles.rowBody}>
                         <Text preset="bodySm">{label}</Text>
-                        <Text preset="caption" color={COLORS.slateGray}>{createdAt ? formatDate(createdAt, locale) : 'date inconnue'}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{createdAt ? formatDate(createdAt, locale) : t('ui.dateInconnue')}</Text>
                       </View>
                       <Chip label={kind} tone="neutral" size="sm" />
                     </Card>

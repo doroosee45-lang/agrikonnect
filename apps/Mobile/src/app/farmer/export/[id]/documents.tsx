@@ -20,6 +20,7 @@ import { SPACING } from '@/theme/space';
  * est calculée côté serveur à partir des quatre `type` obligatoires.
  */
 export default function FarmerExportDocuments() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -34,32 +35,30 @@ export default function FarmerExportDocuments() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Documents" subtitle="Pièces rattachées à ce dossier." />
+      <FarmerHeader title={t('ui.documents')} subtitle={t('ui.piecesRattacheesACeDossier')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Documents" icon="document-attach-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.documents')} icon="document-attach-outline">
           {query.isLoading ? (
             <LoadingState count={2} height={80} />
           ) : query.isError ? (
             <ErrorState error={query.error} onRetry={() => void query.refetch()} />
           ) : !detail ? (
             <EmptyState
-              title="Dossier introuvable"
-              description="Ce dossier d’exportation n’existe pas ou ne vous est pas accessible."
+              title={t('ui.dossierIntrouvable')}
+              description={t('ui.ceDossierDExportationNExiste')}
               icon="document-attach-outline"
             />
           ) : (
             <>
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Pièces obligatoires
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.piecesObligatoires')}</Text>
                 {detail.compliance.required.map((item) => (
                   <View key={item.type} style={styles.row}>
                     <Text preset="bodySm" color={COLORS.textPrimary} style={{ flex: 1 }}>
                       {item.label}
                     </Text>
                     <Chip
-                      label={item.present ? 'présent' : 'manquant'}
+                      label={item.present ? t('ui.present') : t('ui.manquant')}
                       tone={item.present ? 'success' : 'error'}
                       size="sm"
                     />
@@ -71,15 +70,15 @@ export default function FarmerExportDocuments() {
                   style={styles.lineHeight}
                 >
                   {detail.compliance.canBeCertified
-                    ? 'Dossier complet : la certification est possible.'
-                    : `Certification impossible tant que ${detail.compliance.missing.join(', ')} manque(nt).`}
+                    ? t('ui.dossierCompletLaCertificationEstPossible')
+                    : t('ui.certificationImpossibleTantQueManqueNt_64668', { value: detail.compliance.missing.join(', ') })}
                 </Text>
               </Card>
 
               {items.length === 0 ? (
                 <EmptyState
-                  title="Aucun document"
-                  description="Aucune pièce n'est rattachée à ce dossier."
+                  title={t('ui.aucunDocument')}
+                  description={t('ui.aucunePieceNEstRattacheeA_d7a45')}
                   icon="document-attach-outline"
                 />
               ) : (
@@ -89,9 +88,7 @@ export default function FarmerExportDocuments() {
                       <Card tone="white" style={styles.row}>
                         <View style={styles.rowBody}>
                           <Text preset="bodyMedium">{document.name}</Text>
-                          <Text preset="caption" color={COLORS.slateGray}>
-                            {document.type} · émis le {formatDate(document.issuedAt, locale)}
-                            {document.storageKey ? '' : ' · référence seule'}
+                          <Text preset="caption" color={COLORS.slateGray}>{t('ui.emisLe_b72c7', { type: document.type, issuedAt: formatDate(document.issuedAt, locale) })}{document.storageKey ? '' : t('ui.referenceSeule_68856')}
                           </Text>
                         </View>
                       </Card>

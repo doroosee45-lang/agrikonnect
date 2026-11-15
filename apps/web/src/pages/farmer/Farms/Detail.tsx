@@ -10,49 +10,50 @@ import { useI18n } from '@/i18n';
 
 /** FARMER — fiche d'une exploitation. */
 export default function FarmerFarmDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
 
   return (
     <DetailPage<Farm>
       title={(farm) => farm.name}
-      subtitle="Fiche de l'exploitation."
+      subtitle={t('ui.ficheDeLExploitation')}
       backHref="/farmer/farms"
-      backLabel="Retour aux exploitations"
+      backLabel={t('ui.retourAuxExploitations')}
       queryKey={queryKeys.farms.one(id ?? '')}
       fetch={() => farmApi.get(id ?? '').then((result) => result.data)}
       actions={(farm) => (
         <>
           <Link to={`/farmer/plots?farmId=${farm.id}`}>
-            <Button label="Parcelles" variant="outline" size="sm" />
+            <Button label={t('ui.parcelles')} variant="outline" size="sm" />
           </Link>
           <Link to={`/public/farms/${farm.slug}`}>
-            <Button label="Fiche publique" variant="ghost" size="sm" />
+            <Button label={t('ui.fichePublique')} variant="ghost" size="sm" />
           </Link>
         </>
       )}
       sections={(farm) => [
         {
-          title: 'Identification',
+          title: t('ui.identification'),
           fields: [
-            { label: 'Nom', value: farm.name },
-            { label: 'Slug', value: <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{farm.slug}</span> },
-            { label: 'Pays', value: farm.countryCode },
-            { label: 'Province', value: farm.province ?? '—' },
-            { label: 'Surface totale', value: farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—' },
-            { label: 'Mise à jour', value: formatDate(farm.updatedAt, locale) },
+            { label: t('ui.nom'), value: farm.name },
+            { label: t('ui.slug'), value: <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{farm.slug}</span> },
+            { label: t('ui.pays'), value: farm.countryCode },
+            { label: t('ui.province'), value: farm.province ?? '—' },
+            { label: t('ui.surfaceTotale'), value: farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—' },
+            { label: t('ui.miseAJour'), value: formatDate(farm.updatedAt, locale) },
           ],
         },
         {
-          title: 'Publication et vérification',
-          notice: 'Une exploitation vérifiée a fait l’objet d’un contrôle horodaté. Une exploitation déclarée repose sur une saisie.',
+          title: t('ui.publicationEtVerification'),
+          notice: t('ui.uneExploitationVerifieeAFaitL'),
           fields: [
-            { label: 'Publication', value: <Chip label={farm.isPublic ? 'publique' : 'privée'} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
-            { label: 'Vérification', value: <Chip label={farm.verificationStatus ?? 'non vérifiée'} tone={farm.verificationStatus === 'VERIFIED' ? 'success' : 'warning'} size="sm" /> },
-            { label: 'Source', value: <Chip label={farm.source} tone={farm.source === 'declared' ? 'warning' : 'success'} size="sm" /> },
+            { label: t('ui.publication'), value: <Chip label={farm.isPublic ? t('ui.publique_9eb2b') : t('ui.privee')} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
+            { label: t('ui.verification_bb27a'), value: <Chip label={farm.verificationStatus ?? t('ui.nonVerifiee')} tone={farm.verificationStatus === 'VERIFIED' ? 'success' : 'warning'} size="sm" /> },
+            { label: t('ui.source_6da13'), value: <Chip label={farm.source} tone={farm.source === 'declared' ? 'warning' : 'success'} size="sm" /> },
           ],
         },
-        { title: 'Description', fields: [{ label: 'Présentation', value: farm.description ?? 'Aucune description renseignée.' }] },
+        { title: t('ui.description'), fields: [{ label: t('ui.presentation'), value: farm.description ?? t('ui.aucuneDescriptionRenseignee') }] },
       ]}
     />
   );

@@ -8,26 +8,27 @@ import { useI18n } from '@/i18n';
 
 /** APP — mes exploitations. */
 export default function AppFarms() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Farm>
-      title="Mes exploitations"
-      subtitle="Exploitations rattachées à votre organisation."
+      title={t('ui.mesExploitations')}
+      subtitle={t('ui.exploitationsRattacheesAVotreOrganisation')}
       icon="🏡"
       queryKey={queryKeys.farms.list({ limit: 100 })}
       fetch={() => farmApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(farm) => farm.id}
       rowHref={(farm) => `/app/farms/${farm.id}`}
-      action={{ label: 'Nouvelle exploitation', href: '/farmer/farms/create' }}
+      action={{ label: t('ui.nouvelleExploitation'), href: '/farmer/farms/create' }}
       columns={[
-        { key: 'name', label: 'Nom', render: (farm) => farm.name },
-        { key: 'countryCode', label: 'Pays', render: (farm) => `${farm.countryCode}${farm.province ? ` · ${farm.province}` : ''}` },
-        { key: 'totalAreaHa', label: 'Surface', render: (farm) => (farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—') },
-        { key: 'isPublic', label: 'Publication', render: (farm) => <Chip label={farm.isPublic ? 'publique' : 'privée'} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
-        { key: 'updatedAt', label: 'Mise à jour', render: (farm) => formatDate(farm.updatedAt, locale) },
+        { key: 'name', label: t('ui.nom'), render: (farm) => farm.name },
+        { key: 'countryCode', label: t('ui.pays'), render: (farm) => `${farm.countryCode}${farm.province ? ` · ${farm.province}` : ''}` },
+        { key: 'totalAreaHa', label: t('ui.surface'), render: (farm) => (farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—') },
+        { key: 'isPublic', label: t('ui.publication'), render: (farm) => <Chip label={farm.isPublic ? t('ui.publique_9eb2b') : t('ui.privee')} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
+        { key: 'updatedAt', label: t('ui.miseAJour'), render: (farm) => formatDate(farm.updatedAt, locale) },
       ]}
-      emptyTitle="Aucune exploitation"
-      emptyDescription="Créez votre première exploitation pour commencer."
+      emptyTitle={t('ui.aucuneExploitation')}
+      emptyDescription={t('ui.creezVotrePremiereExploitationPourCommencer')}
     />
   );
 }

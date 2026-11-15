@@ -9,6 +9,7 @@ import { Logo } from '@/components/public-site/Logo';
 import { COLORS, DARK } from '@/theme/colors';
 import { DURATION } from '@/theme/motion';
 import { LAYOUT, SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Coquille des écrans d'authentification.
@@ -28,6 +29,7 @@ export function AuthShell({
   children: React.ReactNode;
   footer?: React.ReactNode;
 }) {
+  const { t } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
 
@@ -56,7 +58,7 @@ export function AuthShell({
       ) : (
         <ScrollView contentContainerStyle={styles.mobileColumn} showsVerticalScrollIndicator={false}>
           <View style={styles.mobileHeader}>
-            <IconButton icon="arrow-back" onPress={() => router.push('/accueil')} accessibilityLabel="Retour" />
+            <IconButton icon="arrow-back" onPress={() => router.push('/accueil')} accessibilityLabel={t('common.back')} />
             <Logo size={30} />
           </View>
 
@@ -80,10 +82,11 @@ export function AuthShell({
 }
 
 function BrandPanel() {
+  const { t } = useI18n();
   const points = [
-    'Une donnée, une origine : mesurée, vérifiée, estimée ou déclarée.',
-    'Coordonnées masquées par défaut, positions arrondies.',
-    'Session courte, jeton rotatif, double authentification disponible.',
+    t('ui.uneDonneeUneOrigineMesureeVerifiee'),
+    t('ui.coordonneesMasqueesParDefautPositionsArrondies'),
+    t('ui.sessionCourteJetonRotatifDoubleAuthentification'),
   ];
 
   return (
@@ -91,9 +94,7 @@ function BrandPanel() {
       <Animated.View entering={FadeIn.duration(DURATION.slow)} style={styles.brandInner}>
         <Logo light size={40} showTagline />
 
-        <Text preset="display" color={DARK.text} style={styles.brandTitle}>
-          La confiance agricole se prouve, elle ne se déclare pas.
-        </Text>
+        <Text preset="display" color={DARK.text} style={styles.brandTitle}>{t('ui.laConfianceAgricoleSeProuveElle')}</Text>
 
         <View style={styles.points}>
           {points.map((point, index) => (
@@ -106,9 +107,7 @@ function BrandPanel() {
           ))}
         </View>
 
-        <Text preset="caption" color={DARK.textFaint}>
-          AGRIKONNECT AFRICA — infrastructure de traçabilité des filières agricoles.
-        </Text>
+        <Text preset="caption" color={DARK.textFaint}>{t('ui.agrikonnectAfricaInfrastructureDeTracabiliteDes')}</Text>
       </Animated.View>
     </HeroBackground>
   );

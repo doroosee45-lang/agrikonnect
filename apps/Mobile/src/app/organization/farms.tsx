@@ -13,6 +13,7 @@ import { SPACING } from '@/theme/space';
 
 /** Exploitations rattachées à l'organisation active. */
 export default function OrganizationFarms() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,10 +25,10 @@ export default function OrganizationFarms() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Exploitations" subtitle="Sites rattachés à votre organisation." />
+      <AppHeader title={t('ui.exploitations')} subtitle={t('ui.sitesRattachesAVotreOrganisation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Exploitations" icon="home-outline">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune exploitation" description="Créez une exploitation pour démarrer." icon="home-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.exploitations')} icon="home-outline">
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneExploitation')} description={t('ui.creezUneExploitationPourDemarrer')} icon="home-outline" /> : (
             <View style={styles.list}>
               {items.map((farm, index) => (
                 <Reveal key={farm.id} index={index} variant="up">
@@ -35,10 +36,10 @@ export default function OrganizationFarms() {
                     <View style={styles.row}>
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium">{farm.name}</Text>
-                        <Text preset="caption" color={COLORS.slateGray}>{farm.countryCode}{farm.province ? ` · ${farm.province}` : ''}{farm.totalAreaHa !== null ? ` · ${farm.totalAreaHa} ha` : ''}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{farm.countryCode}{farm.province ? ` · ${farm.province}` : ''}{farm.totalAreaHa !== null ? t('ui.ha', { totalAreaHa: farm.totalAreaHa }) : ''}</Text>
                       </View>
                       <View style={styles.right}>
-                        <Chip label={farm.isPublic ? 'publiée' : 'privée'} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" />
+                        <Chip label={farm.isPublic ? t('ui.publiee') : t('ui.privee')} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" />
                         {farm.verificationStatus ? <Chip label={farm.verificationStatus} tone="neutral" size="sm" /> : null}
                       </View>
                     </View>

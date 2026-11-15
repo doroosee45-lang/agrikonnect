@@ -29,6 +29,7 @@ import { authenticate } from './middleware/auth.js';
 import { rejectOperators } from './middleware/validate.js';
 import { notFound } from './shared/http/notFound.js';
 import { errorHandler } from './shared/http/errorHandler.js';
+import { localeMiddleware } from './shared/i18n/index.js';
 
 export const createApp = () => {
   const app = express();
@@ -58,6 +59,13 @@ export const createApp = () => {
    * ne peut rien communiquer au support.
    */
   app.use(requestId);
+
+  /*
+   * I18N-01 — langue de la requête (Accept-Language → fr | en, repli fr).
+   * Posée avant les parseurs et les routes : les erreurs de corps, de
+   * validation et les messages de succès sont rendus dans cette langue.
+   */
+  app.use(localeMiddleware);
 
   // WA-01 — le corps brut est requis pour vérifier la signature des webhooks.
   const jsonGlobal = express.json({
@@ -150,7 +158,7 @@ export const createApp = () => {
         version: '5.0.0',
         specUrl: `${env.apiPrefix}/docs/openapi.json`,
         scope: 'V1 FARM · V2 MARKET · V3 INTELLIGENCE · V4 INVEST · V5 GLOBAL',
-        publicRoutes: ['/public/map', '/public/farms', '/public/lots/:code', '/crops', '/countries'],
+        publicRoutes: ['/public/map', '/public/farms', '/public/blog-posts', '/public/blog-posts/:slug', '/public/lots/:code', '/crops', '/countries'],
         apiKeyRoutes: ['/public-api/v1/products', '/public-api/v1/products/:id/aggregates', '/public-api/v1/prices'],
         authHeader: 'Authorization: Bearer <token Supabase>',
         apiKeyHeader: 'X-API-Key (API publique de données)',

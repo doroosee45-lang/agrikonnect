@@ -14,6 +14,7 @@ import { SPACING } from '@/theme/space';
 
 /** Commandes — le prix est figé à la commande (instantané), il ne varie plus. */
 export default function PublicSiteVentes() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -25,10 +26,10 @@ export default function PublicSiteVentes() {
   const items = query.data ?? [];
   return (
     <PublicShell active="ventes">
-      <PageHeader index="17" eyebrow="Ventes" title="Commandes" subtitle="Prix et quantités figés à la commande : l\u2019instantané ne varie plus." />
+      <PageHeader index="17" eyebrow={t('ui.ventes')} title={t('ui.commandes')} subtitle={t('ui.prixEtQuantitesFigesALa')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Commandes" icon="cart-outline" description="Les commandes sont réservées aux comptes connectés.">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune commande" description="Aucune commande enregistrée." icon="cart-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.commandes')} icon="cart-outline" description={t('ui.lesCommandesSontReserveesAuxComptes')}>
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneCommande')} description={t('ui.aucuneCommandeEnregistree')} icon="cart-outline" /> : (
             <View style={styles.list}>
               {items.map((order, index) => (
                 <Reveal key={order.id} index={index} variant="up">
@@ -37,7 +38,7 @@ export default function PublicSiteVentes() {
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium" style={{ fontFamily: 'monospace' }}>{order.number}</Text>
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {formatDate(order.createdAt, locale)} · {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : 'montant non renseigné'}
+                          {formatDate(order.createdAt, locale)} · {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : t('ui.montantNonRenseigne')}
                         </Text>
                       </View>
                       <View style={styles.right}>

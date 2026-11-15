@@ -5,9 +5,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button, Card, Input, Section, Text } from '@/components/ui';
 import { authApi } from '@/services/endpoints';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** AUTH — réinitialisation du mot de passe via le jeton reçu par email. */
 export default function Reset() {
+  const { t } = useI18n();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const token = params.get('token') ?? '';
@@ -22,7 +24,7 @@ export default function Reset() {
     setError(null);
 
     if (password !== confirm) {
-      setError('Les deux mots de passe ne correspondent pas.');
+      setError(t('ui.lesDeuxMotsDePasseNe'));
       return;
     }
 
@@ -32,7 +34,7 @@ export default function Reset() {
       setDone(true);
       window.setTimeout(() => navigate('/auth/login'), 1500);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Le jeton est invalide ou expiré.');
+      setError(caught instanceof Error ? caught.message : t('ui.leJetonEstInvalideOuExpire'));
     } finally {
       setLoading(false);
     }
@@ -47,35 +49,25 @@ export default function Reset() {
         style={{ width: '100%', maxWidth: 440 }}
       >
         <Card tone="white" style={{ padding: 32 }}>
-          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>
-            Nouveau mot de passe
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>
-            Choisissez un mot de passe robuste. L'ancien est révoqué immédiatement.
-          </Text>
+          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>{t('ui.nouveauMotDePasse')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>{t('ui.choisissezUnMotDePasseRobuste')}</Text>
 
           {done ? (
-            <Text preset="bodyMd" color={COLORS.success} style={{ textAlign: 'center' }}>
-              ✓ Mot de passe réinitialisé. Redirection vers la connexion…
-            </Text>
+            <Text preset="bodyMd" color={COLORS.success} style={{ textAlign: 'center' }}>{t('ui.motDePasseReinitialiseRedirectionVers')}</Text>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {!token ? (
-                <Text preset="caption" color={COLORS.warning}>
-                  Aucun jeton dans l'URL : repassez par « Mot de passe oublié ».
-                </Text>
+                <Text preset="caption" color={COLORS.warning}>{t('ui.aucunJetonDansLUrlRepassez')}</Text>
               ) : null}
-              <Input label="Nouveau mot de passe" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} autoComplete="new-password" />
-              <Input label="Confirmer" type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} required minLength={8} autoComplete="new-password" />
+              <Input label={t('ui.nouveauMotDePasse')} type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} autoComplete="new-password" />
+              <Input label={t('common.confirm')} type="password" value={confirm} onChange={(event) => setConfirm(event.target.value)} required minLength={8} autoComplete="new-password" />
               {error ? <div style={{ fontSize: 13, color: COLORS.error, textAlign: 'center' }}>{error}</div> : null}
-              <Button label="Réinitialiser" type="submit" loading={loading} fullWidth />
+              <Button label={t('ui.reinitialiser')} type="submit" loading={loading} fullWidth />
             </form>
           )}
 
           <div style={{ marginTop: 24, textAlign: 'center' }}>
-            <Link to="/auth/login" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-              ← Retour à la connexion
-            </Link>
+            <Link to="/auth/login" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourALaConnexion_b56d3')}</Link>
           </div>
         </Card>
       </motion.div>

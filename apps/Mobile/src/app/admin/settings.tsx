@@ -8,9 +8,11 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /** ADMIN — paramètres plateforme (lecture ; l'écriture passe par PUT /admin/settings). */
 export default function AdminSettings() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const settings = useQuery({
@@ -23,15 +25,15 @@ export default function AdminSettings() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Paramètres" subtitle="Valeurs servies par GET /admin/settings." />
+      <AppHeader title={t('ui.parametres_ef8f0')} subtitle={t('ui.valeursServiesParGetAdminSettings')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Paramètres" icon="settings-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.parametres_ef8f0')} icon="settings-outline">
           {settings.isLoading ? (
             <LoadingState count={2} height={100} />
           ) : settings.isError ? (
             <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />
           ) : entries.length === 0 ? (
-            <EmptyState title="Aucun paramètre" description="Aucun paramètre exposé." icon="settings-outline" />
+            <EmptyState title={t('ui.aucunParametre')} description={t('ui.aucunParametreExpose')} icon="settings-outline" />
           ) : (
             <View style={styles.list}>
               {entries.map(([key, value], index) => (

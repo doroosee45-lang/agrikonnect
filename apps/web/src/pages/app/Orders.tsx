@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Marketplace() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -26,17 +27,13 @@ export default function Marketplace() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Mes commandes"
-        description="Connectez-vous pour suivre vos commandes, paiements et litiges."
+        title={t('ui.mesCommandes')}
+        description={t('ui.connectezVousPourSuivreVosCommandes')}
         icon="🧾"
       >
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Commandes
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Chaque commande fige un instantané de prix et de quantités : les variations ultérieures du marché ne la modifient pas.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.commandes')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.chaqueCommandeFigeUnInstantaneDe')}</Text>
         </div>
 
         {orders.isLoading ? (
@@ -44,7 +41,7 @@ export default function Marketplace() {
         ) : orders.isError ? (
           <ErrorState error={orders.error} onRetry={() => void orders.refetch()} />
         ) : items.length === 0 ? (
-          <EmptyState title="Aucune commande" description="Les commandes naissent d'une offre acceptée." icon="🧾" />
+          <EmptyState title={t('ui.aucuneCommande')} description={t('ui.lesCommandesNaissentDUneOffre')} icon="🧾" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {items.map((order, index) => (
@@ -62,15 +59,15 @@ export default function Marketplace() {
                         {order.number}
                       </Text>
                       <Chip label={order.status} tone={order.status === 'COMPLETED' ? 'success' : 'info'} size="sm" />
-                      <Chip label={`Paiement : ${order.paymentStatus}`} tone={order.paymentStatus === 'PAID' ? 'success' : 'warning'} size="sm" />
+                      <Chip label={t('ui.paiement_14e03', { paymentStatus: order.paymentStatus })} tone={order.paymentStatus === 'PAID' ? 'success' : 'warning'} size="sm" />
                     </div>
                     <Text preset="caption" color={COLORS.slateGray}>
                       {formatDate(order.createdAt, locale)}
-                      {order.totalAmount !== null ? ` · ${formatCurrency(order.totalAmount, order.currency, locale)}` : ' · montant à confirmer'}
+                      {order.totalAmount !== null ? ` · ${formatCurrency(order.totalAmount, order.currency, locale)}` : t('ui.montantAConfirmer')}
                     </Text>
                   </div>
                   <Link to={`/marketplace/${order.id}`}>
-                    <Button label="Suivre" variant="outline" size="sm" />
+                    <Button label={t('ui.suivre')} variant="outline" size="sm" />
                   </Link>
                 </Card>
               </motion.div>

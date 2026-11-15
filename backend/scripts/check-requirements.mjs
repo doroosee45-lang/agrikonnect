@@ -356,7 +356,7 @@ const ALIASES = [
 const results = REQUIREMENTS.map((requirement) => {
   const impl = citations(srcText, requirement.id);
   const proof = citations(testText, requirement.id);
-  const moduleRoutes = routeFiles.filter((file) => file.includes(`modules/${requirement.module}/`));
+  const moduleRoutes = routeFiles.filter((file) => file.split(path.sep).join('/').includes(`modules/${requirement.module}/`));
   const gaps = [];
   if (impl.length === 0) gaps.push('aucune implémentation citant l’identifiant');
   if (proof.length === 0) gaps.push('aucune preuve de test citant l’identifiant');

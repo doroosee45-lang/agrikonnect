@@ -7,22 +7,23 @@ type Review = Record<string, unknown>;
 
 /** MARKET — avis et évaluations des transactions. */
 export default function MarketReviews() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Review>
-      title="Avis"
-      subtitle="Évaluations laissées après vos transactions."
+      title={t('ui.avis')}
+      subtitle={t('ui.evaluationsLaisseesApresVosTransactions')}
       icon="⭐"
       queryKey={['reviews', 'list'] as unknown[]}
       fetch={async () => [] as Review[]}
       rowKey={(review) => String(review.id)}
       columns={[
-        { key: 'rating', label: 'Note', render: (review) => `${String(review.rating ?? '—')}/5` },
-        { key: 'comment', label: 'Commentaire', render: (review) => String(review.comment ?? '—') },
-        { key: 'createdAt', label: 'Publié le', render: (review) => (review.createdAt ? formatDate(String(review.createdAt), locale) : '—') },
+        { key: 'rating', label: t('ui.note'), render: (review) => `${String(review.rating ?? '—')}/5` },
+        { key: 'comment', label: t('ui.commentaire'), render: (review) => String(review.comment ?? '—') },
+        { key: 'createdAt', label: t('ui.publieLe'), render: (review) => (review.createdAt ? formatDate(String(review.createdAt), locale) : '—') },
       ]}
-      emptyTitle="Aucun avis"
-      emptyDescription="Les avis laissés après vos transactions apparaîtront ici."
+      emptyTitle={t('ui.aucunAvis')}
+      emptyDescription={t('ui.lesAvisLaissesApresVosTransactions')}
     />
   );
 }

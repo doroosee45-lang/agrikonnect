@@ -21,7 +21,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatNumber, formatRelative } from '@/lib/format';
 import { notificationApi } from '@/services/api/endpoints';
 import { useAuthStore } from '@/store/auth';
@@ -30,8 +30,8 @@ import { COLORS, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
 
 const FILTERS = [
-  { key: 'all', label: 'Toutes' },
-  { key: 'unread', label: 'Non lues' },
+  { key: 'all', get label() { return tr('ui.toutes'); } },
+  { key: 'unread', get label() { return tr('ui.nonLues'); } },
 ] as const;
 
 /** Boîte de réception (NOTIF-01) : notifications in-app de l'utilisateur courant. */
@@ -60,12 +60,12 @@ export default function Notifications() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={t('nav.notifications')} subtitle="Alertes de commande, de vérification et de messagerie." showNotifications={false} />
+      <AppHeader title={t('nav.notifications')} subtitle={t('ui.alertesDeCommandeDeVerificationEt')} showNotifications={false} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
-          title="Connexion requise"
-          description="Connectez-vous pour consulter vos notifications et régler vos préférences."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourConsulterVosNotifications')}
           isAuthenticated={isAuthenticated}
           icon="notifications-outline"
         >
@@ -76,14 +76,14 @@ export default function Notifications() {
               ))}
             </ChipRow>
             <Button
-              label="Alertes SMS"
+              label={t('ui.alertesSms')}
               onPress={() => router.push('/notifications/sms-consent')}
               variant="ghost"
               size="sm"
               icon="chatbox-ellipses-outline"
             />
             <Button
-              label="Préférences"
+              label={t('ui.preferences')}
               onPress={() => router.push('/notifications/preferences')}
               variant="ghost"
               size="sm"
@@ -99,15 +99,11 @@ export default function Notifications() {
             <>
               <Card tone="white" style={styles.summary}>
                 <View style={styles.summaryBody}>
-                  <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                    {formatNumber(list.data?.unreadCount ?? 0, locale)} notification(s) non lue(s)
-                  </Text>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Canal in-app uniquement. Les préférences par type et par canal sont modifiables.
-                  </Text>
+                  <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.notificationSNonLueS', { value: formatNumber(list.data?.unreadCount ?? 0, locale) })}</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.canalInAppUniquementLesPreferences')}</Text>
                 </View>
                 <Button
-                  label="Tout marquer lu"
+                  label={t('ui.toutMarquerLu')}
                   onPress={() => readAll.mutate()}
                   variant="outline"
                   size="sm"
@@ -119,8 +115,8 @@ export default function Notifications() {
 
               {items.length === 0 ? (
                 <EmptyState
-                  title={filter === 'unread' ? 'Aucune notification non lue' : 'Aucune notification'}
-                  description="Vous serez alerté ici des événements qui vous concernent."
+                  title={filter === 'unread' ? t('ui.aucuneNotificationNonLue') : t('ui.aucuneNotification')}
+                  description={t('ui.vousSerezAlerteIciDesEvenements')}
                   icon="notifications-off-outline"
                 />
               ) : (
@@ -145,7 +141,7 @@ export default function Notifications() {
                             </Text>
                           ) : null}
                           <Text preset="caption" color={COLORS.slateGray}>
-                            {formatRelative(item.createdAt, locale)} · {item.readAt ? `lu ${formatRelative(item.readAt, locale)}` : 'non lu'}
+                            {formatRelative(item.createdAt, locale)} · {item.readAt ? `lu ${formatRelative(item.readAt, locale)}` : t('ui.nonLu')}
                           </Text>
                         </View>
                       </PressableCard>

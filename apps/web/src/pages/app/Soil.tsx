@@ -13,6 +13,7 @@ import { StatCard } from '@/design-system';
 
 /** APP — profil de sol fusionné (SOIL-10 → SOIL-13). */
 export default function AppSoil() {
+  const { t } = useI18n();
   const { plotId } = useParams<{ plotId: string }>();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
@@ -28,22 +29,18 @@ export default function AppSoil() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Sol" description="Profil de sol fusionné." icon="🧪">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Sol
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Profil fusionné à partir de vos analyses. Les paramètres manquants sont signalés, jamais estimés.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.sol')} description={t('ui.profilDeSolFusionne')} icon="🧪">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.sol')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.profilFusionneAPartirDeVos')}</Text>
 
         {!plotId ? (
-          <EmptyState title="Aucune parcelle" description="Sélectionnez une parcelle pour voir son profil de sol." icon="🧪" />
+          <EmptyState title={t('ui.aucuneParcelle')} description={t('ui.selectionnezUneParcellePourVoirSon')} icon="🧪" />
         ) : query.isLoading ? (
           <LoadingState count={2} height={110} />
         ) : query.isError ? (
           <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
         ) : !soil ? (
-          <EmptyState title="Aucun profil" description="Aucun profil de sol n'est disponible pour cette parcelle." icon="🧪" />
+          <EmptyState title={t('ui.aucunProfil')} description={t('ui.aucunProfilDeSolNEst')} icon="🧪" />
         ) : (
           <>
             <Card tone="pale" style={{ marginBottom: 24 }}>
@@ -54,9 +51,7 @@ export default function AppSoil() {
 
             {soil.missingParameters.length > 0 ? (
               <Card tone="white" style={{ marginBottom: 24 }}>
-                <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-                  Paramètres manquants : {soil.missingParameters.join(', ')}. Aucune valeur n'est inventée pour les compléter.
-                </Text>
+                <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.parametresManquantsAucuneValeurNEst', { value: soil.missingParameters.join(', ') })}</Text>
               </Card>
             ) : null}
 

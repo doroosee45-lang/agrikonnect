@@ -54,7 +54,7 @@ export function Screen({
   });
 
   const content = (
-    <View style={[styles.fill, padded ? styles.padded : null, style]}>
+    <View style={[scroll ? null : styles.fill, padded ? styles.padded : null, style]}>
       {maxContentWidth ? <View style={[styles.centered, { maxWidth: maxContentWidth }]}>{children}</View> : children}
     </View>
   );
@@ -67,7 +67,7 @@ export function Screen({
             onScroll={onScroll}
             scrollEventThrottle={16}
             showsVerticalScrollIndicator={showsScrollIndicator}
-            contentContainerStyle={contentStyle}
+            contentContainerStyle={[styles.scrollContent, contentStyle]}
             contentInsetAdjustmentBehavior={contentInsetAdjustmentBehavior}
             style={styles.fill}
           >
@@ -94,6 +94,7 @@ export function useScreenScrollProps() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
   fill: { flex: 1 },
   padded: { paddingHorizontal: LAYOUT.screenPadding },
   centered: { width: '100%', alignSelf: 'center' },

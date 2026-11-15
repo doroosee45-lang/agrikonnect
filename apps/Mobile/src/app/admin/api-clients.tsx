@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminApiClients() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminApiClients() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Clients API" subtitle="Applications autorisées à consommer l'API." />
+      <AppHeader title={t('ui.clientsApi')} subtitle={t('ui.applicationsAutoriseesAConsommerLApi')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Clients API" icon="key-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun client" description="Aucun client API enregistré." icon="key-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.clientsApi')} icon="key-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunClient')} description={t('ui.aucunClientApiEnregistre')} icon="key-outline" /> : (
             <View style={styles.list}>
               {items.map((client, index) => (
                 <Reveal key={client.id} index={index} variant="up">

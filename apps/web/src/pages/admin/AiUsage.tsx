@@ -8,24 +8,25 @@ import { useI18n } from '@/i18n';
 
 /** ADMIN — usage de l'IA : analyses, escalades, statuts. */
 export default function AdminAiUsage() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<AiAnalysis>
-      title="Usage IA"
-      subtitle="Analyses générées, avec leur statut et leur consentement."
+      title={t('ui.usageIa')}
+      subtitle={t('ui.analysesGenereesAvecLeurStatutEt')}
       icon="✨"
       queryKey={queryKeys.ai.list({ limit: 100 })}
       fetch={() => aiApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(analysis) => analysis.id}
       columns={[
-        { key: 'type', label: 'Type', render: (analysis) => analysis.type },
-        { key: 'prompt', label: 'Question', render: (analysis) => analysis.prompt ?? '—' },
-        { key: 'status', label: 'Statut', render: (analysis) => <Chip label={analysis.status} tone={analysis.status === 'ESCALATED' ? 'warning' : 'info'} size="sm" /> },
-        { key: 'createdAt', label: 'Créée le', render: (analysis) => formatDate(analysis.createdAt, locale) },
+        { key: 'type', label: t('ui.type'), render: (analysis) => analysis.type },
+        { key: 'prompt', label: t('ui.question'), render: (analysis) => analysis.prompt ?? '—' },
+        { key: 'status', label: t('ui.statut'), render: (analysis) => <Chip label={analysis.status} tone={analysis.status === 'ESCALATED' ? 'warning' : 'info'} size="sm" /> },
+        { key: 'createdAt', label: t('ui.creeeLe'), render: (analysis) => formatDate(analysis.createdAt, locale) },
       ]}
-      emptyTitle="Aucune analyse"
-      emptyDescription="Aucune analyse IA n'a été générée."
-      notice="Aucune analyse n'est générée sans consentement explicite, daté et réversible."
+      emptyTitle={t('ui.aucuneAnalyse')}
+      emptyDescription={t('ui.aucuneAnalyseIaNAEte')}
+      notice={t('ui.aucuneAnalyseNEstGenereeSans')}
     />
   );
 }

@@ -7,10 +7,24 @@ import { Accordion, Button, Card, ChipRow, FilterChip, Reveal, Section, Text } f
 import { FAQ_ENTRIES } from '@/lib/faq';
 import { COLORS, TINTS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, type TranslationKey } from '@/i18n';
 
 const TOPICS = ['Toutes', 'Données', 'Comptes', 'Échanges', 'Technique'] as const;
 
+/**
+ * Libellés affichés des rubriques. Les valeurs de `TOPICS` restent des
+ * identifiants (elles filtrent `FAQ_ENTRIES[].topic`) : seul l'affichage est traduit.
+ */
+const TOPIC_LABELS: Record<(typeof TOPICS)[number], TranslationKey> = {
+  Toutes: 'ui.faqTopicAll',
+  Données: 'ui.faqTopicDonnees',
+  Comptes: 'ui.faqTopicComptes',
+  Échanges: 'ui.faqTopicEchanges',
+  Technique: 'ui.faqTopicTechnique',
+};
+
 export default function Faq() {
+  const { t } = useI18n();
   const [topic, setTopic] = useState<(typeof TOPICS)[number]>('Toutes');
 
   const entries = useMemo(
@@ -22,9 +36,9 @@ export default function Faq() {
     <PublicShell active="faq">
       <PageHeader
         index={1}
-        eyebrow="Aide"
-        title="Questions fréquentes"
-        subtitle="Les règles de la plateforme, écrites clairement : provenance des données, vérification, contacts, limites de l’aide à la décision."
+        eyebrow={t('ui.aide')}
+        title={t('ui.questionsFrequentes')}
+        subtitle={t('ui.lesReglesDeLaPlateformeEcrites')}
       />
 
       <Section background={COLORS.naturalWhite} contentStyle={styles.section} bare>
@@ -33,7 +47,7 @@ export default function Faq() {
             {TOPICS.map((item) => (
               <FilterChip
                 key={item}
-                label={item}
+                label={t(TOPIC_LABELS[item])}
                 active={topic === item}
                 onPress={() => setTopic(item)}
               />
@@ -51,15 +65,10 @@ export default function Faq() {
         <Reveal index={2} variant="up">
           <Card tone="pale" style={styles.help}>
             <View style={styles.helpText}>
-              <Text preset="h3" color={COLORS.textPrimary}>
-                Votre question n’y est pas ?
-              </Text>
-              <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-                Le formulaire de contact transmet votre message à l’équipe. Pour contacter un producteur
-                en particulier, passez par sa fiche publique.
-              </Text>
+              <Text preset="h3" color={COLORS.textPrimary}>{t('ui.votreQuestionNYEstPas')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.leFormulaireDeContactTransmetVotre')}</Text>
             </View>
-            <Button label="Nous écrire" onPress={() => router.push('/contact')} variant="primary" size="sm" />
+            <Button label={t('ui.nousEcrire')} onPress={() => router.push('/contact')} variant="primary" size="sm" />
           </Card>
         </Reveal>
       </Section>

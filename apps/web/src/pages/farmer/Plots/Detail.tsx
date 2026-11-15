@@ -6,30 +6,31 @@ import { queryKeys } from '@/services/query';
 import type { PlotDetail as PlotDetailResult } from '@/services/types';
 import { Button, Chip } from '@/components/ui';
 import { formatDate } from '@/lib/format';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 
 const MODULES = [
-  { href: 'soil', label: 'Sol' },
-  { href: 'recommendations', label: 'Compatibilité' },
-  { href: 'rotation', label: 'Rotation' },
-  { href: 'plan', label: 'Plan agricole' },
-  { href: 'precision-report', label: 'Rapport de précision' },
-  { href: 'zones', label: 'Zones de gestion' },
-  { href: 'sensors', label: 'Capteurs' },
-  { href: 'satellite', label: 'Satellite' },
+  { href: 'soil', get label() { return tr('ui.sol'); } },
+  { href: 'recommendations', get label() { return tr('ui.compatibilite'); } },
+  { href: 'rotation', get label() { return tr('ui.rotation'); } },
+  { href: 'plan', get label() { return tr('ui.planAgricole'); } },
+  { href: 'precision-report', get label() { return tr('ui.rapportDePrecision'); } },
+  { href: 'zones', get label() { return tr('ui.zonesDeGestion'); } },
+  { href: 'sensors', get label() { return tr('ui.capteurs'); } },
+  { href: 'satellite', get label() { return tr('ui.satellite_d1ffe'); } },
 ];
 
 /** FARMER — fiche parcelle et ses huit modules. */
 export default function FarmerPlotDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
 
   return (
     <DetailPage<PlotDetailResult>
       title={(plot) => plot.name}
-      subtitle="Fiche de la parcelle et ses modules d'analyse."
+      subtitle={t('ui.ficheDeLaParcelleEtSes')}
       backHref="/farmer/plots"
-      backLabel="Retour aux parcelles"
+      backLabel={t('ui.retourAuxParcelles_2c89f')}
       queryKey={queryKeys.plots.one(id ?? '')}
       fetch={() => plotApi.get(id ?? '').then((result) => result.data)}
       actions={() => (
@@ -43,33 +44,33 @@ export default function FarmerPlotDetail() {
       )}
       sections={(plot) => [
         {
-          title: 'Identification',
+          title: t('ui.identification'),
           fields: [
-            { label: 'Nom', value: plot.name },
-            { label: 'Exploitation', value: plot.farm?.name ?? '—' },
-            { label: 'Surface', value: plot.areaHa !== null ? `${plot.areaHa} ha` : '—' },
-            { label: 'Géométrie', value: <Chip label={plot.geometryType} tone="neutral" size="sm" /> },
-            { label: 'Statut', value: <Chip label={plot.status} tone={plot.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm" /> },
-            { label: 'Source', value: <Chip label={plot.source} tone={plot.source === 'declared' ? 'warning' : 'success'} size="sm" /> },
-            { label: 'Mise à jour', value: formatDate(plot.updatedAt, locale) },
+            { label: t('ui.nom'), value: plot.name },
+            { label: t('ui.exploitation_3097d'), value: plot.farm?.name ?? '—' },
+            { label: t('ui.surface'), value: plot.areaHa !== null ? `${plot.areaHa} ha` : '—' },
+            { label: t('ui.geometrie'), value: <Chip label={plot.geometryType} tone="neutral" size="sm" /> },
+            { label: t('ui.statut'), value: <Chip label={plot.status} tone={plot.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm" /> },
+            { label: t('ui.source_6da13'), value: <Chip label={plot.source} tone={plot.source === 'declared' ? 'warning' : 'success'} size="sm" /> },
+            { label: t('ui.miseAJour'), value: formatDate(plot.updatedAt, locale) },
           ],
         },
         {
-          title: 'Culture courante',
-          notice: 'Une culture déclarée reste marquée comme telle tant qu’aucun contrôle n’a eu lieu.',
+          title: t('ui.cultureCourante'),
+          notice: t('ui.uneCultureDeclareeResteMarqueeComme'),
           fields: [
-            { label: 'Culture', value: plot.currentCrop?.names?.[locale] ?? plot.currentCrop?.names?.fr ?? plot.currentCrop?.slug ?? '—' },
-            { label: 'Date de semis', value: plot.plantingDate ? formatDate(plot.plantingDate, locale) : '—' },
+            { label: t('ui.culture'), value: plot.currentCrop?.names?.[locale] ?? plot.currentCrop?.names?.fr ?? plot.currentCrop?.slug ?? '—' },
+            { label: t('ui.dateDeSemis'), value: plot.plantingDate ? formatDate(plot.plantingDate, locale) : '—' },
           ],
         },
         {
-          title: 'Historique cultural',
+          title: t('ui.historiqueCultural'),
           fields: [
             {
-              label: 'Frise',
+              label: t('ui.frise'),
               value:
                 plot.histories.length === 0 ? (
-                  'Aucun historique enregistré.'
+                  t('ui.noHistoryRecorded')
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {plot.histories.map((history) => (

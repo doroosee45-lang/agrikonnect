@@ -1,5 +1,6 @@
 import { env } from '../config/env.js';
 import { logger } from '../shared/http/logger.js';
+import { translateMessage } from '../shared/i18n/index.js';
 
 /**
  * Abstraction fournisseur e-mail (CDC D9 / A.4).
@@ -199,14 +200,23 @@ export const templates = {
     subject: 'AGRIKONNECT — Réinitialisation de ton mot de passe',
     text: `Tu as demandé la réinitialisation de ton mot de passe.\n\nOuvre ce lien :\n${link}\n\nSi tu n'es pas à l'origine de cette demande, ignore cet email.`,
   }),
-  verificationDecision: ({ approved, reason }) => ({
-    subject: approved
-      ? 'AGRIKONNECT — Ton profil est vérifié'
-      : 'AGRIKONNECT — Ta demande de vérification a été examinée',
-    text: approved
-      ? 'Ta demande de vérification a été approuvée. Le statut est désormais visible sur ton profil public.'
-      : `Ta demande de vérification n'a pas pu être acceptée.\nMotif : ${reason ?? 'non précisé'}\n\nTu peux soumettre de nouveaux documents depuis ton espace.`,
-  }),
+  /** I18N-01 — `locale` : langue du destinataire (repli français). */
+  verificationDecision: ({ approved, reason, locale = 'fr' }) => {
+    const L = (message) => translateMessage(message, locale);
+    return {
+      subject: approved
+        ? L('AGRIKONNECT — Ton profil est vérifié')
+        : L('AGRIKONNECT — Ta demande de vérification a été examinée'),
+      text: approved
+        ? L('Ta demande de vérification a été approuvée. Le statut est désormais visible sur ton profil public.')
+        : [
+            L("Ta demande de vérification n'a pas pu être acceptée."),
+            `${L('Motif :')} ${reason ?? L('non précisé')}`,
+            '',
+            L('Tu peux soumettre de nouveaux documents depuis ton espace.'),
+          ].join('\n'),
+    };
+  },
 };
 
 /**

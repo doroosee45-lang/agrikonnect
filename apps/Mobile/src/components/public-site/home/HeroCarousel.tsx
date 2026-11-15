@@ -13,6 +13,7 @@ import { COLORS, TINTS } from '@/theme/colors';
 import { CREME, TERRE } from '@/theme/agrikonnect';
 import { SPACING } from '@/theme/space';
 import { DURATION } from '@/theme/motion';
+import { useI18n, tr } from '@/i18n';
 
 /**
  * Une diapositive du carrousel Hero mobile.
@@ -43,81 +44,72 @@ const recolte = require('../../../../assets/hero/recolte.jpg');
 const SLIDES: HeroCarouselSlide[] = [
   {
     image: champsManioc,
-    titre: 'Traçabilité agricole, marchés et investissement en Afrique',
-    sousTitre:
-      'Chaque lot porte son origine. Chaque donnée porte sa source. Chaque transaction est traçable, de la parcelle au marché.',
-    ctaLabel: 'Créer un compte gratuit',
+    get titre() { return tr('ui.tracabiliteAgricoleMarchesEtInvestissementEn'); },
+    get sousTitre() { return tr('ui.chaqueLotPorteSonOrigineChaque'); },
+    get ctaLabel() { return tr('ui.creerUnCompteGratuit'); },
     ctaHref: '/auth/register',
   },
   {
     image: cooperative,
-    titre: 'Les coopératives au cœur des filières',
-    sousTitre:
-      'Réunissez vos productions, négociez collectivement et accédez aux marchés grâce à une organisation transparente.',
-    ctaLabel: 'Découvrir les coopératives',
+    get titre() { return tr('ui.lesCooperativesAuCUrDes'); },
+    get sousTitre() { return tr('ui.reunissezVosProductionsNegociezCollectivementEt'); },
+    get ctaLabel() { return tr('ui.decouvrirLesCooperatives'); },
     ctaHref: '/public-site/cooperatives',
   },
   {
     image: marche,
-    titre: 'Opportunités de marché',
-    sousTitre:
-      'Publiez vos annonces, recevez des offres d’achat et suivez vos expéditions jusqu’à leur destination.',
-    ctaLabel: 'Voir les opportunités',
+    get titre() { return tr('ui.opportunitesDeMarche'); },
+    get sousTitre() { return tr('ui.publiezVosAnnoncesRecevezDesOffres'); },
+    get ctaLabel() { return tr('ui.voirLesOpportunites'); },
     ctaHref: '/public-site/tenders',
   },
   {
     image: terresAeriennes,
-    titre: 'Cartographie agricole',
-    sousTitre:
-      'Localisez vos exploitations sur une carte partagée, avec les statistiques de sol agrégées par zone.',
-    ctaLabel: 'Ouvrir la carte',
+    get titre() { return tr('ui.cartographieAgricole'); },
+    get sousTitre() { return tr('ui.localisezVosExploitationsSurUneCarte'); },
+    get ctaLabel() { return tr('ui.ouvrirLaCarte'); },
     ctaHref: '/public-site/map',
   },
   {
     image: solAnalyse,
-    titre: 'Analyse des sols et conseils agronomes',
-    sousTitre:
-      'Déterminez la convenance de vos parcelles pour chaque culture et planifiez vos rotations en toute confiance.',
-    ctaLabel: 'Commencer l’analyse',
+    get titre() { return tr('ui.analyseDesSolsEtConseilsAgronomes'); },
+    get sousTitre() { return tr('ui.determinezLaConvenanceDeVosParcelles'); },
+    get ctaLabel() { return tr('ui.commencerLAnalyse'); },
     ctaHref: '/auth/register',
   },
   {
     image: technologieCapteurs,
-    titre: 'Technologie au service des exploitations',
-    sousTitre:
-      'Capteurs, détections d’anomalies et alertes de seuil : suivez vos cultures en temps réel, partout en RDC.',
-    ctaLabel: 'Équiper mon exploitation',
+    get titre() { return tr('ui.technologieAuServiceDesExploitations'); },
+    get sousTitre() { return tr('ui.capteursDetectionsDAnomaliesEtAlertes'); },
+    get ctaLabel() { return tr('ui.equiperMonExploitation'); },
     ctaHref: '/auth/register',
   },
   {
     image: tracabiliteLot,
-    titre: 'Traçabilité de la parcelle au marché',
-    sousTitre: 'Chaque lot reçoit un QR code et un historique vérifié : origine, traitements, récolte et destination.',
-    ctaLabel: 'Voir un lot exemple',
+    get titre() { return tr('ui.tracabiliteDeLaParcelleAuMarche'); },
+    get sousTitre() { return tr('ui.chaqueLotRecoitUnQrCode'); },
+    get ctaLabel() { return tr('ui.voirUnLotExemple'); },
     ctaHref: '/public-site/lot/demo',
   },
   {
     image: investissementProjet,
-    titre: 'Investisseurs et projets agricoles',
-    sousTitre:
-      'Déposez un projet de développement, trouvez des partenaires et suivez son avancement dans une data room sécurisée.',
-    ctaLabel: 'Déposer un projet',
+    get titre() { return tr('ui.investisseursEtProjetsAgricoles'); },
+    get sousTitre() { return tr('ui.deposezUnProjetDeDeveloppementTrouvez'); },
+    get ctaLabel() { return tr('ui.deposerUnProjet'); },
     ctaHref: '/public-site/projects',
   },
   {
     image: elevage,
-    titre: 'Filières animales et élevage',
-    sousTitre:
-      'Suivez vos cheptels, enregistrez les productions et organisez la commercialisation avec vos coopératives.',
-    ctaLabel: 'Gérer mon élevage',
+    get titre() { return tr('ui.filieresAnimalesEtElevage'); },
+    get sousTitre() { return tr('ui.suivezVosCheptelsEnregistrezLesProductions'); },
+    get ctaLabel() { return tr('ui.gererMonElevage'); },
     ctaHref: '/auth/register',
   },
   {
     image: recolte,
-    titre: 'Récoltes et productions agricoles',
-    sousTitre:
-      'Déclarez vos rendements, comparez-les aux recommandations et valorisez votre production sur le marché.',
-    ctaLabel: 'Déclarer ma récolte',
+    get titre() { return tr('ui.recoltesEtProductionsAgricoles'); },
+    get sousTitre() { return tr('ui.declarezVosRendementsComparezLesAux'); },
+    get ctaLabel() { return tr('ui.declarerMaRecolte'); },
     ctaHref: '/auth/register',
   },
 ] as const;
@@ -135,6 +127,7 @@ const CAROUSEL_HEIGHT = 340;
  * - Les couleurs et dimensions utilisent les jetons AGRIKONNECT.
  */
 export function HeroCarousel() {
+  const { t } = useI18n();
   const { width } = useWindowDimensions();
   const total = SLIDES.length;
   const index = useSharedValue(0);
@@ -186,9 +179,7 @@ export function HeroCarousel() {
                     alignItems: 'center',
                   }}
                 >
-                  <Text preset="caption" color={COLORS.warning}>
-                    Visuel indisponible
-                  </Text>
+                  <Text preset="caption" color={COLORS.warning}>{t('ui.visuelIndisponible')}</Text>
                 </View>
               )}
               {/* Voile de lisibilité au-dessus de l’image. */}
@@ -209,9 +200,7 @@ export function HeroCarousel() {
             })),
           ]}
         >
-          <Text preset="overline" color={COLORS.gold} style={styles.overline}>
-            AGRIKONNECT AFRICA
-          </Text>
+          <Text preset="overline" color={COLORS.gold} style={styles.overline}>{t('common.appName')}</Text>
           <Text preset="h3" color={COLORS.pureWhite} style={styles.titre}>
             {slide.titre}
           </Text>

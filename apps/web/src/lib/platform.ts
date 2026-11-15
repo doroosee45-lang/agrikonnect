@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 /**
  * Catalogue des services de la plateforme.
  *
@@ -23,10 +24,9 @@ export const SERVICES: PlatformService[] = [
   {
     id: 'traceability',
     icon: 'shield-checkmark-outline',
-    title: 'Traçabilité et origine',
-    body: 'Chaque lot porte son exploitation, sa parcelle, sa saison et ses contrôles.',
-    detail:
-      'Code QR par lot, historique immuable, provenance déclarée ou mesurée distinguée à chaque affichage.',
+    get title() { return tr('ui.tracabiliteEtOrigine'); },
+    get body() { return tr('ui.chaqueLotPorteSonExploitationSa'); },
+    get detail() { return tr('ui.codeQrParLotHistoriqueImmuable'); },
     href: '/public/lots/demo',
     requiresAuth: false,
     tone: 'forest',
@@ -35,10 +35,9 @@ export const SERVICES: PlatformService[] = [
   {
     id: 'market',
     icon: 'storefront-outline',
-    title: 'Marché et commandes',
-    body: 'Annonces, demandes d’achat, offres et commandes avec paiement et litiges.',
-    detail:
-      'Mise en relation structurée, instantané de prix à la validation, suivi de commande et résolution de litiges.',
+    get title() { return tr('ui.marcheEtCommandes'); },
+    get body() { return tr('ui.annoncesDemandesDAchatOffresEt'); },
+    get detail() { return tr('ui.miseEnRelationStructureeInstantaneDe'); },
     href: '/market',
     requiresAuth: true,
     tone: 'gold',
@@ -47,10 +46,9 @@ export const SERVICES: PlatformService[] = [
   {
     id: 'investment',
     icon: 'trending-up-outline',
-    title: 'Investissement et projets',
-    body: 'Portefeuille de projets, data room, rapports d’impact et financement.',
-    detail:
-      'Diligence structurée, accès tracé aux documents, suivi de financement et rapports d’impact vérifiables.',
+    get title() { return tr('ui.investissementEtProjets'); },
+    get body() { return tr('ui.portefeuilleDeProjetsDataRoomRapports'); },
+    get detail() { return tr('ui.diligenceStructureeAccesTraceAuxDocuments'); },
     href: '/investment',
     requiresAuth: true,
     tone: 'living',
@@ -59,10 +57,9 @@ export const SERVICES: PlatformService[] = [
   {
     id: 'insights',
     icon: 'bar-chart-outline',
-    title: 'Données de marché',
-    body: 'Prix, volumes et activité agrégés avec seuil de k-anonymat.',
-    detail:
-      'Agrégats sous seuil masqués, provenance et méthode affichées, aucune donnée personnelle révélée.',
+    get title() { return tr('ui.donneesDeMarche'); },
+    get body() { return tr('ui.prixVolumesEtActiviteAgregesAvec'); },
+    get detail() { return tr('ui.agregatsSousSeuilMasquesProvenanceEt'); },
     href: '/insights',
     requiresAuth: true,
     tone: 'info',
@@ -71,10 +68,9 @@ export const SERVICES: PlatformService[] = [
   {
     id: 'cooperative',
     icon: 'people-outline',
-    title: 'Coopératives',
-    body: 'Regroupement de producteurs, volumes consolidés et offres groupées.',
-    detail:
-      'Gestion des membres, consentement explicite, volumes consolidés et offres groupées traçables.',
+    get title() { return tr('ui.cooperatives'); },
+    get body() { return tr('ui.regroupementDeProducteursVolumesConsolidesEt'); },
+    get detail() { return tr('ui.gestionDesMembresConsentementExpliciteVolumes'); },
     href: '/public/cooperatives',
     requiresAuth: true,
     tone: 'forest',
@@ -83,10 +79,9 @@ export const SERVICES: PlatformService[] = [
   {
     id: 'ai',
     icon: 'sparkles-outline',
-    title: 'Assistance IA',
-    body: 'Analyses de cultures, documents et copilote, avec escalade humaine.',
-    detail:
-      'Consentement explicite, avertissements systématiques, escalade vers un agronome identifié.',
+    get title() { return tr('ui.assistanceIa'); },
+    get body() { return tr('ui.analysesDeCulturesDocumentsEtCopilote'); },
+    get detail() { return tr('ui.consentementExpliciteAvertissementsSystematiques'); },
     href: '/ai/assistant',
     requiresAuth: true,
     tone: 'gold',

@@ -22,6 +22,7 @@ import { SPACING } from '@/theme/space';
 
 /** Fiche publique d'un lot (`GET /public/lots/:code`). */
 export default function LotDetail() {
+  const { t } = useI18n();
   const { code } = useLocalSearchParams<{ code: string }>();
   const { locale } = useI18n();
   const router = useRouter();
@@ -32,15 +33,15 @@ export default function LotDetail() {
     <PublicShell active="accueil">
       <PageHeader
         index={1}
-        eyebrow="Traçabilité"
-        title={code ?? 'Lot'}
-        subtitle="Fiche publique : champs publiés par le producteur, filière et journal des étapes."
+        eyebrow={t('ui.tracabilite')}
+        title={code ?? t('ui.lot')}
+        subtitle={t('ui.fichePubliqueChampsPubliesParLe')}
         compact
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <Button
-          label="Chercher un autre lot"
+          label={t('ui.chercherUnAutreLot')}
           onPress={() => router.push('/public-site/lot')}
           variant="ghost"
           size="sm"
@@ -52,12 +53,8 @@ export default function LotDetail() {
         ) : isError ? (
           <Card tone="white" style={styles.error}>
             <Ionicons name="help-circle-outline" size={20} color={COLORS.warning} />
-            <Text preset="bodyMedium" color={COLORS.textPrimary}>
-              Aucun lot ne correspond à « {code} ».
-            </Text>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-              Vérifiez le code figurant sur l’étiquette, ou demandez au vendeur le QR du colis.
-            </Text>
+            <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.aucunLotNeCorrespondA', { code })}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.verifiezLeCodeFigurantSurL')}</Text>
             <ErrorState error={error} onRetry={() => void refetch()} />
           </Card>
         ) : data ? (
@@ -65,9 +62,7 @@ export default function LotDetail() {
             <Card tone="ink" style={styles.card}>
               <View style={styles.header}>
                 <View style={styles.headerText}>
-                  <Text preset="overline" color={COLORS.gold}>
-                    Lot
-                  </Text>
+                  <Text preset="overline" color={COLORS.gold}>{t('ui.lot')}</Text>
                   <Text preset="display" color={DARK.text}>
                     {data.code}
                   </Text>
@@ -76,21 +71,15 @@ export default function LotDetail() {
               </View>
 
               <View style={styles.meta}>
-                {data.crop ? <Chip label={`Filière : ${data.crop.name}`} tone="living" size="sm" /> : null}
-                <Text preset="caption" color={DARK.textFaint}>
-                  Créé le {formatDate(data.createdAt, locale, 'datetime')}
-                </Text>
+                {data.crop ? <Chip label={t('ui.filiere', { name: data.crop.name })} tone="living" size="sm" /> : null}
+                <Text preset="caption" color={DARK.textFaint}>{t('ui.creeLe_70f5f', { createdAt: formatDate(data.createdAt, locale, 'datetime') })}</Text>
               </View>
 
               <Divider light />
 
-              <Text preset="overline" color={COLORS.gold}>
-                Champs publiés
-              </Text>
+              <Text preset="overline" color={COLORS.gold}>{t('ui.champsPublies')}</Text>
               {Object.keys(data.published).length === 0 ? (
-                <Text preset="bodySm" color={DARK.textFaint}>
-                  Le producteur n’a publié aucun champ pour ce lot.
-                </Text>
+                <Text preset="bodySm" color={DARK.textFaint}>{t('ui.leProducteurNAPublieAucun')}</Text>
               ) : (
                 <View style={styles.published}>
                   {Object.entries(data.published).map(([key, value]) => (
@@ -108,13 +97,9 @@ export default function LotDetail() {
 
               <Divider light />
 
-              <Text preset="overline" color={COLORS.gold}>
-                Journal des étapes
-              </Text>
+              <Text preset="overline" color={COLORS.gold}>{t('ui.journalDesEtapes')}</Text>
               {data.timeline.length === 0 ? (
-                <Text preset="bodySm" color={DARK.textFaint}>
-                  Aucune étape enregistrée.
-                </Text>
+                <Text preset="bodySm" color={DARK.textFaint}>{t('ui.aucuneEtapeEnregistree')}</Text>
               ) : (
                 <View style={styles.timeline}>
                   {data.timeline.map((event, index) => (
@@ -148,9 +133,7 @@ export default function LotDetail() {
                 </Text>
               </Card>
 
-              <Text preset="caption" color={DARK.textFaint} style={styles.lineHeight}>
-                {data.disclosure.rule} Champs non exposés : {data.disclosure.hiddenFields.join(', ')}.
-              </Text>
+              <Text preset="caption" color={DARK.textFaint} style={styles.lineHeight}>{t('ui.champsNonExposes', { rule: data.disclosure.rule, value: data.disclosure.hiddenFields.join(', ') })}</Text>
             </Card>
           </Reveal>
         ) : null}

@@ -14,6 +14,7 @@ import { SPACING } from '@/theme/space';
 
 /** PRC — prix de marché sourcés et datés (compte requis). */
 export default function PublicSiteMarches() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -25,14 +26,14 @@ export default function PublicSiteMarches() {
   const items = query.data?.items ?? [];
   return (
     <PublicShell active="marches">
-      <PageHeader index="10" eyebrow="Marchés" title="Prix de marché" subtitle="Chaque prix est sourcé, daté et rattaché à un marché identifié." />
+      <PageHeader index="10" eyebrow={t('ui.marches')} title={t('ui.prixDeMarche')} subtitle={t('ui.chaquePrixEstSourceDateEt')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Prix de marché" icon="trending-up-outline" description="Les séries de prix sont réservées aux comptes connectés.">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.prixDeMarche')} icon="trending-up-outline" description={t('ui.lesSeriesDePrixSontReservees')}>
           {query.isLoading ? <LoadingState count={4} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : (query.data?.available ?? true) === false ? (
             <Card tone="pale">
-              <Text preset="bodySm" color={COLORS.slateGray}>{query.data?.message ?? 'Prix indisponibles pour le moment.'}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{query.data?.message ?? t('ui.prixIndisponiblesPourLeMoment')}</Text>
             </Card>
-          ) : items.length === 0 ? <EmptyState title="Aucun prix" description="Aucune observation de marché disponible." icon="trending-up-outline" /> : (
+          ) : items.length === 0 ? <EmptyState title={t('ui.aucunPrix')} description={t('ui.aucuneObservationDeMarcheDisponible')} icon="trending-up-outline" /> : (
             <View style={styles.list}>
               {items.map((price, index) => (
                 <Reveal key={price.id} index={index} variant="up">

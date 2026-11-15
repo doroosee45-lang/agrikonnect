@@ -50,6 +50,8 @@ export const queryKeys = {
     farm: (slug: string) => ['public', 'farm', slug] as const,
     soilStats: (params: unknown) => ['public', 'soil-stats', params] as const,
     lot: (code: string) => ['public', 'lot', code] as const,
+    blogPosts: (params: unknown) => ['public', 'blog-posts', params] as const,
+    blogPost: (slug: string) => ['public', 'blog-post', slug] as const,
   },
   health: ['health'] as const,
   me: ['me'] as const,
@@ -258,6 +260,8 @@ export const queryKeys = {
     list: (params: unknown) => ['transport', 'list', params] as const,
   },
   admin: {
+    blogPosts: (params: unknown) => ['admin', 'blog-posts', params] as const,
+    blogPostsAll: ['admin', 'blog-posts'] as const,
     dashboard: (params: unknown) => ['admin', 'dashboard', params] as const,
     users: (params: unknown) => ['admin', 'users', params] as const,
     /** M2 — fiche utilisateur (U-M2-2). */

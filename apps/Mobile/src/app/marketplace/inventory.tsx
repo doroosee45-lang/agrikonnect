@@ -31,6 +31,7 @@ import { SPACING } from '@/theme/space';
 
 /** Stock : articles, seuils d'alerte et mouvements journalisés. */
 export default function Inventory() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -95,18 +96,18 @@ export default function Inventory() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Stock" subtitle="Articles, seuils d'alerte et mouvements horodatés." />
+      <AppHeader title={t('ui.stock')} subtitle={t('ui.articlesSeuilsDAlerteEtMouvements')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour gérer votre stock et ses mouvements."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourGererVotreStock')}
           icon="cube-outline"
         >
           <View style={styles.toolbar}>
             <Button
-              label={creating ? 'Fermer' : 'Nouvel article'}
+              label={creating ? t('common.close') : t('ui.nouvelArticle')}
               onPress={() => setCreating((value) => !value)}
               variant={creating ? 'ghost' : 'primary'}
               size="sm"
@@ -117,14 +118,14 @@ export default function Inventory() {
           {creating ? (
             <Animated.View entering={FadeInDown.duration(DURATION.slow)} exiting={FadeOutUp.duration(DURATION.fast)}>
               <Card tone="white" style={styles.form}>
-                <Input label="Article" value={label} onChangeText={setLabel} placeholder="Cacao séché — lot A" icon="cube-outline" autoCapitalize="words" />
+                <Input label={t('ui.article')} value={label} onChangeText={setLabel} placeholder={t('ui.cacaoSecheLotA')} icon="cube-outline" autoCapitalize="words" />
                 <View style={styles.row}>
-                  <Input label="Unité" value={unit} onChangeText={setUnit} placeholder="kg" icon="scale-outline" />
-                  <Input label="Seuil d'alerte" value={threshold} onChangeText={setThreshold} placeholder="500" icon="alert-circle-outline" keyboardType="decimal-pad" optionalLabel="facultatif" />
+                  <Input label={t('ui.unite')} value={unit} onChangeText={setUnit} placeholder="kg" icon="scale-outline" />
+                  <Input label={t('ui.seuilDAlerte')} value={threshold} onChangeText={setThreshold} placeholder="500" icon="alert-circle-outline" keyboardType="decimal-pad" optionalLabel={t('common.optional')} />
                 </View>
-                <Input label="Péremption" value={expiresAt} onChangeText={setExpiresAt} placeholder="2026-12-31" icon="calendar-outline" optionalLabel="facultatif" />
+                <Input label={t('ui.peremption')} value={expiresAt} onChangeText={setExpiresAt} placeholder="2026-12-31" icon="calendar-outline" optionalLabel={t('common.optional')} />
                 {error ? <ErrorState error={error} showRequestId /> : null}
-                <Button label="Créer l'article" onPress={() => create.mutate()} variant="primary" fullWidth loading={create.isPending} disabled={label.trim().length < 2} />
+                <Button label={t('ui.creerLArticle_94b5a')} onPress={() => create.mutate()} variant="primary" fullWidth loading={create.isPending} disabled={label.trim().length < 2} />
               </Card>
             </Animated.View>
           ) : null}
@@ -134,7 +135,7 @@ export default function Inventory() {
           ) : items.isError ? (
             <ErrorState error={items.error} onRetry={() => void items.refetch()} />
           ) : rows.length === 0 ? (
-            <EmptyState title="Aucun article" description="Créez un article pour suivre ses entrées et sorties." icon="cube-outline" action={{ label: 'Nouvel article', onPress: () => setCreating(true) }} />
+            <EmptyState title={t('ui.aucunArticle')} description={t('ui.creezUnArticlePourSuivreSes')} icon="cube-outline" action={{ label: t('ui.nouvelArticle'), onPress: () => setCreating(true) }} />
           ) : (
             <View style={styles.list}>
               {rows.map((item, index) => {
@@ -148,14 +149,14 @@ export default function Inventory() {
                             {item.label}
                           </Text>
                           <Text preset="caption" color={COLORS.slateGray}>
-                            {item.stock !== undefined ? `${formatNumber(item.stock, locale, 1)} ${item.unit}` : `unité : ${item.unit}`}
-                            {item.expiresAt ? ` · péremption ${formatDate(item.expiresAt, locale)}` : ''}
+                            {item.stock !== undefined ? `${formatNumber(item.stock, locale, 1)} ${item.unit}` : t('ui.unite_49bcf', { unit: item.unit })}
+                            {item.expiresAt ? t('ui.peremption_34398', { expiresAt: formatDate(item.expiresAt, locale) }) : ''}
                           </Text>
                         </View>
-                        {low ? <Chip label="Seuil atteint" tone="warning" size="sm" /> : null}
+                        {low ? <Chip label={t('ui.seuilAtteint')} tone="warning" size="sm" /> : null}
                       </View>
                       <Button
-                        label={selected === item.id ? 'Masquer les mouvements' : 'Voir les mouvements'}
+                        label={selected === item.id ? t('ui.masquerLesMouvements') : t('ui.voirLesMouvements')}
                         onPress={() => setSelected(selected === item.id ? null : item.id)}
                         variant="outline"
                         size="sm"
@@ -171,18 +172,16 @@ export default function Inventory() {
           {selected ? (
             <>
               <Card tone="white" style={styles.form}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Enregistrer un mouvement
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.enregistrerUnMouvement')}</Text>
                 <ChipRow>
                   {(['IN', 'OUT'] as const).map((type) => (
-                    <FilterChip key={type} label={type === 'IN' ? 'Entrée' : 'Sortie'} active={movementType === type} onPress={() => setMovementType(type)} />
+                    <FilterChip key={type} label={type === 'IN' ? t('ui.entree') : t('ui.sortie')} active={movementType === type} onPress={() => setMovementType(type)} />
                   ))}
                 </ChipRow>
-                <Input label="Quantité" value={movementQuantity} onChangeText={setMovementQuantity} placeholder="250" icon="scale-outline" keyboardType="decimal-pad" />
+                <Input label={t('ui.quantite')} value={movementQuantity} onChangeText={setMovementQuantity} placeholder="250" icon="scale-outline" keyboardType="decimal-pad" />
                 {error ? <ErrorState error={error} showRequestId /> : null}
                 <Button
-                  label="Enregistrer"
+                  label={t('common.save')}
                   onPress={() => addMovement.mutate()}
                   variant="primary"
                   size="sm"
@@ -196,7 +195,7 @@ export default function Inventory() {
               ) : movements.isError ? (
                 <ErrorState error={movements.error} onRetry={() => void movements.refetch()} />
               ) : (movements.data ?? []).length === 0 ? (
-                <EmptyState title="Aucun mouvement" description="Les entrées et sorties apparaîtront ici, horodatées." icon="swap-vertical-outline" />
+                <EmptyState title={t('ui.aucunMouvement')} description={t('ui.lesEntreesEtSortiesApparaitrontIci')} icon="swap-vertical-outline" />
               ) : (
                 <View style={styles.list}>
                   {(movements.data ?? []).map((movement, index) => (
@@ -204,7 +203,7 @@ export default function Inventory() {
                       <Card tone="white" style={styles.movementCard}>
                         <View style={styles.headText}>
                           <Text preset="bodySm" color={COLORS.textPrimary}>
-                            {movement.type === 'IN' ? 'Entrée' : 'Sortie'} · {formatNumber(movement.quantity, locale, 1)} {movement.unit}
+                            {movement.type === 'IN' ? t('ui.entree') : t('ui.sortie')} · {formatNumber(movement.quantity, locale, 1)} {movement.unit}
                           </Text>
                           <Text preset="caption" color={COLORS.slateGray}>
                             {formatDate(movement.at, locale)}

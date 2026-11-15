@@ -37,6 +37,7 @@ const STATUS_TONES: Record<string, 'success' | 'warning' | 'neutral' | 'info'> =
 
 /** International : appels d'offres export et couverture pays réelle. */
 export default function International() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -51,25 +52,21 @@ export default function International() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="International" subtitle="Appels d'offres, destinations et couverture réelle par pays." />
+      <AppHeader title={t('ui.international')} subtitle={t('ui.appelsDOffresDestinationsEtCouverture')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour consulter les appels d'offres et y répondre."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourConsulterLesAppels')}
           icon="globe-outline"
         >
           <Card tone="white" style={styles.card}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Couverture constatée
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.couvertureConstatee')}</Text>
             {mapLoading ? (
               <LoadingState count={1} height={60} />
             ) : countries.length === 0 ? (
-              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                Aucune exploitation publiée pour le moment : la carte publique ne renvoie aucun pays.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.aucuneExploitationPublieePourLeMoment_7310d')}</Text>
             ) : (
               <>
                 <ChipRow>
@@ -77,17 +74,12 @@ export default function International() {
                     <Chip key={code} label={`${code} · ${formatNumber(count, locale)}`} tone="neutral" size="sm" />
                   ))}
                 </ChipRow>
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Décompte issu de la carte publique, positions arrondies. Aucun pays n’est affiché s’il n’a aucune
-                  exploitation publiée.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.decompteIssuDeLaCartePublique')}</Text>
               </>
             )}
           </Card>
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Appels d’offres
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.appelsDOffres')}</Text>
 
           {tenders.isLoading ? (
             <LoadingState count={3} height={120} />
@@ -95,8 +87,8 @@ export default function International() {
             <ErrorState error={tenders.error} onRetry={() => void tenders.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucun appel d’offres"
-              description="Les appels d'offres publiés par des acheteurs apparaîtront ici, avec leur échéance."
+              title={t('ui.aucunAppelDOffres_7ecc2')}
+              description={t('ui.lesAppelsDOffresPubliesPar')}
               icon="document-attach-outline"
             />
           ) : (
@@ -109,9 +101,7 @@ export default function International() {
                         <Text preset="h3" color={COLORS.textPrimary} numberOfLines={2}>
                           {tender.title}
                         </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          {formatNumber(tender.quantity, locale, 0)} {tender.unit} · destination {tender.destinationCountry}
-                          {tender.deadline ? ` · échéance ${formatDate(tender.deadline, locale)}` : ''}
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.destination_48d18', { quantity: formatNumber(tender.quantity, locale, 0), unit: tender.unit, destinationCountry: tender.destinationCountry })}{tender.deadline ? t('ui.echeance_3d777', { deadline: formatDate(tender.deadline, locale) }) : ''}
                         </Text>
                       </View>
                       <Chip label={tender.status} tone={STATUS_TONES[tender.status] ?? 'neutral'} size="sm" />
@@ -132,10 +122,8 @@ export default function International() {
                     ) : null}
 
                     <View style={styles.actions}>
-                      <Button label="Répondre" onPress={() => router.push('/tenders')} variant="outline" size="sm" icon="send-outline" />
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        publiée le {formatDate(tender.createdAt, locale)}
-                      </Text>
+                      <Button label={t('ui.repondre')} onPress={() => router.push('/tenders')} variant="outline" size="sm" icon="send-outline" />
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.publieeLe_c0024', { createdAt: formatDate(tender.createdAt, locale) })}</Text>
                     </View>
                   </Card>
                 </Reveal>
@@ -145,11 +133,7 @@ export default function International() {
 
           <Card tone="pale" style={styles.note}>
             <Ionicons name="information-circle-outline" size={16} color={COLORS.info} />
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Les documents d’export (certificats, listes de colisage) sont versionnés et horodatés. Une réponse à
-              un appel d’offres engage sur les volumes déclarés : ils restent marqués comme déclarés tant qu’aucun
-              contrôle n’a eu lieu.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lesDocumentsDExportCertificatsListes')}</Text>
           </Card>
         </AuthGate>
       </Section>

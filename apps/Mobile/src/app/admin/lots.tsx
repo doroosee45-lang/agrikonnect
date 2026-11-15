@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminLots() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminLots() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Lots" subtitle="Lots de traçabilité." />
+      <AppHeader title={t('ui.lots')} subtitle={t('ui.lotsDeTracabilite_95f21')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Lots" icon="pricetag-outline">
-          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun lot" description="Aucun lot enregistré." icon="pricetag-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.lots')} icon="pricetag-outline">
+          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunLot')} description={t('ui.aucunLotEnregistre')} icon="pricetag-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const lot = row as Record<string, unknown>;

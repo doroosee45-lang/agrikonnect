@@ -122,7 +122,7 @@ export const evaluerServicesExternes = (cfg) => {
   }
 
   /* ── Matériel / capteurs ────────────────────────────────────── */
-  if (cfg.simulationAllowed !== false && cfg.hardwareMode !== 'REAL') {
+  if (cfg.simulationAllowed !== false && cfg.hardwareMode !== 'REAL' && cfg.hardwareMode !== 'NONE') {
     findings.push({
       service: 'capteurs',
       niveau: 'degrade',

@@ -15,6 +15,8 @@ import { smsConsentApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme';
+import { useI18n, tr } from '@/i18n';
+import { bcpLocale } from '@/lib/format';
 
 /**
  * Version du texte de consentement présenté ici.
@@ -36,12 +38,12 @@ const NOTICE_VERSION = 'v1-2026-10';
 const ALERT_PURPOSE = 'ALERT';
 
 const PURPOSE_LABELS: Record<string, string> = {
-  ALERT: 'Alertes agronomiques',
-  OTP: 'Codes de vérification',
+  get ALERT() { return tr('ui.alertesAgronomiques'); },
+  get OTP() { return tr('ui.codesDeVerification'); },
 };
 
 const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  new Date(value).toLocaleDateString(bcpLocale(), { day: '2-digit', month: 'long', year: 'numeric' });
 
 /**
  * Consentement aux alertes par SMS.
@@ -53,6 +55,7 @@ const formatDate = (value: string) =>
  * l'application**. Cet écran est le seul endroit où la désinscription existe.
  */
 export default function SmsConsent() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -101,17 +104,13 @@ export default function SmsConsent() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Alertes par SMS"
-        description="Connectez-vous pour choisir de recevoir les alertes par SMS."
+        title={t('ui.alertesParSms')}
+        description={t('ui.connectezVousPourChoisirDeRecevoir')}
         icon="📱"
       >
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Alertes par SMS
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Recevez un SMS quand un seuil du sol est franchi sur l'une de vos parcelles.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.alertesParSms')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.recevezUnSmsQuandUnSeuil')}</Text>
         </div>
 
         {consents.isLoading ? (
@@ -130,24 +129,20 @@ export default function SmsConsent() {
             {!readiness.valid ? (
               <Card style={{ borderLeft: `3px solid ${COLORS.warning}` }}>
                 <Text preset="h3" style={{ marginBottom: 8 }}>
-                  {readiness.present ? 'Numéro au format invalide' : 'Aucun numéro enregistré'}
+                  {readiness.present ? t('ui.numeroAuFormatInvalide') : t('ui.aucunNumeroEnregistre')}
                 </Text>
                 <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
                   {readiness.blocker}
                 </Text>
                 <Text preset="bodySm" color={COLORS.slateGray}>
                   {readiness.present
-                    ? `Numéro enregistré : ${phone}`
-                    : 'Ajoutez un numéro au format international, par exemple +243 81 234 5678, '
-                      + 'dans votre profil. Les alertes continueront d’apparaître dans '
-                      + 'l’application en attendant.'}
+                    ? t('ui.numeroEnregistre', { phone })
+                    : t('ui.ajoutezUnNumeroAuFormatInternational')}
                 </Text>
               </Card>
             ) : (
               <Card>
-                <Text preset="h3" style={{ marginBottom: 8 }}>
-                  Numéro destinataire
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 8 }}>{t('ui.numeroDestinataire')}</Text>
                 <Text preset="bodyMd" style={{ marginBottom: 8 }}>
                   {phone}
                 </Text>
@@ -159,9 +154,8 @@ export default function SmsConsent() {
                 */}
                 <Text preset="caption" color={phoneVerified ? COLORS.success : COLORS.warning}>
                   {phoneVerified
-                    ? 'Numéro vérifié.'
-                    : 'Ce numéro n’a pas encore été vérifié par code. S’il n’est pas le vôtre, '
-                      + 'ne donnez pas votre accord.'}
+                    ? t('ui.numeroVerifie')
+                    : t('ui.ceNumeroNAPasEncore')}
                 </Text>
               </Card>
             )}
@@ -173,19 +167,16 @@ export default function SmsConsent() {
                   <Text preset="h3" style={{ marginBottom: 4 }}>
                     {PURPOSE_LABELS[ALERT_PURPOSE] ?? ALERT_PURPOSE}
                   </Text>
-                  <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 12 }}>
-                    Un SMS par alerte, sur le numéro enregistré à votre profil. Aucun envoi sans
-                    votre accord.
-                  </Text>
-                  <Chip label={granted ? 'Consentement donné' : 'Aucun envoi en cours'} tone={granted ? 'success' : 'neutral'} />
+                  <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 12 }}>{t('ui.unSmsParAlerteSurLe')}</Text>
+                  <Chip label={granted ? t('ui.consentementDonne') : t('ui.aucunEnvoiEnCours')} tone={granted ? 'success' : 'neutral'} />
                 </div>
                 <Button
                   label={
                     granted
-                      ? 'Retirer mon accord'
+                      ? t('ui.retirerMonAccord')
                       : readiness.canGrant
-                        ? 'Donner mon accord'
-                        : 'Numéro requis'
+                        ? t('ui.donnerMonAccord')
+                        : t('ui.numeroRequis')
                   }
                   onClick={() => (granted ? withdraw.mutate() : grant.mutate())}
                   variant={granted ? 'outline' : 'primary'}
@@ -196,9 +187,7 @@ export default function SmsConsent() {
               </div>
 
               {granted && alertConsent ? (
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>
-                  Donné le {formatDate(alertConsent.grantedAt)}
-                  {alertConsent.noticeVersion ? ` · texte ${alertConsent.noticeVersion}` : ''}
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>{t('ui.donneLe', { grantedAt: formatDate(alertConsent.grantedAt) })}{alertConsent.noticeVersion ? t('ui.texte', { noticeVersion: alertConsent.noticeVersion }) : ''}
                 </Text>
               ) : null}
 
@@ -207,49 +196,28 @@ export default function SmsConsent() {
                 preuve que l'envoi a cessé, et qu'il avait commencé.
               */}
               {alertConsent?.status === 'WITHDRAWN' && alertConsent.withdrawnAt ? (
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>
-                  Retiré le {formatDate(alertConsent.withdrawnAt)} — aucun nouveau SMS n'est
-                  envoyé. Un message déjà remis à l'opérateur ne peut pas être rappelé.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>{t('ui.retireLeAucunNouveauSmsN', { withdrawnAt: formatDate(alertConsent.withdrawnAt) })}</Text>
               ) : null}
             </Card>
 
             {/* ── Comment se désinscrire : le point non négociable ── */}
             <Card style={{ borderLeft: `3px solid ${COLORS.gold}` }}>
-              <Text preset="h3" style={{ marginBottom: 8 }}>
-                Comment se désinscrire
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 8 }}>{t('ui.commentSeDesinscrire')}</Text>
               <Text preset="bodySm" color={COLORS.slateGray}>
                 {consents.data?.optOutNotice ??
-                  'Les alertes arrivent d’un identifiant d’expéditeur à sens unique : répondre au '
-                  + 'SMS n’a aucun effet. La désinscription se fait ici, dans l’application.'}
+                  t('ui.lesAlertesArriventDUnIdentifiant')}
               </Text>
               {consents.data?.twoWaySupported === false ? (
-                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 8 }}>
-                  En République démocratique du Congo, le SMS bidirectionnel n'est pas disponible
-                  chez le fournisseur : un « STOP » envoyé par SMS ne serait lu par personne.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 8 }}>{t('ui.enRepubliqueDemocratiqueDuCongoLe')}</Text>
               ) : null}
             </Card>
 
             {/* ── Ce que l'accord couvre, et ce qu'il ne couvre pas ── */}
             <Card>
-              <Text preset="h3" style={{ marginBottom: 8 }}>
-                Ce que couvre cet accord
-              </Text>
-              <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
-                Vous acceptez de recevoir, sur votre numéro, des messages courts concernant
-                l'état mesuré de vos parcelles : franchissement d'un seuil, prévision défavorable,
-                capteur silencieux.
-              </Text>
-              <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
-                Vous ne recevrez pas de publicité, et votre numéro n'est transmis à aucun tiers en
-                dehors de l'opérateur qui achemine le message.
-              </Text>
-              <Text preset="bodySm" color={COLORS.slateGray}>
-                Après le retrait, aucun nouveau SMS n'est envoyé. Un message déjà remis à
-                l'opérateur ne peut pas être rappelé.
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 8 }}>{t('ui.ceQueCouvreCetAccord')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 8 }}>{t('ui.vousAcceptezDeRecevoirSurVotre')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 8 }}>{t('ui.vousNeRecevrezPasDePublicite')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.apresLeRetraitAucunNouveauSms')}</Text>
             </Card>
 
             {/*

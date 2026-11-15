@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function PriceCropDetail() {
+  const { t } = useI18n();
   const { crop } = useLocalSearchParams<{ crop: string }>();
   const { locale } = useI18n();
   const cropId = crop ?? '';
@@ -25,11 +26,11 @@ export default function PriceCropDetail() {
   const latest = items[0];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={cropId || '—'} subtitle="Historique des prix de marché." />
+      <AppHeader title={cropId || '—'} subtitle={t('ui.historiqueDesPrixDeMarche')} />
       <Section bare contentStyle={styles.section}>
-        {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun prix" description="Aucune observation de marché pour cette culture." icon="trending-up-outline" /> : (
+        {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunPrix')} description={t('ui.aucuneObservationDeMarchePourCette')} icon="trending-up-outline" /> : (
           <Card tone="white" style={styles.card}>
-            <Text preset="overline" color={COLORS.slateGray}>Dernière observation</Text>
+            <Text preset="overline" color={COLORS.slateGray}>{t('ui.derniereObservation')}</Text>
             <Text preset="h2">{formatCurrency(latest.price, latest.currency, locale)} / {latest.unit}</Text>
             <Text preset="caption" color={COLORS.slateGray}>
               {latest.market}{latest.city ? ` · ${latest.city}` : ''} · {formatDate(latest.observedAt, locale)} · {latest.sourceLabel ?? latest.source}

@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerLotDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,27 +26,27 @@ export default function FarmerLotDetail() {
   const lot = query.data as Record<string, unknown> | undefined;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title={String(lot?.code ?? '—')} subtitle="Fiche de traçabilité du lot." />
+      <FarmerHeader title={String(lot?.code ?? '—')} subtitle={t('ui.ficheDeTracabiliteDuLot')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Lot" icon="pricetag-outline">
-          {query.isLoading ? <LoadingState count={1} height={120} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !lot ? <Text preset="body">Lot introuvable.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.lot')} icon="pricetag-outline">
+          {query.isLoading ? <LoadingState count={1} height={120} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !lot ? <Text preset="body">{t('ui.lotIntrouvable_704a3')}</Text> : (
             <>
               <Card tone="white" style={styles.card}>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Code</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.code')}</Text>
                   <Text preset="bodyMedium" style={{ fontFamily: 'monospace' }}>{String(lot.code ?? '—')}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                   <Chip label={String(lot.status ?? '—')} tone="neutral" size="sm" />
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Créé le</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.creeLe')}</Text>
                   <Text preset="bodySm">{lot.createdAt ? formatDate(String(lot.createdAt), locale) : '—'}</Text>
                 </View>
               </Card>
-              <Button label="QR code" variant="outline" onPress={() => {}} />
-              <Button label="Fiche publique" variant="ghost" onPress={() => {}} />
+              <Button label={t('ui.qrCode')} variant="outline" onPress={() => {}} />
+              <Button label={t('ui.fichePublique')} variant="ghost" onPress={() => {}} />
             </>
           )}
         </AuthGate>

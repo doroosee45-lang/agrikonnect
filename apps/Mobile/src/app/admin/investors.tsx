@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminInvestors() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminInvestors() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Investisseurs" subtitle="Comptes investisseurs." />
+      <AppHeader title={t('ui.investisseurs')} subtitle={t('ui.comptesInvestisseurs')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Investisseurs" icon="cash-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun investisseur" description="Aucun compte investisseur." icon="cash-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.investisseurs')} icon="cash-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunInvestisseur')} description={t('ui.aucunCompteInvestisseur')} icon="cash-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const user = row as Record<string, unknown>;

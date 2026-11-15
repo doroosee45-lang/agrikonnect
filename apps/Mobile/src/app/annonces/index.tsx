@@ -22,7 +22,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
 import { listingApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
@@ -31,9 +31,9 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 const TYPES = [
-  { key: '', label: 'Toutes' },
-  { key: 'OFFER', label: 'Offres' },
-  { key: 'DEMAND', label: 'Demandes' },
+  { key: '', get label() { return tr('ui.toutes'); } },
+  { key: 'OFFER', get label() { return tr('ui.offres'); } },
+  { key: 'DEMAND', get label() { return tr('ui.demandes'); } },
 ] as const;
 
 const STATUS_TONES: Record<string, 'success' | 'warning' | 'neutral' | 'info'> = {
@@ -48,6 +48,7 @@ const STATUS_TONES: Record<string, 'success' | 'warning' | 'neutral' | 'info'> =
 
 /** Annonces du marché : volumes disponibles, prix indicatifs, statuts datés. */
 export default function Annonces() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 860;
@@ -67,13 +68,13 @@ export default function Annonces() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Annonces" subtitle="Volumes disponibles, prix indicatifs et disponibilité datée." />
+      <AppHeader title={t('ui.annonces')} subtitle={t('ui.volumesDisponiblesPrixIndicatifsEtDisponibilite')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Le marché est réservé aux comptes actifs"
-          description="Connectez-vous pour consulter les annonces et contacter un vendeur via la messagerie intégrée."
+          title={t('ui.leMarcheEstReserveAuxComptes')}
+          description={t('ui.connectezVousPourConsulterLesAnnonces')}
           icon="storefront-outline"
         >
           <View style={styles.filters}>
@@ -82,8 +83,8 @@ export default function Annonces() {
                 <FilterChip key={item.key || 'all'} label={item.label} active={type === item.key} onPress={() => setType(item.key)} />
               ))}
             </ChipRow>
-            <Input label="" value={search} onChangeText={setSearch} placeholder="Rechercher dans les titres" icon="search-outline" />
-            <Button label="Publier" onPress={() => router.push('/annonces/creer')} variant="primary" size="sm" icon="add" />
+            <Input label="" value={search} onChangeText={setSearch} placeholder={t('ui.rechercherDansLesTitres')} icon="search-outline" />
+            <Button label={t('ui.publier')} onPress={() => router.push('/annonces/creer')} variant="primary" size="sm" icon="add" />
           </View>
 
           {listings.isLoading ? (
@@ -92,10 +93,10 @@ export default function Annonces() {
             <ErrorState error={listings.error} onRetry={() => void listings.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucune annonce"
-              description="Publiez un volume disponible ou une demande d’achat : les annonces sont datées et modifiables, jamais anonymes."
+              title={t('ui.aucuneAnnonce')}
+              description={t('ui.publiezUnVolumeDisponibleOuUne')}
               icon="storefront-outline"
-              action={{ label: 'Publier une annonce', onPress: () => router.push('/annonces/creer') }}
+              action={{ label: t('ui.publierUneAnnonce'), onPress: () => router.push('/annonces/creer') }}
             />
           ) : (
             <View style={[styles.grid, wide ? styles.gridWide : null]}>
@@ -130,19 +131,17 @@ export default function Annonces() {
                           {formatCurrency(item.indicativePrice, item.currency, locale)}
                         </Text>
                       ) : (
-                        <Text preset="bodySm" color={COLORS.slateGray}>
-                          Prix indicatif non communiqué
-                        </Text>
+                        <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.prixIndicatifNonCommunique')}</Text>
                       )}
                       <ProvenanceTag kind={item.source === 'declared' ? 'declared' : 'measured'} />
                     </View>
 
                     <View style={styles.foot}>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {item.availableFrom ? `Disponible le ${formatDate(item.availableFrom, locale)}` : 'Disponibilité non précisée'}
-                        {item.expiresAt ? ` · expire le ${formatDate(item.expiresAt, locale)}` : ''}
+                        {item.availableFrom ? t('ui.disponibleLe', { availableFrom: formatDate(item.availableFrom, locale) }) : t('ui.disponibiliteNonPrecisee')}
+                        {item.expiresAt ? t('ui.expireLe_e1021', { expiresAt: formatDate(item.expiresAt, locale) }) : ''}
                       </Text>
-                      <Button label="Ouvrir" onPress={() => router.push(`/annonces/${item.id}` as never)} variant="outline" size="sm" />
+                      <Button label={t('ui.ouvrir')} onPress={() => router.push(`/annonces/${item.id}` as never)} variant="outline" size="sm" />
                     </View>
 
                     {item.certifications.length > 0 ? (

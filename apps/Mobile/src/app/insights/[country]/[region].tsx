@@ -20,6 +20,7 @@ import { SPACING } from '@/theme/space';
  * signifie « non publiable » (groupe trop petit) et n'est jamais remplacé par 0.
  */
 export default function InsightsRegion() {
+  const { t } = useI18n();
   const { country, region } = useLocalSearchParams<{ country: string; region: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -34,24 +35,24 @@ export default function InsightsRegion() {
   const entries = Object.entries(overview?.indicators ?? {});
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={`${countryCode || '—'}${region ? ` · ${region}` : ''}`} subtitle="Indicateurs agrégés (niveau pays)." />
+      <AppHeader title={`${countryCode || '—'}${region ? ` · ${region}` : ''}`} subtitle={t('ui.indicateursAgregesNiveauPays')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Indicateurs" icon="stats-chart-outline">
-          {query.isLoading ? <LoadingState count={2} height={120} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !overview ? <Text preset="body">Données indisponibles.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.indicateurs')} icon="stats-chart-outline">
+          {query.isLoading ? <LoadingState count={2} height={120} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !overview ? <Text preset="body">{t('ui.donneesIndisponibles')}</Text> : (
             <>
               {overview.disclosure.empty || overview.disclosure.message ? (
                 <Card tone="pale">
                   <Text preset="caption" color={COLORS.warning}>
-                    {overview.disclosure.message ?? `Seuil minimal de ${overview.disclosure.minGroupSize} producteurs non atteint : certaines valeurs ne sont pas publiées.`}
+                    {overview.disclosure.message ?? t('ui.seuilMinimalDeProducteursNonAtteint', { minGroupSize: overview.disclosure.minGroupSize })}
                   </Text>
                 </Card>
               ) : null}
               <Card tone="white" style={styles.card}>
-                {entries.length === 0 ? <Text preset="bodySm" color={COLORS.slateGray}>Aucun indicateur publiable.</Text> : entries.map(([key, indicator]) => (
+                {entries.length === 0 ? <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucunIndicateurPubliable_35eea')}</Text> : entries.map(([key, indicator]) => (
                   <View key={key} style={styles.field}>
                     <Text preset="caption" color={COLORS.slateGray}>{key}</Text>
                     <Text preset="bodyMedium">
-                      {indicator.value !== null ? `${formatNumber(indicator.value, locale)}${indicator.unit ? ` ${indicator.unit}` : ''}` : 'non publiable'}
+                      {indicator.value !== null ? `${formatNumber(indicator.value, locale)}${indicator.unit ? ` ${indicator.unit}` : ''}` : t('ui.nonPubliable')}
                     </Text>
                     {indicator.reason ? <Text preset="caption" color={COLORS.slateGray}>{indicator.reason}</Text> : null}
                   </View>

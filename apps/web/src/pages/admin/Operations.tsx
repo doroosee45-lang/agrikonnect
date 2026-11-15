@@ -6,6 +6,8 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme';
+import { useI18n, tr } from '@/i18n';
+import { bcpLocale } from '@/lib/format';
 
 type Dict = Record<string, unknown>;
 
@@ -20,24 +22,24 @@ const asText = (value: unknown, repli = '—'): string => {
 const formatDate = (value: unknown): string => {
   if (typeof value !== 'string' || !value) return '—';
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('fr-FR');
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString(bcpLocale());
 };
 
 const ENTITES: Record<string, string> = {
-  listing: 'Annonces (marché)',
-  review: 'Avis clients',
-  verification: 'Demandes de vérification',
+  get listing() { return tr('ui.annoncesMarche'); },
+  get review() { return tr('ui.avisClients'); },
+  get verification() { return tr('ui.demandesDeVerification'); },
 };
 
 const DECISIONS: Record<string, { libelle: string; ton: 'success' | 'warning' | 'error' }> = {
-  approve: { libelle: 'Approuver', ton: 'success' },
-  reject: { libelle: 'Refuser', ton: 'error' },
-  suspend: { libelle: 'Suspendre', ton: 'warning' },
+  approve: { get libelle() { return tr('ui.approuver'); }, ton: 'success' },
+  reject: { get libelle() { return tr('ui.refuser'); }, ton: 'error' },
+  suspend: { get libelle() { return tr('ui.suspendre'); }, ton: 'warning' },
 };
 
 const messageErreur = (error: unknown): string => {
   const dict = asDict(error);
-  return typeof dict.message === 'string' && dict.message ? dict.message : 'Erreur inattendue';
+  return typeof dict.message === 'string' && dict.message ? dict.message : tr('ui.erreurInattendue');
 };
 
 /**
@@ -46,6 +48,7 @@ const messageErreur = (error: unknown): string => {
  * (RG-M4-1), notification de l'acteur concerné (RG-M4-2), export de la vue.
  */
 export default function AdminOperations() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const queryClient = useQueryClient();
   const [entite, setEntite] = useState('listing');
@@ -71,7 +74,7 @@ export default function AdminOperations() {
       const sortie = asDict(result.data);
       const apres = asDict(sortie.after);
       setAvis(
-        `Décision « ${variables.decision} » enregistrée — statut : ${asText(apres.status)} · acteur notifié : ${sortie.notified === true ? 'oui' : 'non (propriétaire inconnu)'}.`,
+        t('ui.decisionRecorded', { decision: variables.decision, status: asText(apres.status), notified: sortie.notified === true ? t('ui.notifiedYes') : t('ui.notifiedNoUnknownOwner') }),
       );
       setMotifs((actuels) => {
         const copie = { ...actuels };
@@ -101,33 +104,25 @@ export default function AdminOperations() {
     lien.download = `operations-${entite}.csv`;
     lien.click();
     URL.revokeObjectURL(url);
-    setAvis(`Export de la vue généré : operations-${entite}.csv`);
+    setAvis(t('ui.exportDeLaVueGenereOperations', { entite }));
   };
 
   return (
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Opérations"
-        description="Modération unifiée des flux métier : listes, décisions motivées, notifications (U-M4-2)."
+        title={t('ui.operations_8d02b')}
+        description={t('ui.moderationUnifieeDesFluxMetierListes')}
         icon="🗂️"
       >
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Opérations — modération unifiée
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>
-          Chaque décision est **motivée** puis déléguée au service métier concerné (RG-M4-1 : aucune
-          écriture directe) ; l'acteur concerné reçoit une notification et l'action est auditée (RG-M4-2).
-          La suspension n'est pas applicable aux demandes de vérification.
-        </Text>
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.operationsModerationUnifiee')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>{t('ui.operationsIntro')}</Text>
 
         <Card style={{ marginBottom: 16 }}>
           <CardBody>
             <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
               <label style={{ display: 'grid', gap: 6 }}>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Flux à modérer
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.fluxAModerer')}</Text>
                 <select
                   value={entite}
                   onChange={(event) => {
@@ -153,15 +148,15 @@ export default function AdminOperations() {
                 </select>
               </label>
               <Input
-                label="Filtre statut"
-                placeholder="Ex. : DRAFT, PENDING, PUBLISHED…"
+                label={t('ui.filtreStatut')}
+                placeholder={t('ui.exDraftPendingPublished')}
                 value={statut}
                 onChange={(event) => setStatut(event.target.value)}
               />
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <Button label="Actualiser" variant="outline" size="sm" icon="⟳" onClick={() => void file.refetch()} />
-              <Button label="Exporter la vue (CSV)" variant="outline" size="sm" onClick={exporterCsv} />
+              <Button label={t('ui.actualiser')} variant="outline" size="sm" icon="⟳" onClick={() => void file.refetch()} />
+              <Button label={t('ui.exporterLaVueCsv')} variant="outline" size="sm" onClick={exporterCsv} />
             </div>
           </CardBody>
         </Card>
@@ -183,13 +178,9 @@ export default function AdminOperations() {
 
         <div style={{ display: 'grid', gap: 12 }}>
           {file.isLoading ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Chargement…
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('common.loading')}</Text>
           ) : lignes.length === 0 ? (
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Aucun élément à modérer pour ce flux.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucunElementAModererPourCe')}</Text>
           ) : (
             lignes.map((item) => {
               const id = asText(item.id, '');
@@ -204,8 +195,8 @@ export default function AdminOperations() {
                       </Text>
                     </div>
                     <Input
-                      label="Motif de la décision (obligatoire)"
-                      placeholder="Motif écrit — indispensable pour toute décision"
+                      label={t('ui.motifDeLaDecisionObligatoire')}
+                      placeholder={t('ui.motifEcritIndispensablePourTouteDecision')}
                       value={motifs[id] ?? ''}
                       onChange={(event) => setMotifs({ ...motifs, [id]: event.target.value })}
                     />

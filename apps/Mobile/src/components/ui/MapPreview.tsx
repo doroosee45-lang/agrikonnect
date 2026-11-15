@@ -16,6 +16,7 @@ import { RADIUS, SPACING } from '@/theme/space';
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
 import { CREME } from '../../theme/agrikonnect';
+import { useI18n } from '@/i18n';
 
 export interface MapPin {
   slug: string;
@@ -86,6 +87,7 @@ export function MapPreview({
   note?: string;
   onSelect?: (slug: string) => void;
 }) {
+  const { t } = useI18n();
   const [size, setSize] = useState({ width: 0, height });
 
   const project = (latitude: number, longitude: number) => {
@@ -152,9 +154,7 @@ export function MapPreview({
 
         {size.width > 0 && pins.length === 0 ? (
           <View style={styles.emptyOverlay}>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.centered}>
-              Aucun point publié dans cette emprise.
-            </Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.centered}>{t('ui.aucunPointPublieDansCetteEmprise')}</Text>
           </View>
         ) : null}
       </View>
@@ -162,15 +162,11 @@ export function MapPreview({
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: COLORS.forestGreen }]} />
-          <Text preset="caption" color={COLORS.slateGray}>
-            Vérifié
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray}>{t('common.verified')}</Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: COLORS.pureWhite, borderWidth: 2, borderColor: COLORS.gold }]} />
-          <Text preset="caption" color={COLORS.slateGray}>
-            Déclaré
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray}>{t('common.declared')}</Text>
         </View>
       </View>
 

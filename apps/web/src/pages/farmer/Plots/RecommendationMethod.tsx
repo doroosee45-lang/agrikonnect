@@ -1,6 +1,7 @@
 import { Card, Chip, Text } from '@/components/ui';
 import type { RecommendationCreated } from '@/services/types';
 import { COLORS } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /**
  * Méthode de calcul d'une recommandation — écran 2.
@@ -59,6 +60,7 @@ function Ligne({ intitule, valeur }: { intitule: string; valeur: string }) {
 }
 
 export function MethodeDeCalcul({ data }: Props) {
+  const { t } = useI18n();
   const {
     engineVersion,
     scoringModelLabel,
@@ -76,7 +78,7 @@ export function MethodeDeCalcul({ data }: Props) {
       {indicative ? (
         <Card tone="gold">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <Chip label="Recommandation indicative" tone="warning" size="sm" />
+            <Chip label={t('ui.recommandationIndicative')} tone="warning" size="sm" />
             {/*
               Les raisons viennent de l'API. Elles expliquent **pourquoi** le
               résultat est indicatif (plage provisoire, calendrier non validé) :
@@ -99,16 +101,12 @@ export function MethodeDeCalcul({ data }: Props) {
       {/* ── Moteur et règle ────────────────────────────────────── */}
       <Card tone="white">
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Méthode de calcul
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.methodeDeCalcul')}</Text>
 
-          <Ligne intitule="Moteur" valeur={`v${engineVersion} — ${scoringModelLabel}`} />
+          <Ligne intitule={t('ui.moteur')} valeur={`v${engineVersion} — ${scoringModelLabel}`} />
 
           <div style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-            <Text preset="caption" color={COLORS.slateGray} style={{ minWidth: 150 }}>
-              Règle de combinaison
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray} style={{ minWidth: 150 }}>{t('ui.regleDeCombinaison')}</Text>
             {/* Libellé fourni par l'API, jamais recopié ici. */}
             <Text preset="bodySm" style={{ fontWeight: 600 }}>
               {combinationRuleLabel}
@@ -122,10 +120,10 @@ export function MethodeDeCalcul({ data }: Props) {
           ) : null}
 
           <Ligne
-            intitule="Critères évalués"
-            valeur={`${counts.ranked} culture(s) classée(s) sur ${counts.candidates} examinée(s) · ${counts.eliminated} écartée(s) · ${counts.insufficientData} sans données suffisantes`}
+            intitule={t('ui.criteresEvalues')}
+            valeur={t('ui.criteriaSummary', { ranked: counts.ranked, candidates: counts.candidates, eliminated: counts.eliminated, insufficientData: counts.insufficientData })}
           />
-          <Ligne intitule="Mesures utilisées" valeur={`${counts.readingsUsed} lecture(s)`} />
+          <Ligne intitule={t('ui.mesuresUtilisees')} valeur={t('ui.readingsCount', { count: counts.readingsUsed })} />
         </div>
       </Card>
 
@@ -161,11 +159,12 @@ export function LigneMethodeCulture({
   evaluatedCount?: number;
   tooFewCriteria?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <Text preset="caption" color={COLORS.slateGray}>
-      {`couverture ${Math.round(coverage * 100)} %`}
-      {typeof evaluatedCount === 'number' ? ` · ${evaluatedCount} critère(s) évalué(s)` : ''}
-      {tooFewCriteria ? ' · trop peu de critères pour classer' : ''}
+      {t('ui.couverture', { value: Math.round(coverage * 100) })}
+      {typeof evaluatedCount === 'number' ? t('ui.critereSEvalueS', { evaluatedCount }) : ''}
+      {tooFewCriteria ? t('ui.tropPeuDeCriteresPourClasser') : ''}
     </Text>
   );
 }

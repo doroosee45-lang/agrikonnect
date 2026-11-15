@@ -7,7 +7,7 @@ import { satelliteApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import type { SatelliteObservationList } from '@/services/types';
 import { formatDate } from '@/lib/format';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 import { PlotModule } from '@/components/pages';
@@ -32,13 +32,14 @@ import { PlotModule } from '@/components/pages';
 
 const MODE_TONE = { REAL: 'success', CONFIGURATION: 'warning', SIMULATED: 'neutral' } as const;
 const MODE_LABEL = {
-  REAL: 'mesure réelle',
-  CONFIGURATION: 'équipement enregistré, hors service',
-  SIMULATED: 'donnée simulée',
+  get REAL() { return tr('ui.mesureReelle'); },
+  get CONFIGURATION() { return tr('ui.equipementEnregistreHorsService'); },
+  get SIMULATED() { return tr('ui.donneeSimulee'); },
 } as const;
 
 /** Bouton d'acquisition à la demande — gère le refus (200) comme un refus, pas comme une erreur. */
 function AcquireButton({ plotId }: { plotId: string }) {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const [outcome, setOutcome] = useState<{ tone: 'success' | 'warning'; text: string } | null>(null);
 
@@ -48,16 +49,16 @@ function AcquireButton({ plotId }: { plotId: string }) {
       if (data.acquired) {
         setOutcome({
           tone: 'success',
-          text: `Scène acquise (${data.provider ?? 'satellite'}${data.mode === 'SIMULATED' ? ' — simulée' : ''}).`,
+          text: t('ui.sceneAcquiredProvider', { provider: data.provider ?? 'satellite', simulated: data.mode === 'SIMULATED' ? t('ui.simulatedSuffix') : '' }),
         });
         void queryClient.invalidateQueries({ queryKey: queryKeys.satellite.observations(plotId, {}) });
       } else {
         // Le serveur explique le refus : on reprend son motif, sans le reformuler.
-        setOutcome({ tone: 'warning', text: data.reason ?? 'Acquisition refusée.' });
+        setOutcome({ tone: 'warning', text: data.reason ?? t('ui.acquisitionRefusee') });
       }
     },
     onError: (error) => {
-      setOutcome({ tone: 'warning', text: error instanceof Error ? error.message : 'Acquisition impossible.' });
+      setOutcome({ tone: 'warning', text: error instanceof Error ? error.message : t('ui.acquisitionImpossible') });
     },
   });
 
@@ -68,7 +69,7 @@ function AcquireButton({ plotId }: { plotId: string }) {
         size="sm"
         onClick={() => acquire.mutate()}
         loading={acquire.isPending}
-        label={acquire.isPending ? 'Acquisition en cours…' : 'Demander une nouvelle scène'}
+        label={acquire.isPending ? t('ui.acquisitionEnCours') : t('ui.demanderUneNouvelleScene')}
       />
       {outcome ? (
         <Text preset="caption" color={outcome.tone === 'success' ? COLORS.success : COLORS.warning}>
@@ -80,29 +81,25 @@ function AcquireButton({ plotId }: { plotId: string }) {
 }
 
 export default function FarmerPlotSatellite() {
+  const { t } = useI18n();
   const { locale } = useI18n();
 
   return (
     <PlotModule<SatelliteObservationList>
-      title="Satellite"
-      subtitle="Observations de surface acquises par satellite. Le sous-sol n'est jamais déduit d'une image."
+      title={t('ui.satellite_d1ffe')}
+      subtitle={t('ui.observationsDeSurfaceAcquisesParSatellite')}
       icon="🛰️"
-      disclaimer="Télédétection : mesure de surface uniquement. L'humidité du sous-sol et la structure du sol ne proviennent que des sondes et du géoradar."
+      disclaimer={t('ui.teledetectionMesureDeSurfaceUniquementL')}
       queryKey={(plotId) => queryKeys.satellite.observations(plotId, {})}
       fetch={(plotId) => satelliteApi.observations(plotId, { limit: 50 }).then((result) => result.data)}
-      emptyTitle="Aucune scène exploitable"
-      emptyDescription="Aucune image satellite n'a pu être exploitée pour cette parcelle. Une scène refusée pour cause de couverture nuageuse n'est pas enregistrée : une date sans image reste vide, jamais interpolée."
+      emptyTitle={t('ui.aucuneSceneExploitable')}
+      emptyDescription={t('ui.aucuneImageSatelliteNAPu')}
       isEmpty={(data) => data.items.length === 0}
       render={(data, plotId) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <Card tone="pale">
             <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-              <strong>Ces valeurs décrivent la surface, pas le sous-sol.</strong> Elles complètent les
-              sondes là où aucune sonde n'existe, avec une confiance plus faible. Fournisseur{' '}
-              <strong>{data.settings.provider}</strong> · source d'humidité primaire{' '}
-              <strong>{data.settings.primaryMoistureSource}</strong> · scènes refusées au-delà de{' '}
-              {data.settings.cloudCoverRejectPct} % de couverture nuageuse.
-            </Text>
+              <strong>{t('ui.cesValeursDecriventLaSurfacePas')}</strong>{' '}{t('ui.ellesCompletentLesSondesLaOu')}{' '}<strong>{data.settings.provider}</strong>{' '}{t('ui.sourceDHumiditePrimaire')}{' '}<strong>{data.settings.primaryMoistureSource}</strong>{' '}{t('ui.scenesRefuseesAuDelaDeDe', { cloudCoverRejectPct: data.settings.cloudCoverRejectPct })}</Text>
             <div style={{ marginTop: 12 }}>
               <AcquireButton plotId={plotId} />
             </div>
@@ -110,9 +107,7 @@ export default function FarmerPlotSatellite() {
 
           {data.settings.sources?.length ? (
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 12 }}>
-                Sources disponibles
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.sourcesDisponibles')}</Text>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {data.settings.sources.map((source) => (
                   <div
@@ -129,14 +124,14 @@ export default function FarmerPlotSatellite() {
                     </div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       {source.cloudInsensitive ? (
-                        <Chip label="insensible aux nuages" tone="success" size="sm" />
+                        <Chip label={t('ui.insensibleAuxNuages')} tone="success" size="sm" />
                       ) : null}
                       <Chip
-                        label={source.measuresSubsurface ? 'sous-sol' : 'surface seule'}
+                        label={source.measuresSubsurface ? 'sous-sol' : t('ui.surfaceSeule')}
                         tone={source.measuresSubsurface ? 'success' : 'neutral'}
                         size="sm"
                       />
-                      <Chip label={`confiance ${source.confidence}`} tone="neutral" size="sm" />
+                      <Chip label={t('ui.confidenceInline', { value: source.confidence })} tone="neutral" size="sm" />
                     </div>
                   </div>
                 ))}
@@ -144,7 +139,7 @@ export default function FarmerPlotSatellite() {
             </Card>
           ) : null}
 
-          <Text preset="h3">{data.count} observation(s)</Text>
+          <Text preset="h3">{t('ui.observationS', { count: data.count })}</Text>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {data.items.map((observation, index) => (
@@ -175,7 +170,7 @@ export default function FarmerPlotSatellite() {
                       </Text>
                       <Text preset="caption" color={COLORS.slateGray}>
                         {formatDate(observation.observedAt, locale)} · {observation.provider}
-                        {observation.cloudCover !== null ? ` · ${observation.cloudCover} % de nuages` : ''}
+                        {observation.cloudCover !== null ? t('ui.deNuages', { cloudCover: observation.cloudCover }) : ''}
                       </Text>
                       <div style={{ marginTop: 8 }}>
                         <ProvenanceTag
@@ -193,7 +188,7 @@ export default function FarmerPlotSatellite() {
                         tone={MODE_TONE[observation.mode]}
                         size="sm"
                       />
-                      <Chip label={`confiance ${observation.confidence}`} tone="neutral" size="sm" />
+                      <Chip label={t('ui.confidenceInline', { value: observation.confidence })} tone="neutral" size="sm" />
                     </div>
                   </div>
                 </Card>

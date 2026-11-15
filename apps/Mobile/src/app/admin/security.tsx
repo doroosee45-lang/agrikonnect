@@ -10,6 +10,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 type Dict = Record<string, unknown>;
 
@@ -24,21 +25,22 @@ const asNombre = (value: unknown): number | null => (typeof value === 'number' ?
 
 const messageErreur = (error: unknown): string => {
   const dict = asDict(error);
-  const base = typeof dict.message === 'string' && dict.message ? dict.message : 'Erreur inattendue';
+  const base = typeof dict.message === 'string' && dict.message ? dict.message : tr('ui.unexpectedError');
   const details = asDict(dict.details);
-  return details.mfaRequired === true ? `${base} — palier 2 : second facteur (MFA) requis.` : base;
+  return details.mfaRequired === true ? tr('ui.palier2SecondFacteurMfaRequis', { base }) : base;
 };
 
 const LIBELLES: Record<string, string> = {
-  'security.mfaRequiredForGovernance': 'MFA obligatoire pour la gouvernance',
-  'security.lockoutMinutes': 'Durée de verrouillage (minutes)',
-  'security.sessionTtlHours': 'Durée des sessions (heures)',
-  'security.passwordMinLength': 'Longueur minimale des mots de passe',
-  'security.passwordRequireSpecial': 'Caractère spécial requis',
+  get 'security.mfaRequiredForGovernance'() { return tr('ui.mfaObligatoirePourLaGouvernance'); },
+  get 'security.lockoutMinutes'() { return tr('ui.dureeDeVerrouillageMinutes'); },
+  get 'security.sessionTtlHours'() { return tr('ui.dureeDesSessionsHeures'); },
+  get 'security.passwordMinLength'() { return tr('ui.longueurMinimaleDesMotsDePasse'); },
+  get 'security.passwordRequireSpecial'() { return tr('ui.caractereSpecialRequis'); },
 };
 
 /** M6 U-M6-2/U-M6-3 — vue sécurité (connexions, verrous, MFA, clés, sessions) et politique de sécurité (palier 2). */
 export default function AdminSecurity() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const queryClient = useQueryClient();
   const [motif, setMotif] = useState('');
@@ -77,7 +79,7 @@ export default function AdminSecurity() {
     mutationFn: (id: string) => adminApi.unlockUser(id, { reason: motif.trim() || undefined }),
     onSuccess: (_result, id) => {
       setErreur('');
-      setAvis(`Compte ${id} déverrouillé — l'action est tracée dans le journal d'audit.`);
+      setAvis(t('ui.compteDeverrouilleLActionEstTracee', { id }));
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.securityOverview });
     },
     onError: (caught) => setErreur(messageErreur(caught)),
@@ -97,7 +99,7 @@ export default function AdminSecurity() {
     },
     onSuccess: () => {
       setErreur('');
-      setAvis('Politique de sécurité mise à jour — la modification est journalisée.');
+      setAvis(t('ui.politiqueDeSecuriteMiseAJour'));
       void queryClient.invalidateQueries({ queryKey: queryKeys.admin.securityPolicy });
     },
     onError: (caught) => setErreur(messageErreur(caught)),
@@ -118,19 +120,16 @@ export default function AdminSecurity() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Sécurité" subtitle="Connexions, verrous, MFA de gouvernance, clés API, sessions — politique de sécurité (palier 2)." />
+      <AppHeader title={t('ui.securite_33e96')} subtitle={t('ui.connexionsVerrousMfaDeGouvernanceCles')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Sécurité" icon="shield-checkmark-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.securite_33e96')} icon="shield-checkmark-outline">
           {vue.isLoading ? (
             <LoadingState count={3} height={100} />
           ) : vue.isError ? (
             <ErrorState error={vue.error} onRetry={() => void vue.refetch()} />
           ) : (
             <View style={styles.list}>
-              <Text preset="caption" color={COLORS.slateGray}>
-                RG-S1 : tout compte de gouvernance doit activer la MFA ; les mutations de gouvernance sont refusées sans
-                second facteur (mfa_required). RG-S3 : aucun secret n'apparaît dans cette vue ni dans les journaux.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.securityRulesNote')}</Text>
               {avis ? (
                 <Card tone="white">
                   <Text preset="caption">{avis}</Text>
@@ -142,26 +141,23 @@ export default function AdminSecurity() {
                 </Card>
               ) : null}
 
-              <Text preset="h3">Comptes verrouillés</Text>
+              <Text preset="h3">{t('ui.comptesVerrouilles')}</Text>
               <Card tone="white">
                 <Input
-                  label="Motif"
-                  placeholder="Motif du déverrouillage (journalisé)"
+                  label={t('ui.motif')}
+                  placeholder={t('ui.motifDuDeverrouillageJournalise')}
                   value={motif}
                   onChangeText={setMotif}
                   icon="key-outline"
                 />
                 {verrouilles.length === 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray}>Aucun compte verrouillé.</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunCompteVerrouille')}</Text>
                 ) : (
                   verrouilles.map((compte) => (
                     <View key={asText(compte.id)} style={styles.ligne}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        {asText(compte.email)} — verrouillé jusqu'au {formatDate(String(compte.lockedUntil ?? ''))} ·
-                        échecs : {asNombre(compte.failedLoginAttempts) ?? 0}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.verrouilleJusquAuEchecs_b9e5d', { email: asText(compte.email), value: formatDate(String(compte.lockedUntil ?? '')), value2: asNombre(compte.failedLoginAttempts) ?? 0 })}</Text>
                       <Button
-                        label="Déverrouiller"
+                        label={t('ui.deverrouiller')}
                         variant="outline"
                         size="sm"
                         onPress={() => debloquer.mutate(asText(compte.id))}
@@ -172,28 +168,26 @@ export default function AdminSecurity() {
                 )}
               </Card>
 
-              <Text preset="h3">MFA de gouvernance</Text>
+              <Text preset="h3">{t('ui.mfaDeGouvernance')}</Text>
               <Card tone="white">
                 <View style={styles.chips}>
-                  <Chip label={`${asNombre(gouvernance.total) ?? 0} comptes de gouvernance`} tone="neutral" size="sm" />
+                  <Chip label={t('ui.comptesDeGouvernance', { value: asNombre(gouvernance.total) ?? 0 })} tone="neutral" size="sm" />
                   {sansMfa.length > 0 ? (
-                    <Chip label={`${sansMfa.length} sans MFA (RG-S1)`} tone="error" size="sm" />
+                    <Chip label={t('ui.sansMfaRgS1', { length: sansMfa.length })} tone="error" size="sm" />
                   ) : (
-                    <Chip label="MFA active partout" tone="success" size="sm" />
+                    <Chip label={t('ui.mfaActivePartout')} tone="success" size="sm" />
                   )}
                 </View>
                 <Text preset="caption" color={COLORS.slateGray}>{asText(gouvernance.note)}</Text>
                 {sansMfa.map((g) => (
-                  <Text key={asText(g.userId ?? g.email)} preset="caption" color={COLORS.slateGray}>
-                    {asText(g.email)} — rôles : {asArray(g.roles).map((r) => asText(r)).join(', ') || '—'}
-                  </Text>
+                  <Text key={asText(g.userId ?? g.email)} preset="caption" color={COLORS.slateGray}>{t('ui.roles_eacf9', { email: asText(g.email), value: asArray(g.roles).map((r) => asText(r)).join(', ') || '—' })}</Text>
                 ))}
               </Card>
 
-              <Text preset="h3">Connexions récentes</Text>
+              <Text preset="h3">{t('ui.connexionsRecentes')}</Text>
               <Card tone="white">
                 {asArray(connexions.recent).length === 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray}>Aucune connexion enregistrée.</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucuneConnexionEnregistree')}</Text>
                 ) : (
                   asArray(connexions.recent).map(asDict).map((ligne, index) => (
                     <Text key={`${asText(ligne.at)}-${String(index)}`} preset="caption" color={COLORS.slateGray}>
@@ -205,10 +199,10 @@ export default function AdminSecurity() {
                 <Text preset="caption" color={COLORS.slateGray}>{asText(connexions.note)}</Text>
               </Card>
 
-              <Text preset="h3">Échecs de connexion</Text>
+              <Text preset="h3">{t('ui.echecsDeConnexion')}</Text>
               <Card tone="white">
                 <Chip
-                  label={`${asNombre(echecs.last24h) ?? 0} échecs sur 24 h`}
+                  label={t('ui.echecsSur24H', { value: asNombre(echecs.last24h) ?? 0 })}
                   tone={(asNombre(echecs.last24h) ?? 0) > 0 ? 'warning' : 'neutral'}
                   size="sm"
                 />
@@ -221,43 +215,32 @@ export default function AdminSecurity() {
                 <Text preset="caption" color={COLORS.slateGray}>{asText(echecs.note)}</Text>
               </Card>
 
-              <Text preset="h3">Clés API</Text>
+              <Text preset="h3">{t('ui.clesApi')}</Text>
               <Card tone="white">
                 <View style={styles.chips}>
-                  <Chip label={`${actives.length} utilisables`} tone="neutral" size="sm" />
-                  {expirees.length > 0 ? <Chip label={`${expirees.length} périmées encore actives`} tone="warning" size="sm" /> : null}
+                  <Chip label={t('ui.countUsableFemPlural', { count: actives.length })} tone="neutral" size="sm" />
+                  {expirees.length > 0 ? <Chip label={t('ui.perimeesEncoreActives', { length: expirees.length })} tone="warning" size="sm" /> : null}
                 </View>
                 {asArray(cles.recent).map(asDict).map((cle) => (
-                  <Text key={asText(cle.id)} preset="caption" color={COLORS.slateGray}>
-                    {asText(cle.label)} ({asText(cle.prefix)}) — {asText(cle.status)} · exp.{' '}
-                    {formatDate(String(cle.expiresAt ?? ''))} · dernière utilisation {formatDate(String(cle.lastUsedAt ?? ''))}
-                  </Text>
+                  <Text key={asText(cle.id)} preset="caption" color={COLORS.slateGray}>{t('ui.expDerniereUtilisation_b01e8', { label: asText(cle.label), prefix: asText(cle.prefix), status: asText(cle.status), value: formatDate(String(cle.expiresAt ?? '')), value2: formatDate(String(cle.lastUsedAt ?? '')) })}</Text>
                 ))}
                 <Text preset="caption" color={COLORS.slateGray}>{asText(cles.note)}</Text>
               </Card>
 
-              <Text preset="h3">Sessions</Text>
+              <Text preset="h3">{t('ui.sessions')}</Text>
               <Card tone="white">
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Fenêtre d'estimation : {asNombre(sessions.ttlHours) ?? 0} h · sessions estimées actives :{' '}
-                  {sessionsActives.length} · jetons en attente : {asNombre(jetons.total) ?? 0}
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.fenetreDEstimationHSessionsEstimees', { value: asNombre(sessions.ttlHours) ?? 0, length: sessionsActives.length, value2: asNombre(jetons.total) ?? 0 })}</Text>
                 <Text preset="caption" color={COLORS.slateGray}>{asText(sessions.note)}</Text>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  La révocation immédiate des sessions d'un compte se fait depuis sa fiche (« Révoquer les sessions ») —
-                  chaque révocation est tracée dans le journal d'audit.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.laRevocationImmediateDesSessionsD_01b94')}</Text>
               </Card>
 
-              <Text preset="h3">Politique de sécurité</Text>
+              <Text preset="h3">{t('ui.politiqueDeSecurite')}</Text>
               <Card tone="white">
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Palier 2 : la lecture et la mise à jour de la politique exigent SUPER_ADMIN + second facteur (MFA).
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.palier2LaLectureEtLa')}</Text>
                 {politique.isError ? (
                   <Text preset="caption">{messageErreur(politique.error)}</Text>
                 ) : !politiqueVisible ? (
-                  <Button label="Charger la politique" variant="outline" size="sm" onPress={() => setPolitiqueVisible(true)} />
+                  <Button label={t('ui.chargerLaPolitique')} variant="outline" size="sm" onPress={() => setPolitiqueVisible(true)} />
                 ) : politique.isLoading ? (
                   <LoadingState count={2} height={70} />
                 ) : (
@@ -269,8 +252,8 @@ export default function AdminSecurity() {
                         <View key={cle}>
                           <Text preset="caption" color={COLORS.slateGray}>{LIBELLES[cle]}</Text>
                           <View style={styles.chips}>
-                            <FilterChip label="Vrai" active={valeur === 'true'} onPress={() => setFormulaire({ ...formulaire, [cle]: 'true' })} />
-                            <FilterChip label="Faux" active={valeur === 'false'} onPress={() => setFormulaire({ ...formulaire, [cle]: 'false' })} />
+                            <FilterChip label={t('ui.vrai')} active={valeur === 'true'} onPress={() => setFormulaire({ ...formulaire, [cle]: 'true' })} />
+                            <FilterChip label={t('ui.faux')} active={valeur === 'false'} onPress={() => setFormulaire({ ...formulaire, [cle]: 'false' })} />
                           </View>
                         </View>
                       ) : (
@@ -285,7 +268,7 @@ export default function AdminSecurity() {
                       );
                     })}
                     <Button
-                      label="Enregistrer la politique"
+                      label={t('ui.enregistrerLaPolitique')}
                       size="sm"
                       onPress={() => enregistrerPolitique.mutate()}
                       disabled={enregistrerPolitique.isPending}

@@ -20,6 +20,7 @@ import { SPACING } from '@/theme/space';
  * recaler sur les données réelles du pilote.
  */
 function AnomalyReviewPanel() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const [error, setError] = useState<unknown>(null);
@@ -46,25 +47,16 @@ function AnomalyReviewPanel() {
 
   return (
     <Card tone="white" style={styles.card}>
-      <Text preset="overline" color={COLORS.forestGreen}>
-        Anomalies de mesure
-      </Text>
-      <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-        Une lecture écartée ne participe plus au calcul des recommandations. Rejeter une anomalie réhabilite sa
-        mesure immédiatement.
-      </Text>
+      <Text preset="overline" color={COLORS.forestGreen}>{t('ui.anomaliesDeMesure')}</Text>
+      <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.uneLectureEcarteeNeParticipePlus')}</Text>
 
       {settings.data && settings.data.enabled === false ? (
-        <Text preset="caption" color={COLORS.warning} style={styles.lineHeight}>
-          La détection d’anomalies est désactivée : aucune nouvelle anomalie ne sera produite.
-        </Text>
+        <Text preset="caption" color={COLORS.warning} style={styles.lineHeight}>{t('ui.laDetectionDAnomaliesEstDesactivee')}</Text>
       ) : null}
 
       {settings.data ? (
-        <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-          Seuils provisoires, à recaler sur les données réelles du pilote :{' '}
-          {settings.data.thresholds
-            .map((threshold) => `${threshold.path} ${threshold.value ?? 'non défini'}${threshold.unit ?? ''}`)
+        <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.seuilsProvisoiresARecalerSurLes')}{' '}{settings.data.thresholds
+            .map((threshold) => `${threshold.path} ${threshold.value ?? t('ui.notDefined')}${threshold.unit ?? ''}`)
             .join(' · ')}
         </Text>
       ) : null}
@@ -76,8 +68,8 @@ function AnomalyReviewPanel() {
       ) : null}
       {anomalies.data && anomalies.data.length === 0 ? (
         <EmptyState
-          title="Aucune anomalie"
-          description="Aucune lecture suspecte détectée. Les seuils actuels sont provisoires."
+          title={t('ui.aucuneAnomalie')}
+          description={t('ui.aucuneLectureSuspecteDetecteeLesSeuils')}
           icon="shield-checkmark-outline"
         />
       ) : null}
@@ -89,9 +81,7 @@ function AnomalyReviewPanel() {
               <Text preset="bodySm" color={COLORS.textPrimary}>
                 {anomaly.reason}
               </Text>
-              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                appareil {anomaly.deviceId} · {formatDate(anomaly.detectedAt, locale)}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.appareil', { deviceId: anomaly.deviceId, detectedAt: formatDate(anomaly.detectedAt, locale) })}</Text>
             </View>
             <View style={styles.anomalyChips}>
               <Chip
@@ -118,14 +108,14 @@ function AnomalyReviewPanel() {
           {anomaly.status === 'NEW' ? (
             <View style={styles.anomalyActions}>
               <Button
-                label="Confirmer"
+                label={t('common.confirm')}
                 variant="primary"
                 size="sm"
                 loading={review.isPending}
                 onPress={() => review.mutate({ id: anomaly.id, decision: 'CONFIRMED' })}
               />
               <Button
-                label="Rejeter"
+                label={t('ui.rejeter')}
                 variant="outline"
                 size="sm"
                 loading={review.isPending}
@@ -135,8 +125,8 @@ function AnomalyReviewPanel() {
           ) : (
             <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
               {anomaly.status === 'CONFIRMED'
-                ? 'Mesure écartée du calcul. Une anomalie revue n’est jamais rouverte.'
-                : 'Anomalie rejetée : la mesure a réintégré le calcul.'}
+                ? t('ui.mesureEcarteeDuCalculUneAnomalie')
+                : t('ui.anomalieRejeteeLaMesureAReintegre')}
             </Text>
           )}
         </Reveal>
@@ -146,6 +136,7 @@ function AnomalyReviewPanel() {
 }
 
 export default function AdminDevices() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -157,12 +148,12 @@ export default function AdminDevices() {
   const items = query.data?.items ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Capteurs" subtitle="Parc de capteurs IoT." />
+      <AppHeader title={t('ui.capteurs')} subtitle={t('ui.parcDeCapteursIot')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Capteurs" icon="radio-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.capteurs')} icon="radio-outline">
           <AnomalyReviewPanel />
 
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun capteur" description="Aucun capteur enregistré." icon="radio-outline" /> : (
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunCapteur')} description={t('ui.aucunCapteurEnregistre')} icon="radio-outline" /> : (
             <View style={styles.list}>
               {items.map((device, index) => (
                 <Reveal key={device.id} index={index} variant="up">
@@ -170,12 +161,12 @@ export default function AdminDevices() {
                     <View style={styles.rowBody}>
                       <Text preset="bodyMedium">{device.label}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {device.lastSeenAt ? `Dernière communication ${formatDate(device.lastSeenAt, locale)}` : 'Jamais vu'}
+                        {device.lastSeenAt ? t('ui.derniereCommunication_a9842', { lastSeenAt: formatDate(device.lastSeenAt, locale) }) : t('ui.jamaisVu')}
                       </Text>
                     </View>
                     <View style={styles.rowAside}>
                       <Chip label={device.status} tone={device.status === 'ONLINE' ? 'success' : device.status === 'OFFLINE' ? 'error' : 'neutral'} size="sm" />
-                      {device.silent ? <Chip label="muet" tone="warning" size="sm" /> : null}
+                      {device.silent ? <Chip label={t('ui.muet')} tone="warning" size="sm" /> : null}
                     </View>
                   </Card>
                 </Reveal>

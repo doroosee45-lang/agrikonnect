@@ -11,6 +11,7 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /**
  * ADMIN M2 — fiche utilisateur complète (SPEC-SUPER-ADMIN U-M2-2 → U-M2-5).
@@ -43,6 +44,7 @@ const SectionCarte = ({ titre, children }: { titre: string; children: ReactNode 
 );
 
 export default function AdminUserDetail() {
+  const { t } = useI18n();
   const { id = '' } = useParams();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const hasAnyRole = useAuthStore((state) => state.hasAnyRole);
@@ -74,11 +76,11 @@ export default function AdminUserDetail() {
     setRapport(null);
     try {
       await action();
-      setRapport({ ton: 'succes', texte: `${libelle} — fait.` });
+      setRapport({ ton: 'succes', texte: t('ui.fait', { libelle }) });
       rafraichir();
     } catch (erreur) {
       const message = erreur instanceof Error ? erreur.message : String(erreur);
-      setRapport({ ton: 'erreur', texte: `${libelle} — refusé : ${message}` });
+      setRapport({ ton: 'erreur', texte: t('ui.refuse', { libelle, message }) });
     } finally {
       setOccupe(false);
     }
@@ -87,10 +89,8 @@ export default function AdminUserDetail() {
   if (!isAuthenticated) {
     return (
       <Section>
-        <AuthGate isAuthenticated={false} title="Fiche compte" description="Connexion requise." icon="👤">
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Connecte-toi pour consulter la fiche d'un compte.
-          </Text>
+        <AuthGate isAuthenticated={false} title={t('ui.ficheCompte')} description={t('ui.connexionRequise')} icon="👤">
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.connecteToiPourConsulterLaFiche')}</Text>
         </AuthGate>
       </Section>
     );
@@ -125,9 +125,7 @@ export default function AdminUserDetail() {
   return (
     <Section>
       <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
-        <Link to="/admin/users" style={{ color: COLORS.forestGreen }}>
-          ← Retour aux comptes
-        </Link>
+        <Link to="/admin/users" style={{ color: COLORS.forestGreen }}>{t('ui.retourAuxComptes')}</Link>
       </Text>
       <Text preset="h1" style={{ fontSize: 32, marginBottom: 4 }}>
         {String(utilisateur.firstName ?? '')} {String(utilisateur.lastName ?? '')}
@@ -156,23 +154,14 @@ export default function AdminUserDetail() {
         </motion.div>
       )}
 
-      <SectionCarte titre="Profil et organisation(s)">
+      <SectionCarte titre={t('ui.profilEtOrganisationS')}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-          <Text preset="bodyMd">Téléphone : {String(utilisateur.phone ?? '—')}</Text>
-          <Text preset="bodyMd">Langue : {String(utilisateur.locale ?? '—')}</Text>
-          <Text preset="bodyMd">
-            E-mail vérifié : {data.verification.emailVerifiedAt ? '✅' : '❌'}
-          </Text>
-          <Text preset="bodyMd">
-            Téléphone vérifié : {data.verification.phoneVerifiedAt ? '✅' : '❌'}
-          </Text>
-          <Text preset="bodyMd">
-            Créé le : {utilisateur.createdAt ? String(utilisateur.createdAt).slice(0, 10) : '—'}
-          </Text>
-          <Text preset="bodyMd">
-            Dernière connexion :{' '}
-            {utilisateur.lastLoginAt ? String(utilisateur.lastLoginAt).slice(0, 16).replace('T', ' ') : 'jamais'}
-          </Text>
+          <Text preset="bodyMd">{t('ui.telephone', { value: String(utilisateur.phone ?? '—') })}</Text>
+          <Text preset="bodyMd">{t('ui.langue', { value: String(utilisateur.locale ?? '—') })}</Text>
+          <Text preset="bodyMd">{t('ui.eMailVerifie', { value: data.verification.emailVerifiedAt ? '✅' : '❌' })}</Text>
+          <Text preset="bodyMd">{t('ui.telephoneVerifie', { value: data.verification.phoneVerifiedAt ? '✅' : '❌' })}</Text>
+          <Text preset="bodyMd">{t('ui.creeLe_53f56', { value: utilisateur.createdAt ? String(utilisateur.createdAt).slice(0, 10) : '—' })}</Text>
+          <Text preset="bodyMd">{t('ui.derniereConnexion', { value: utilisateur.lastLoginAt ? String(utilisateur.lastLoginAt).slice(0, 16).replace('T', ' ') : 'jamais' })}</Text>
         </div>
         <div style={{ marginTop: 12 }}>
           {data.organizations.map((org) => (
@@ -187,34 +176,31 @@ export default function AdminUserDetail() {
         </div>
       </SectionCarte>
 
-      <SectionCarte titre="Sécurité">
+      <SectionCarte titre={t('ui.securite_33e96')}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-          <Text preset="bodyMd">MFA : {data.security.mfaEnabled ? '✅ active' : '❌ inactive'}</Text>
-          <Text preset="bodyMd">Tentatives échouées : {String(data.security.failedLoginAttempts)}</Text>
-          <Text preset="bodyMd">
-            Verrouillé : {data.security.locked ? `oui jusqu'au ${String(data.security.lockedUntil)}` : 'non'}
+          <Text preset="bodyMd">{t('ui.mfa')}{' '}{data.security.mfaEnabled ? t('ui.active') : t('ui.inactive')}</Text>
+          <Text preset="bodyMd">{t('ui.tentativesEchouees', { failedLoginAttempts: String(data.security.failedLoginAttempts) })}</Text>
+          <Text preset="bodyMd">{t('ui.verrouille')}{' '}{data.security.locked ? t('ui.ouiJusquAu', { lockedUntil: String(data.security.lockedUntil) }) : 'non'}
           </Text>
         </div>
       </SectionCarte>
 
-      <SectionCarte titre="Actions opérationnelles (palier 1)">
-        <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
-          Le motif est requis et journalisé dans le journal d'audit (RG-M2-2).
-        </Text>
+      <SectionCarte titre={t('ui.actionsOperationnellesPalier1')}>
+        <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>{t('ui.leMotifEstRequisEtJournalise')}</Text>
         <Input
-          label="Motif"
-          placeholder="Motif de l'action (3 caractères minimum)"
+          label={t('ui.motif')}
+          placeholder={t('ui.motifDeLAction3Caracteres')}
           value={motif}
           onChange={(event) => setMotif(event.target.value)}
           style={{ marginBottom: 12 }}
         />
         <ChipRow>
           <Button
-            label={suspendu ? 'Réactiver' : 'Suspendre'}
+            label={suspendu ? t('ui.reactiver') : t('ui.suspendre')}
             variant="outline"
             disabled={occupe || motif.trim().length < 3}
             onClick={() =>
-              executer(suspendu ? 'Réactivation' : 'Suspension', () =>
+              executer(suspendu ? t('ui.reactivation') : t('ui.suspension'), () =>
                 adminApi.setUserStatus(id, {
                   status: suspendu ? 'ACTIVE' : 'SUSPENDED',
                   reason: motif.trim(),
@@ -223,43 +209,40 @@ export default function AdminUserDetail() {
             }
           />
           <Button
-            label="Déverrouiller"
+            label={t('ui.deverrouiller')}
             variant="outline"
             disabled={occupe}
-            onClick={() => executer('Déverrouillage', () => adminApi.unlockUser(id, { reason: motif.trim() || undefined }))}
+            onClick={() => executer(t('ui.deverrouillage'), () => adminApi.unlockUser(id, { reason: motif.trim() || undefined }))}
           />
           <Button
-            label="Forcer la déconnexion"
+            label={t('ui.forcerLaDeconnexion')}
             variant="outline"
             disabled={occupe}
             onClick={() =>
-              executer('Révocation des sessions', () => adminApi.forceLogout(id, { reason: motif.trim() || undefined }))
+              executer(t('ui.revocationDesSessions'), () => adminApi.forceLogout(id, { reason: motif.trim() || undefined }))
             }
           />
           <Button
-            label="E-mail vérifié"
+            label={t('ui.eMailVerifie_aa657')}
             variant="outline"
             disabled={occupe || motif.trim().length < 3}
-            onClick={() => executer('Marquage e-mail vérifié', () => adminApi.verifyUserEmail(id, { reason: motif.trim() }))}
+            onClick={() => executer(t('ui.marquageEMailVerifie'), () => adminApi.verifyUserEmail(id, { reason: motif.trim() }))}
           />
           <Button
-            label="Téléphone vérifié"
+            label={t('ui.telephoneVerifie_8a357')}
             variant="outline"
             disabled={occupe || motif.trim().length < 3}
-            onClick={() => executer('Marquage téléphone vérifié', () => adminApi.verifyUserPhone(id, { reason: motif.trim() }))}
+            onClick={() => executer(t('ui.marquageTelephoneVerifie'), () => adminApi.verifyUserPhone(id, { reason: motif.trim() }))}
           />
         </ChipRow>
       </SectionCarte>
 
       {estSuperAdmin && (
-        <SectionCarte titre="Rôles de gouvernance (palier 2 — Super Admin)">
-          <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
-            Attribution protégée par le second facteur (RG-G1). La nomination d'un SUPER_ADMIN
-            exige en plus votre mot de passe courant (RG-G3).
-          </Text>
+        <SectionCarte titre={t('ui.rolesDeGouvernancePalier2Super')}>
+          <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>{t('ui.attributionProtegeeParLeSecondFacteur')}</Text>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12, marginBottom: 12 }}>
             <label style={{ display: 'grid', gap: 6 }}>
-              <Text preset="caption" color={COLORS.slateGray}>Rôle à attribuer</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.roleAAttribuer')}</Text>
               <select
                 value={roleChoisi}
                 onChange={(event) => setRoleChoisi(event.target.value)}
@@ -278,34 +261,34 @@ export default function AdminUserDetail() {
               </select>
             </label>
             <Input
-              label="Code MFA"
-              placeholder="Code à 6 chiffres"
+              label={t('ui.codeMfa')}
+              placeholder={t('ui.codeA6Chiffres')}
               value={mfaCode}
               onChange={(event) => setMfaCode(event.target.value)}
             />
             {roleChoisi === 'SUPER_ADMIN' && (
               <Input
-                label="Votre mot de passe courant"
+                label={t('ui.votreMotDePasseCourant')}
                 type="password"
-                placeholder="Requis par RG-G3"
+                placeholder={t('ui.requisParRgG3')}
                 value={motDePasse}
                 onChange={(event) => setMotDePasse(event.target.value)}
               />
             )}
             <Input
-              label="Motif"
-              placeholder="Motif de la nomination"
+              label={t('ui.motif')}
+              placeholder={t('ui.motifDeLaNomination')}
               value={motifRole}
               onChange={(event) => setMotifRole(event.target.value)}
             />
           </div>
           <ChipRow>
             <Button
-              label="Attribuer le rôle"
+              label={t('ui.attribuerLeRole')}
               variant="primary"
               disabled={occupe || mfaCode.trim().length < 6 || motifRole.trim().length < 3}
               onClick={() =>
-                executer(`Attribution ${roleChoisi}`, () =>
+                executer(t('ui.attribution', { roleChoisi }), () =>
                   adminApi.grantRole(id, {
                     role: roleChoisi,
                     mfaCode: mfaCode.trim(),
@@ -321,10 +304,10 @@ export default function AdminUserDetail() {
               .map(({ role }) => (
                 <Button
                   key={role}
-                  label={`Révoquer ${role}`}
+                  label={t('ui.revoquer', { role })}
                   variant="ghost"
                   disabled={occupe}
-                  onClick={() => executer(`Révocation ${role}`, () => adminApi.revokeRole(id, role))}
+                  onClick={() => executer(t('ui.revocation', { role }), () => adminApi.revokeRole(id, role))}
                 />
               ))}
           </ChipRow>
@@ -332,14 +315,14 @@ export default function AdminUserDetail() {
       )}
 
       {estSuperAdmin && (
-        <SectionCarte titre="Données et suppression (palier 2)">
+        <SectionCarte titre={t('ui.donneesEtSuppressionPalier2')}>
           <ChipRow>
             <Button
-              label="Exporter les données (portabilité)"
+              label={t('ui.exporterLesDonneesPortabilite')}
               variant="outline"
               disabled={occupe}
               onClick={() =>
-                executer('Export de portabilité', () =>
+                executer(t('ui.exportDePortabilite'), () =>
                   adminApi.exportUser(id).then((result) => {
                     const contenu = JSON.stringify(result.data, null, 2);
                     const lien = document.createElement('a');
@@ -352,28 +335,25 @@ export default function AdminUserDetail() {
               }
             />
             <Button
-              label="Supprimer le compte (logique)"
+              label={t('ui.supprimerLeCompteLogique')}
               variant="danger"
               disabled={occupe || motif.trim().length < 3}
               onClick={() =>
-                executer('Suppression logique', () => adminApi.deleteUser(id, { reason: motif.trim() }))
+                executer(t('ui.suppressionLogique_36532'), () => adminApi.deleteUser(id, { reason: motif.trim() }))
               }
             />
           </ChipRow>
         </SectionCarte>
       )}
 
-      <SectionCarte titre="Historique d'actions auditées">
+      <SectionCarte titre={t('ui.historiqueDActionsAuditees')}>
         {data.auditTrail.length === 0 ? (
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Aucune action auditée pour ce compte.
-          </Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucuneActionAuditeePourCeCompte')}</Text>
         ) : (
           <div style={{ display: 'grid', gap: 8 }}>
             {data.auditTrail.map((entree) => (
               <Text key={String(entree.id)} preset="caption" color={COLORS.slateGray}>
-                <DateCell value={entree.createdAt} /> — {String(entree.action)} sur {String(entree.resource)}
-              </Text>
+                <DateCell value={entree.createdAt} />{' '}{t('ui.sur', { action: String(entree.action), resource: String(entree.resource) })}</Text>
             ))}
           </div>
         )}

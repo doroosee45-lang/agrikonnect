@@ -1,3 +1,4 @@
+import { tr } from '@/i18n';
 /**
  * Configuration applicative.
  *
@@ -22,7 +23,7 @@ export const REALTIME_URL = pick(
 export const APP = {
   name: 'AGRIKONNECT AFRICA',
   shortName: 'AGRIKONNECT',
-  tagline: 'Traçabilité agricole, marchés et investissement en Afrique',
+  get tagline() { return tr('ui.tracabiliteAgricoleMarchesEtInvestissementEn'); },
   version: '1.0.0',
 } as const;
 

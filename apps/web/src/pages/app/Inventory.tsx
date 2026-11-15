@@ -8,31 +8,32 @@ import { useI18n } from '@/i18n';
 
 /** APP — stock et mouvements. */
 export default function AppInventory() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<InventoryItem>
-      title="Stock"
-      subtitle="Articles en stock, seuils d'alerte et échéances."
+      title={t('ui.stock')}
+      subtitle={t('ui.articlesEnStockSeuilsDAlerte')}
       icon="📦"
       queryKey={queryKeys.inventory.all}
       fetch={() => inventoryApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(item) => item.id}
       columns={[
-        { key: 'label', label: 'Article', render: (item) => item.label },
-        { key: 'stock', label: 'Stock', render: (item) => (item.stock !== undefined ? `${formatNumber(item.stock, locale, 1)} ${item.unit}` : '—') },
-        { key: 'lowStockThreshold', label: 'Seuil', render: (item) => (item.lowStockThreshold !== null ? `${item.lowStockThreshold} ${item.unit}` : '—') },
-        { key: 'expiresAt', label: 'Expire le', render: (item) => (item.expiresAt ? formatDate(item.expiresAt, locale) : '—') },
+        { key: 'label', label: t('ui.article'), render: (item) => item.label },
+        { key: 'stock', label: t('ui.stock'), render: (item) => (item.stock !== undefined ? `${formatNumber(item.stock, locale, 1)} ${item.unit}` : '—') },
+        { key: 'lowStockThreshold', label: t('ui.seuil'), render: (item) => (item.lowStockThreshold !== null ? `${item.lowStockThreshold} ${item.unit}` : '—') },
+        { key: 'expiresAt', label: t('ui.expireLe'), render: (item) => (item.expiresAt ? formatDate(item.expiresAt, locale) : '—') },
         {
           key: 'alert',
-          label: 'Alerte',
+          label: t('ui.alerte_672e2'),
           render: (item) =>
             item.stock !== undefined && item.lowStockThreshold !== null && item.stock <= item.lowStockThreshold ? (
-              <Chip label="sous le seuil" tone="warning" size="sm" />
+              <Chip label={t('ui.sousLeSeuil')} tone="warning" size="sm" />
             ) : null,
         },
       ]}
-      emptyTitle="Aucun article"
-      emptyDescription="Aucun article n'est enregistré dans votre stock."
+      emptyTitle={t('ui.aucunArticle')}
+      emptyDescription={t('ui.aucunArticleNEstEnregistreDans')}
     />
   );
 }

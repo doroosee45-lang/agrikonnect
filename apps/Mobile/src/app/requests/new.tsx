@@ -43,29 +43,29 @@ export default function RequestNew() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Nouvelle demande" subtitle="Publiez une demande d'achat." />
+      <AppHeader title={t('ui.nouvelleDemande')} subtitle={t('ui.publiezUneDemandeDAchat')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Nouvelle demande" icon="add-circle-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.nouvelleDemande')} icon="add-circle-outline">
           <Card tone="white">
             <View style={styles.form}>
-              <Input label="Titre" value={title} onChangeText={setTitle} />
-              <Input label="Culture (ID)" value={cropId} onChangeText={setCropId} />
+              <Input label={t('ui.titre')} value={title} onChangeText={setTitle} />
+              <Input label={t('ui.cultureId')} value={cropId} onChangeText={setCropId} />
               <View style={styles.row2}>
-                <Input label="Quantité" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
-                <Input label="Unité" value={unit} onChangeText={setUnit} />
+                <Input label={t('ui.quantite')} value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
+                <Input label={t('ui.unite')} value={unit} onChangeText={setUnit} />
               </View>
-              <Input label="Qualité" value={quality} onChangeText={setQuality} />
+              <Input label={t('ui.qualite')} value={quality} onChangeText={setQuality} />
               <View style={styles.row2}>
-                <Input label="Budget" value={budgetPrice} onChangeText={setBudgetPrice} keyboardType="numeric" />
-                <Input label="Devise" value={currency} onChangeText={setCurrency} />
+                <Input label={t('ui.budget')} value={budgetPrice} onChangeText={setBudgetPrice} keyboardType="numeric" />
+                <Input label={t('ui.devise')} value={currency} onChangeText={setCurrency} />
               </View>
               <View style={styles.row2}>
-                <Input label="Pays de livraison" value={deliveryCountry} onChangeText={setDeliveryCountry} />
-                <Input label="Province" value={deliveryProvince} onChangeText={setDeliveryProvince} />
+                <Input label={t('ui.paysDeLivraison')} value={deliveryCountry} onChangeText={setDeliveryCountry} />
+                <Input label={t('ui.province')} value={deliveryProvince} onChangeText={setDeliveryProvince} />
               </View>
               {error ? <ErrorState error={error} /> : null}
-              <Text preset="caption" color={COLORS.slateGray}>{"Les champs marqués d'un astérisque sont obligatoires."}</Text>
-              <Button label="Publier la demande" onPress={() => create.mutate()} loading={create.isPending} disabled={title.trim().length === 0 || cropId.trim().length === 0} />
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.lesChampsMarquesDUnAsterisque')}</Text>
+              <Button label={t('ui.publierLaDemande')} onPress={() => create.mutate()} loading={create.isPending} disabled={title.trim().length === 0 || cropId.trim().length === 0} />
             </View>
           </Card>
         </AuthGate>
