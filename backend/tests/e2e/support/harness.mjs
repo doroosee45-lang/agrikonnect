@@ -8,6 +8,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import EmbeddedPostgres from 'embedded-postgres';
 import { startFakeGoTrue } from './fake-gotrue.mjs';
+import { ensureLocalSupabaseRoles } from '../../ensureLocalSupabaseRoles.mjs';
 
 /**
  * Banc de recette **réel** : PostgreSQL, API HTTP, webhooks sortants.
@@ -146,6 +147,7 @@ export const startHarness = async ({ fresh = true } = {}) => {
   await pg.createDatabase('agrikon');
 
   const databaseUrl = `postgresql://agrikon:agrikon@127.0.0.1:${PG_PORT}/agrikon?schema=public`;
+  await ensureLocalSupabaseRoles(databaseUrl);
 
   const prismaEnv = {
     ...process.env,
@@ -312,7 +314,14 @@ export const startHarness = async ({ fresh = true } = {}) => {
       await sink.close();
       await gotrue.close();
       await prisma.$disconnect().catch(() => {});
-      await pg.stop().catch(() => {});
+      if (process.platform === 'win32') {
+        // Graceful shutdown avoids Windows taskkill orphaning PostgreSQL 18 io_workers.
+        const pgCtl = path.join(backendRoot, 'node_modules', '@embedded-postgres', 'windows-x64', 'native', 'bin', 'pg_ctl.exe');
+        await execFileAsync(pgCtl, ['-D', DATA_DIR, '-m', 'fast', '-w', '-t', '30', 'stop'], { cwd: backendRoot, timeout: 40000 });
+        await fs.promises.rm(DATA_DIR, { recursive: true, force: true, maxRetries: 10, retryDelay: 250 });
+      } else {
+        await pg.stop().catch(() => {});
+      }
     },
   };
 };

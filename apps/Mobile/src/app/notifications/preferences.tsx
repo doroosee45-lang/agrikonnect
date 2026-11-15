@@ -22,6 +22,7 @@ import type { NotificationChannel } from '@/services/api/types';
 import { queryKeys } from '@/services/query';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 const CHANNELS: NotificationChannel[] = ['IN_APP', 'EMAIL', 'PUSH', 'SMS'];
 
@@ -38,14 +39,15 @@ const TYPES = [
 ] as const;
 
 const CHANNEL_LABELS: Record<NotificationChannel, string> = {
-  IN_APP: 'Dans l’app',
+  get IN_APP() { return tr('ui.dansLApp'); },
   EMAIL: 'E-mail',
-  PUSH: 'Notification push',
+  get PUSH() { return tr('ui.notificationPush'); },
   SMS: 'SMS',
 };
 
 /** Préférences de notification par type × canal (opt-out explicite). */
 export default function NotificationPreferences() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [draft, setDraft] = useState<Record<string, boolean>>({});
@@ -77,7 +79,7 @@ export default function NotificationPreferences() {
         }),
       ),
     onSuccess: () => {
-      setSaved('Préférences enregistrées.');
+      setSaved(t('ui.preferencesEnregistrees'));
       void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
     },
   });
@@ -86,12 +88,12 @@ export default function NotificationPreferences() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Préférences" subtitle="Choisissez le canal de chaque type d’alerte." />
+      <AppHeader title={t('ui.preferences')} subtitle={t('ui.choisissezLeCanalDeChaqueType')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
-          title="Connexion requise"
-          description="Connectez-vous pour consulter vos notifications et régler vos préférences."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourConsulterVosNotifications')}
           isAuthenticated={isAuthenticated}
           icon="notifications-outline"
         >
@@ -102,10 +104,7 @@ export default function NotificationPreferences() {
           ) : (
             <>
               <Card tone="pale" style={styles.note}>
-                <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-                  Une préférence absente vaut « activée » : le système fonctionne en opt-out explicite. Désactiver
-                  un canal ne supprime pas les alertes de sécurité obligatoires.
-                </Text>
+                <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.unePreferenceAbsenteVautActiveeLe')}</Text>
               </Card>
 
               {TYPES.map((type) => (
@@ -114,7 +113,7 @@ export default function NotificationPreferences() {
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {type}
                     </Text>
-                    <Chip label="type" tone="neutral" size="sm" />
+                    <Chip label={t('ui.type_d0a3e')} tone="neutral" size="sm" />
                   </View>
                   <ChipRow>
                     {CHANNELS.map((channel) => (
@@ -153,7 +152,7 @@ export default function NotificationPreferences() {
               ) : null}
 
               <Button
-                label="Enregistrer les préférences"
+                label={t('ui.enregistrerLesPreferences')}
                 onPress={() => save.mutate()}
                 variant="primary"
                 fullWidth

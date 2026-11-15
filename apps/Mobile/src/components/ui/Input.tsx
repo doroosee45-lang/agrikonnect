@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,7 +46,9 @@ export function Input({
   const [hidden, setHidden] = useState(secure);
   const focus = useSharedValue(0);
 
-  focus.value = withTiming(focused ? 1 : 0, { duration: DURATION.fast, easing: EASE.out });
+  useEffect(() => {
+    focus.value = withTiming(focused ? 1 : 0, { duration: DURATION.fast, easing: EASE.out });
+  }, [focus, focused]);
 
   const animatedBorder = useAnimatedStyle(() => ({
     borderColor: error
@@ -117,7 +119,9 @@ export function TextArea({
 }: Omit<InputProps, 'icon' | 'secure'> & { minHeight?: number }) {
   const [focused, setFocused] = useState(false);
   const focus = useSharedValue(0);
-  focus.value = withTiming(focused ? 1 : 0, { duration: DURATION.fast, easing: EASE.out });
+  useEffect(() => {
+    focus.value = withTiming(focused ? 1 : 0, { duration: DURATION.fast, easing: EASE.out });
+  }, [focus, focused]);
 
   const animatedBorder = useAnimatedStyle(() => ({
     borderColor: error

@@ -5,12 +5,14 @@ import { router } from 'expo-router';
 import { IconButton, Text } from '@/components/ui';
 import { COLORS } from '@/theme/colors';
 import { LAYOUT, SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * En-tête des écrans d'une parcelle : retour vers le pilotage de la parcelle,
  * titre de l'écran et rappel de la parcelle concernée.
  */
 export function PlotScreenHeader({ title, plotName, plotId }: { title: string; plotName?: string; plotId?: string }) {
+  const { t } = useI18n();
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       <View style={styles.header}>
@@ -18,11 +20,11 @@ export function PlotScreenHeader({ title, plotName, plotId }: { title: string; p
           <IconButton
             icon="chevron-back"
             onPress={() => (plotId ? router.replace(`/farmer/plots/${plotId}` as never) : router.back())}
-            accessibilityLabel="Retour"
+            accessibilityLabel={t('common.back')}
           />
           <View style={styles.titles}>
             <Text preset="overline" color={COLORS.livingGreen}>
-              {plotName ?? 'Parcelle'}
+              {plotName ?? t('ui.parcelle')}
             </Text>
             <Text preset="h2" color={COLORS.textPrimary}>
               {title}

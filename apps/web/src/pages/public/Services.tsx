@@ -5,17 +5,19 @@ import { HOME_SLIDES } from './homeSlides';
 
 import { Reveal } from '@/components/ui/Reveal';
 import { SERVICE_CATALOG, SERVICE_DOMAINS } from '@/lib/service-catalog';
+import { useI18n } from '@/i18n';
 
 export default function Services() {
+  const { t } = useI18n();
   return (
     <div className="public-home services-page">
       <HeroCarousel slides={HOME_SLIDES} height={520} intervalMs={5000} className="home-hero" />
 
       <section id="catalogue-services" className="services-catalogue">
         <div className="services-section-heading">
-          <span className="services-eyebrow">AGRIKONNECT AFRICA</span>
-          <h1>Les services de la plateforme</h1>
-          <p>Des outils connectés pour inspecter les sols, suivre les productions, accéder aux marchés et prendre des décisions éclairées.</p>
+          <span className="services-eyebrow">{t('common.appName')}</span>
+          <h1>{t('ui.lesServicesDeLaPlateforme')}</h1>
+          <p>{t('ui.desOutilsConnectesPourInspecterLes')}</p>
         </div>
 
         <div className="services-grid">
@@ -28,8 +30,7 @@ export default function Services() {
                   <div className="service-photo-content">
                     <h2 className="service-photo-title">{service.title}</h2>
                     <p className="service-photo-summary">{service.summary}</p>
-                    <Link className="service-open-button" to={`/services/${service.id}`}>
-                      Ouvrir <span aria-hidden="true">→</span>
+                    <Link className="service-open-button" to={`/services/${service.id}`}>{t('ui.ouvrir')}{' '}<span aria-hidden="true">→</span>
                     </Link>
                   </div>
                 </div>
@@ -41,9 +42,9 @@ export default function Services() {
 
       <section id="domaines" className="services-domains">
         <div className="services-section-heading">
-          <span className="services-eyebrow">PÉRIMÈTRE COMPLET</span>
-          <h2>Une plateforme pour toute la chaîne agricole</h2>
-          <p>Les services s’appuient sur des domaines complémentaires, de la gestion des accès aux outils publics.</p>
+          <span className="services-eyebrow">{t('ui.perimetreComplet')}</span>
+          <h2>{t('ui.unePlateformePourTouteLaChaine')}</h2>
+          <p>{t('ui.lesServicesSAppuientSurDes')}</p>
         </div>
         <div className="services-domain-grid">
           {SERVICE_DOMAINS.map((domain, index) => (
@@ -51,7 +52,7 @@ export default function Services() {
               <article className="services-domain-card">
                 <span className="services-domain-letter">{String.fromCharCode(65 + index)}</span>
                 <div className="services-domain-copy">
-                  <span className="services-domain-index">DOMAINE {String(index + 1).padStart(2, '0')}</span>
+                  <span className="services-domain-index">{t('ui.domainIndex', { value: String(index + 1).padStart(2, '0') })}</span>
                   <h3>{domain.title}</h3>
                   <p>{domain.text}</p>
                 </div>

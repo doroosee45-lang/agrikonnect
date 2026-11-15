@@ -19,7 +19,7 @@ import {
   TextArea,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatDate, formatNumber } from '@/lib/format';
 import { DURATION } from '@/theme/motion';
 import { soilApi } from '@/services/api/endpoints';
@@ -30,26 +30,26 @@ import { RADIUS, SPACING } from '@/theme/space';
 /** Clés autorisées par POST /plots/:id/soil-assessments (SOIL-01). */
 const PARAMETER_KEYS = [
   { key: 'ph', label: 'pH', unit: '' },
-  { key: 'organicMatter', label: 'Matière organique', unit: '%' },
-  { key: 'texture', label: 'Texture', unit: '' },
-  { key: 'n', label: 'Azote (N)', unit: 'mg/kg' },
-  { key: 'p', label: 'Phosphore (P)', unit: 'mg/kg' },
-  { key: 'k', label: 'Potassium (K)', unit: 'mg/kg' },
-  { key: 'ec', label: 'Conductivité', unit: 'dS/m' },
-  { key: 'moisture', label: 'Humidité', unit: '%' },
-  { key: 'erosionRisk', label: 'Risque d’érosion', unit: '' },
-  { key: 'sand', label: 'Sable', unit: '%' },
-  { key: 'silt', label: 'Limon', unit: '%' },
-  { key: 'clay', label: 'Argile', unit: '%' },
-  { key: 'depthCm', label: 'Profondeur', unit: 'cm' },
+  { key: 'organicMatter', get label() { return tr('ui.matiereOrganique'); }, unit: '%' },
+  { key: 'texture', get label() { return tr('ui.texture'); }, unit: '' },
+  { key: 'n', get label() { return tr('ui.azoteN'); }, unit: 'mg/kg' },
+  { key: 'p', get label() { return tr('ui.phosphoreP'); }, unit: 'mg/kg' },
+  { key: 'k', get label() { return tr('ui.potassiumK'); }, unit: 'mg/kg' },
+  { key: 'ec', get label() { return tr('ui.conductivite'); }, unit: 'dS/m' },
+  { key: 'moisture', get label() { return tr('ui.humidite'); }, unit: '%' },
+  { key: 'erosionRisk', get label() { return tr('ui.risqueDErosion'); }, unit: '' },
+  { key: 'sand', get label() { return tr('ui.sable'); }, unit: '%' },
+  { key: 'silt', get label() { return tr('ui.limon'); }, unit: '%' },
+  { key: 'clay', get label() { return tr('ui.argile'); }, unit: '%' },
+  { key: 'depthCm', get label() { return tr('ui.profondeur'); }, unit: 'cm' },
 ] as const;
 
 const SOURCES = [
-  { key: 'declared', label: 'Déclaré' },
-  { key: 'estimated', label: 'Estimé' },
-  { key: 'measured_lab', label: 'Laboratoire' },
-  { key: 'measured_sensor', label: 'Capteur' },
-  { key: 'third_party_verified', label: 'Vérifié par un tiers' },
+  { key: 'declared', get label() { return tr('common.declared'); } },
+  { key: 'estimated', get label() { return tr('ui.estime'); } },
+  { key: 'measured_lab', get label() { return tr('ui.laboratoire'); } },
+  { key: 'measured_sensor', get label() { return tr('ui.capteur'); } },
+  { key: 'third_party_verified', get label() { return tr('ui.verifieParUnTiers'); } },
 ] as const;
 
 type DraftParameter = {
@@ -76,6 +76,7 @@ const emptyParameter = (): DraftParameter => ({
  * Aucune recommandation n'est produite en V1.
  */
 export function SoilModule({ plotId }: { plotId: string }) {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const [creating, setCreating] = useState(false);
@@ -107,8 +108,8 @@ export function SoilModule({ plotId }: { plotId: string }) {
           source: row.source,
           confidence: row.confidence,
         }));
-      if (rows.length === 0) throw new Error('Ajoutez au moins un paramètre avec une valeur.');
-      if (!assessedAt.trim()) throw new Error('Indiquez la date de l’analyse.');
+      if (rows.length === 0) throw new Error(t('ui.ajoutezAuMoinsUnParametreAvec'));
+      if (!assessedAt.trim()) throw new Error(t('ui.indiquezLaDateDeLAnalyse'));
 
       return soilApi.createAssessment(plotId, {
         assessedAt: assessedAt.trim(),
@@ -140,13 +141,13 @@ export function SoilModule({ plotId }: { plotId: string }) {
         <Ionicons name="information-circle-outline" size={16} color={COLORS.info} />
         <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
           {profile.data?.disclaimer ??
-            'Évaluation indicative : aucune recommandation de culture n’est produite en V1. Une analyse en laboratoire est recommandée avant toute décision importante.'}
+            t('ui.evaluationIndicativeAucuneRecommandationDeCultur')}
         </Text>
       </Card>
 
       <View style={styles.toolbar}>
         <Button
-          label={creating ? 'Fermer' : 'Ajouter une analyse'}
+          label={creating ? t('common.close') : t('ui.ajouterUneAnalyse')}
           onPress={() => setCreating((value) => !value)}
           variant={creating ? 'ghost' : 'primary'}
           size="sm"
@@ -157,18 +158,16 @@ export function SoilModule({ plotId }: { plotId: string }) {
       {creating ? (
         <Animated.View entering={FadeInDown.duration(DURATION.slow)} exiting={FadeOutUp.duration(DURATION.fast)}>
           <Card tone="white" style={styles.form}>
-            <Input label="Date de l’analyse" value={assessedAt} onChangeText={setAssessedAt} placeholder="2026-04-12" icon="calendar-outline" />
-            <TextArea label="Notes" value={notes} onChangeText={setNotes} placeholder="Contexte, protocole, laboratoire…" minHeight={84} optionalLabel="facultatif" />
+            <Input label={t('ui.dateDeLAnalyse')} value={assessedAt} onChangeText={setAssessedAt} placeholder="2026-04-12" icon="calendar-outline" />
+            <TextArea label={t('ui.notes')} value={notes} onChangeText={setNotes} placeholder={t('ui.contexteProtocoleLaboratoire')} minHeight={84} optionalLabel={t('common.optional')} />
 
             {parameters.map((row, index) => (
               <View key={`row-${index}`} style={styles.paramRow}>
                 <View style={styles.paramHead}>
-                  <Text preset="caption" color={COLORS.forestGreen}>
-                    Paramètre {index + 1}
-                  </Text>
+                  <Text preset="caption" color={COLORS.forestGreen}>{t('ui.parametre_70aa1', { value: index + 1 })}</Text>
                   {parameters.length > 1 ? (
                     <Button
-                      label="Retirer"
+                      label={t('ui.retirer')}
                       onPress={() => setParameters((rows) => rows.filter((_, i) => i !== index))}
                       variant="ghost"
                       size="sm"
@@ -189,18 +188,18 @@ export function SoilModule({ plotId }: { plotId: string }) {
                 </ChipRow>
 
                 <View style={styles.row}>
-                  <Input label="Valeur" value={row.value} onChangeText={(v) => updateRow(index, { value: v })} placeholder="6,4" icon="thermometer-outline" />
+                  <Input label={t('ui.valeur')} value={row.value} onChangeText={(v) => updateRow(index, { value: v })} placeholder="6,4" icon="thermometer-outline" />
                   <Input
-                    label="Valeur numérique"
+                    label={t('ui.valeurNumerique')}
                     value={row.numericValue}
                     onChangeText={(v) => updateRow(index, { numericValue: v })}
                     placeholder="6.4"
                     icon="calculator-outline"
                     keyboardType="decimal-pad"
-                    optionalLabel="facultatif"
+                    optionalLabel={t('common.optional')}
                   />
                 </View>
-                <Input label="Unité" value={row.unit} onChangeText={(v) => updateRow(index, { unit: v })} placeholder="mg/kg" icon="resize-outline" optionalLabel="facultatif" />
+                <Input label={t('ui.unite')} value={row.unit} onChangeText={(v) => updateRow(index, { unit: v })} placeholder="mg/kg" icon="resize-outline" optionalLabel={t('common.optional')} />
 
                 <ChipRow>
                   {SOURCES.map((item) => (
@@ -212,7 +211,7 @@ export function SoilModule({ plotId }: { plotId: string }) {
                   {(['low', 'medium', 'high'] as const).map((level) => (
                     <FilterChip
                       key={level}
-                      label={level === 'low' ? 'Confiance faible' : level === 'medium' ? 'Confiance moyenne' : 'Confiance élevée'}
+                      label={level === 'low' ? t('ui.confianceFaible') : level === 'medium' ? t('ui.confianceMoyenne') : t('ui.confianceElevee')}
                       active={row.confidence === level}
                       onPress={() => updateRow(index, { confidence: level })}
                     />
@@ -222,7 +221,7 @@ export function SoilModule({ plotId }: { plotId: string }) {
             ))}
 
             <Button
-              label="Ajouter un paramètre"
+              label={t('ui.ajouterUnParametre')}
               onPress={() => setParameters((rows) => [...rows, emptyParameter()])}
               variant="outline"
               size="sm"
@@ -233,7 +232,7 @@ export function SoilModule({ plotId }: { plotId: string }) {
             {error ? <ErrorState error={error} showRequestId /> : null}
 
             <Button
-              label="Enregistrer l’analyse"
+              label={t('ui.enregistrerLAnalyse')}
               onPress={() => create.mutate()}
               variant="primary"
               fullWidth
@@ -250,12 +249,10 @@ export function SoilModule({ plotId }: { plotId: string }) {
       ) : (
         <>
           <Card tone="white" style={styles.card}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Profil fusionné
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.profilFusionne')}</Text>
             {fused.length === 0 ? (
               <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                {assessments.data?.emptyMessage ?? 'Aucune donnée de sol enregistrée pour cette parcelle.'}
+                {assessments.data?.emptyMessage ?? t('ui.aucuneDonneeDeSolEnregistreePour')}
               </Text>
             ) : (
               <View style={styles.grid}>
@@ -276,9 +273,7 @@ export function SoilModule({ plotId }: { plotId: string }) {
                       {parameter.source} · {formatDate(parameter.measuredAt, locale)}
                     </Text>
                     {parameter.alternatives.length > 0 ? (
-                      <Text preset="caption" color={COLORS.gold}>
-                        {parameter.alternatives.length} autre(s) source(s) écartée(s)
-                      </Text>
+                      <Text preset="caption" color={COLORS.gold}>{t('ui.autreSSourceSEcarteeS', { length: parameter.alternatives.length })}</Text>
                     ) : null}
                   </View>
                 ))}
@@ -287,9 +282,7 @@ export function SoilModule({ plotId }: { plotId: string }) {
 
             {profile.data && profile.data.missingParameters.length > 0 ? (
               <View style={styles.missing}>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Paramètres attendus manquants :
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.parametresAttendusManquants')}</Text>
                 <ChipRow>
                   {profile.data.missingParameters.map((key) => (
                     <Chip key={key} label={PARAMETER_KEYS.find((item) => item.key === key)?.label ?? key} tone="warning" size="sm" />
@@ -299,26 +292,21 @@ export function SoilModule({ plotId }: { plotId: string }) {
             ) : null}
 
             {profile.data && profile.data.sourcesUsed.length > 0 ? (
-              <Text preset="caption" color={COLORS.slateGray}>
-                Sources utilisées : {profile.data.sourcesUsed.join(', ')} · priorité{' '}
-                {profile.data.sourcePriority.map((item) => item.source).join(' → ')}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.sourcesUtiliseesPriorite', { value: profile.data.sourcesUsed.join(', '), value2: profile.data.sourcePriority.map((item) => item.source).join(' → ') })}</Text>
             ) : null}
           </Card>
 
-          <Text preset="h3" color={COLORS.textPrimary}>
-            Historique des analyses
-          </Text>
+          <Text preset="h3" color={COLORS.textPrimary}>{t('ui.historiqueDesAnalyses')}</Text>
 
           {(assessments.data?.items ?? []).length === 0 ? (
             <EmptyState
-              title="Aucune analyse"
+              title={t('ui.aucuneAnalyse')}
               description={
                 assessments.data?.emptyMessage ??
-                'Enregistrez une analyse de laboratoire pour fiabiliser les futurs diagnostics.'
+                t('ui.enregistrezUneAnalyseDeLaboratoirePour')
               }
               icon="flask-outline"
-              action={{ label: 'Ajouter une analyse', onPress: () => setCreating(true) }}
+              action={{ label: t('ui.ajouterUneAnalyse'), onPress: () => setCreating(true) }}
             />
           ) : (
             <View style={styles.list}>
@@ -330,12 +318,8 @@ export function SoilModule({ plotId }: { plotId: string }) {
                         <Ionicons name="flask-outline" size={15} color={COLORS.forestGreen} />
                       </View>
                       <View style={styles.cardTitle}>
-                        <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                          Analyse du {formatDate(assessment.assessedAt, locale)}
-                        </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          version {assessment.version} · {assessment.parameters.length} paramètre(s) · {assessment.source}
-                        </Text>
+                        <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.analyseDu', { assessedAt: formatDate(assessment.assessedAt, locale) })}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.versionParametreS', { version: assessment.version, length: assessment.parameters.length, source: assessment.source })}</Text>
                       </View>
                     </View>
 
@@ -353,9 +337,7 @@ export function SoilModule({ plotId }: { plotId: string }) {
                               ? `${formatNumber(parameter.numericValue, locale, 2)} ${parameter.unit}`
                               : parameter.value}
                           </Text>
-                          <Text preset="caption" color={COLORS.slateGray}>
-                            {parameter.sourceLabel} · confiance {parameter.confidence}
-                          </Text>
+                          <Text preset="caption" color={COLORS.slateGray}>{t('ui.confiance_cc395', { sourceLabel: parameter.sourceLabel, confidence: parameter.confidence })}</Text>
                         </View>
                       ))}
                     </View>

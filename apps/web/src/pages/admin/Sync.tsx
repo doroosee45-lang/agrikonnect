@@ -11,6 +11,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** ADMIN — état de synchronisation : santé de l'API et du moteur géospatial. */
 export default function AdminSync() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -21,13 +22,9 @@ export default function AdminSync() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Synchronisation" description="État des services." icon="🔄">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Synchronisation
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          État réel des services, tel que renvoyé par l'API.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.synchronisation')} description={t('ui.etatDesServices_dc57a')} icon="🔄">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.synchronisation')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.etatReelDesServicesTelQue')}</Text>
 
         {health.isLoading ? (
           <LoadingState count={1} height={120} />
@@ -44,25 +41,19 @@ export default function AdminSync() {
               </div>
               <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap' }}>
                 <div>
-                  <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
-                    Version
-                  </Text>
+                  <Text preset="caption" color="rgba(246, 247, 242, 0.7)">{t('ui.version')}</Text>
                   <Text preset="bodyLg" color={COLORS.pureWhite}>
                     {health.data.version}
                   </Text>
                 </div>
                 <div>
-                  <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
-                    Uptime
-                  </Text>
+                  <Text preset="caption" color="rgba(246, 247, 242, 0.7)">{t('ui.uptime')}</Text>
                   <Text preset="bodyLg" color={COLORS.pureWhite}>
                     {Math.round(health.data.uptime)} s
                   </Text>
                 </div>
                 <div>
-                  <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
-                    Horodatage
-                  </Text>
+                  <Text preset="caption" color="rgba(246, 247, 242, 0.7)">{t('ui.horodatage')}</Text>
                   <Text preset="bodyLg" color={COLORS.pureWhite}>
                     {formatDate(health.data.timestamp, locale)}
                   </Text>
@@ -72,10 +63,7 @@ export default function AdminSync() {
 
             <Card tone="pale" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 18 }}>ℹ️</span>
-              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-                Les synchronisations hors ligne (USSD, WhatsApp, imports) sont réconciliées côté serveur avec
-                détection des conflits. Aucun écrasement silencieux n'est possible.
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.lesSynchronisationsHorsLigneUssdWhatsapp')}</Text>
             </Card>
           </motion.div>
         )}

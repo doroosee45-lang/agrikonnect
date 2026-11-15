@@ -8,9 +8,11 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 import { publicApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
+import { useI18n } from '@/i18n';
 
 /** PUB-02 — fiche publique d'exploitation : coordonnées masquées par défaut. */
 export default function PublicSiteProducteurDetail() {
+  const { t } = useI18n();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const query = useQuery({
     queryKey: queryKeys.public.farm(slug ?? ''),
@@ -20,9 +22,9 @@ export default function PublicSiteProducteurDetail() {
   const farm = query.data?.farm;
   return (
     <PublicShell active="producteurs">
-      <PageHeader index="02" eyebrow="Producteur" title={farm?.name ?? 'Fiche producteur'} subtitle="Informations publiées par le producteur." />
+      <PageHeader index="02" eyebrow={t('ui.producteur')} title={farm?.name ?? t('ui.ficheProducteur')} subtitle={t('ui.informationsPublieesParLeProducteur')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !farm ? <Text preset="body">Producteur introuvable.</Text> : (
+        {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !farm ? <Text preset="body">{t('ui.producteurIntrouvable')}</Text> : (
           <Reveal index={0} variant="up">
             <Card tone="white" style={styles.card}>
               <Text preset="h2">{farm.name}</Text>
@@ -31,8 +33,8 @@ export default function PublicSiteProducteurDetail() {
                 {farm.verification?.label ? <Chip label={farm.verification.label} tone={farm.verification.status === 'VERIFIED' ? 'success' : 'neutral'} size="sm" /> : null}
               </View>
               {farm.description ? <Text preset="bodySm">{farm.description}</Text> : null}
-              <Text preset="bodySm" color={COLORS.slateGray}>Surface : {farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : 'non renseignée'}</Text>
-              <Text preset="bodySm" color={COLORS.slateGray}>Parcelles publiées : {farm.plotsCount}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.surface_6223b')}{' '}{farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : t('ui.nonRenseignee')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.parcellesPubliees', { plotsCount: farm.plotsCount })}</Text>
               {farm.crops.length > 0 ? (
                 <View style={styles.chips}>
                   {farm.crops.map((crop) => (
@@ -41,9 +43,8 @@ export default function PublicSiteProducteurDetail() {
                 </View>
               ) : null}
               <Card tone="pale">
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Contact : {farm.contact?.masked ?? 'non publié'}
-                  {farm.contact?.requestAvailable ? ' — une demande de mise en relation est possible.' : ''}
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.contact_246ab')}{' '}{farm.contact?.masked ?? t('ui.nonPublie')}
+                  {farm.contact?.requestAvailable ? t('ui.uneDemandeDeMiseEnRelation') : ''}
                 </Text>
               </Card>
             </Card>

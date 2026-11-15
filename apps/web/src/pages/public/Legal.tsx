@@ -3,64 +3,60 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { Card, FilterChip, Section, Text } from '@/components/ui';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n, tr } from '@/i18n';
 
 const SECTIONS = [
   {
     key: 'mentions',
-    label: 'Mentions légales',
-    body: [
-      "AGRIKONNECT AFRICA est une plateforme de traçabilité agricole, de mise en relation commerciale et d'investissement.",
-      "La plateforme n'est ni acheteur, ni vendeur, ni transporteur, ni certificateur : elle met en relation des organisations et trace les données qu'elles déclarent ou mesurent.",
-      "Les contenus publiés par les organisations restent sous leur responsabilité. La plateforme n'édite pas ces contenus a priori.",
-    ],
+    get label() { return tr('ui.mentionsLegales'); },
+    get body() { return [
+      tr('ui.agrikonnectAfricaEstUnePlateformeDe'),
+      tr('ui.laPlateformeNEstNiAcheteur'),
+      tr('ui.lesContenusPubliesParLesOrganisations'),
+    ]; },
   },
   {
     key: 'confidentialite',
-    label: 'Confidentialité',
-    body: [
-      "Les données personnelles sont traitées conformément au règlement applicable dans le pays de l'organisation.",
-      "Les coordonnées (téléphone, email, adresse) ne sont jamais exposées publiquement : le contact passe par une conversation ou une demande acceptée.",
-      "Les agrégats publiés respectent un seuil de k-anonymat : tout groupe plus petit est masqué, avec son motif.",
-      "Aucune donnée n'est transmise à un modèle d'IA sans consentement explicite, daté et réversible.",
-    ],
+    get label() { return tr('ui.confidentialite'); },
+    get body() { return [
+      tr('ui.lesDonneesPersonnellesSontTraiteesConformement'),
+      tr('ui.lesCoordonneesTelephoneEmailAdresseNe'),
+      tr('ui.lesAgregatsPubliesRespectentUnSeuil'),
+      tr('ui.aucuneDonneeNEstTransmiseA'),
+    ]; },
   },
   {
     key: 'conditions',
-    label: "Conditions d'utilisation",
-    body: [
-      "L'inscription est ouverte en libre-service aux producteurs, coopératives, entreprises agricoles, acheteurs, fournisseurs, investisseurs et agents de support. Les rôles administrateur et vérificateur ne sont jamais auto-attribués.",
-      "Chaque organisation déclare ses données sous sa responsabilité. Une donnée déclarée reste marquée comme telle tant qu'aucun contrôle n'a eu lieu.",
-      "Les sorties d'IA et de télédétection sont des estimations : elles ne constituent jamais un conseil agronomique validé.",
-      "Tout usage abusif (données falsifiées, usurpation, spam) entraîne la suspension du compte, motivée et réversible.",
-    ],
+    get label() { return tr('ui.conditionsDUtilisation'); },
+    get body() { return [
+      tr('ui.lInscriptionEstOuverteEnLibre'),
+      tr('ui.chaqueOrganisationDeclareSesDonneesSous'),
+      tr('ui.lesSortiesDIaEtDe'),
+      tr('ui.toutUsageAbusifDonneesFalsifieesUsurpation'),
+    ]; },
   },
   {
     key: 'donnees',
-    label: 'Données et provenance',
-    body: [
-      "Chaque valeur affichée porte sa provenance : ✔ pour une mesure ou une donnée vérifiée, ≈ pour une déclaration ou une estimation.",
-      "La source, la méthode et la date accompagnent la valeur. Quand une donnée manque, elle manque : la plateforme ne complète jamais un trou par une estimation silencieuse.",
-      "Les unités incompatibles ne sont jamais additionnées. Les totaux indiquent toujours leur périmètre.",
-    ],
+    get label() { return tr('ui.donneesEtProvenance'); },
+    get body() { return [
+      tr('ui.chaqueValeurAfficheePorteSaProvenance'),
+      tr('ui.laSourceLaMethodeEtLa'),
+      tr('ui.lesUnitesIncompatiblesNeSontJamais'),
+    ]; },
   },
 ];
 
 /** PUBLIC — pages légales : mentions, confidentialité, conditions, données. */
 export default function PublicLegal() {
+  const { t } = useI18n();
   const [active, setActive] = useState(SECTIONS[0].key);
   const section = SECTIONS.find((item) => item.key === active) ?? SECTIONS[0];
 
   return (
     <Section>
-      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>
-        Légal
-      </Text>
-      <Text preset="h1" style={{ marginBottom: 8 }}>
-        Informations légales
-      </Text>
-      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>
-        Mentions légales, confidentialité, conditions d'utilisation et politique de provenance des données.
-      </Text>
+      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>{t('ui.legal')}</Text>
+      <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.informationsLegales')}</Text>
+      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>{t('ui.mentionsLegalesConfidentialiteConditionsDUtilisa')}</Text>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
         {SECTIONS.map((item) => (

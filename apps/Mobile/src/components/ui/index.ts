@@ -19,3 +19,4 @@ export * from './Divider';
 export * from './HeroBackground';
 export * from './MapPreview';
 export * from './Progress';
+export * from './HorizonMobile';

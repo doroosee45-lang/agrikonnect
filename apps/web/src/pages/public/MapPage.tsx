@@ -12,6 +12,7 @@ import { ChartCard } from '@/design-system';
 
 /** PUBLIC — carte des exploitations publiées (MAP-01 → MAP-04). Positions approximatives. */
 export default function PublicMapPage() {
+  const { t } = useI18n();
   const { locale } = useI18n();
 
   const map = useQuery({
@@ -39,23 +40,16 @@ export default function PublicMapPage() {
 
   return (
     <Section>
-      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>
-        Carte
-      </Text>
-      <Text preset="h1" style={{ marginBottom: 8 }}>
-        Exploitations publiées
-      </Text>
-      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>
-        Les positions sont volontairement approximatives : elles protègent la localisation exacte des parcelles.
-        Le regroupement est calculé côté client.
-      </Text>
+      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>{t('ui.carte')}</Text>
+      <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.exploitationsPubliees')}</Text>
+      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>{t('ui.lesPositionsSontVolontairementApproximativesElle')}</Text>
 
       {map.isLoading ? (
         <LoadingState count={1} height={420} />
       ) : map.isError ? (
         <ErrorState error={map.error} onRetry={() => void map.refetch()} showRequestId />
       ) : features.length === 0 ? (
-        <EmptyState title="Aucune exploitation publiée" description="La carte est vide tant qu'aucune exploitation n'est publique." icon="🗺️" />
+        <EmptyState title={t('ui.aucuneExploitationPubliee')} description={t('ui.laCarteEstVideTantQu')} icon="🗺️" />
       ) : (
         <>
           <Card tone="white" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
@@ -97,7 +91,7 @@ export default function PublicMapPage() {
           </Card>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
-            <ChartCard titre="Couverture">
+            <ChartCard titre={t('ui.couverture_9c9ad')}>
               <ChipRow>
                 {Object.entries(byCountry)
                   .sort((a, b) => b[1] - a[1])
@@ -111,25 +105,19 @@ export default function PublicMapPage() {
             </ChartCard>
 
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 12 }}>
-                Légende
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.legende')}</Text>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <span style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: COLORS.forestGreen }} />
-                  <Text preset="caption" color={COLORS.textPrimary}>
-                    Exploitation vérifiée
-                  </Text>
+                  <Text preset="caption" color={COLORS.textPrimary}>{t('ui.exploitationVerifiee')}</Text>
                 </div>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                   <span style={{ width: 9, height: 9, borderRadius: '50%', backgroundColor: COLORS.livingGreen }} />
-                  <Text preset="caption" color={COLORS.textPrimary}>
-                    Exploitation déclarée
-                  </Text>
+                  <Text preset="caption" color={COLORS.textPrimary}>{t('ui.exploitationDeclaree')}</Text>
                 </div>
               </div>
               <Link to="/public/farmers" style={{ marginTop: 16, display: 'inline-block' }}>
-                <Button label="Voir l'annuaire" variant="outline" size="sm" />
+                <Button label={t('ui.voirLAnnuaire')} variant="outline" size="sm" />
               </Link>
             </Card>
           </div>

@@ -19,6 +19,7 @@ import { SPACING } from '@/theme/space';
  * L'écran affiche donc ces demandes, et non une liste inventée de prestataires.
  */
 export default function PublicSiteTransporters() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -30,18 +31,18 @@ export default function PublicSiteTransporters() {
   const items = query.data ?? [];
   return (
     <PublicShell active="transporters">
-      <PageHeader index="16" eyebrow="Logistique" title="Transport" subtitle="Demandes de transport et transporteurs assignés à vos commandes." />
+      <PageHeader index="16" eyebrow={t('ui.logistique')} title={t('ui.transport')} subtitle={t('ui.demandesDeTransportEtTransporteursAssignes')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Transport" icon="car-outline" description="Il n\u2019existe pas d\u2019annuaire public de transporteurs : seules vos demandes sont affichées.">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune demande" description="Aucune demande de transport enregistrée." icon="car-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.transport')} icon="car-outline" description={t('ui.ilNExistePasDAnnuaire')}>
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneDemande')} description={t('ui.aucuneDemandeDeTransportEnregistree')} icon="car-outline" /> : (
             <View style={styles.list}>
               {items.map((request, index) => (
                 <Reveal key={request.id} index={index} variant="up">
                   <Card tone="white" style={styles.row}>
                     <View style={styles.rowBody}>
-                      <Text preset="bodyMedium">Transport de commande</Text>
+                      <Text preset="bodyMedium">{t('ui.transportDeCommande')}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {formatDate(request.createdAt, locale)} · {request.transporterOrgId ? 'transporteur assigné' : 'en attente d\u2019assignation'}
+                        {formatDate(request.createdAt, locale)} · {request.transporterOrgId ? t('ui.transporteurAssigne') : t('ui.enAttenteDAssignation')}
                       </Text>
                     </View>
                     <Chip label={request.status} tone="neutral" size="sm" />

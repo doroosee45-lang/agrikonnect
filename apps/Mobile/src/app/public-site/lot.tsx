@@ -7,15 +7,17 @@ import { PageHeader, PublicShell } from '@/components/public-site/PublicShell';
 import { Button, Card, Input, Reveal, Section, Text } from '@/components/ui';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 const RULES = [
-  { title: 'Le producteur choisit', body: 'Seuls les champs qu’il publie apparaissent : le reste n’est jamais exposé, même par déduction.' },
-  { title: 'Pas d’acteur, pas de lieu', body: 'Le journal public ne contient que le type d’étape et sa date — ni intervenant, ni coordonnées d’événement.' },
-  { title: 'Pas une certification', body: 'La fiche publique est déclarative : elle ne vaut ni preuve d’origine, ni certification.' },
+  { get title() { return tr('ui.leProducteurChoisit'); }, get body() { return tr('ui.seulsLesChampsQuIlPublie'); } },
+  { get title() { return tr('ui.pasDActeurPasDeLieu'); }, get body() { return tr('ui.leJournalPublicNeContientQue'); } },
+  { get title() { return tr('ui.pasUneCertification'); }, get body() { return tr('ui.laFichePubliqueEstDeclarativeElle'); } },
 ];
 
 /** Recherche d'un lot par son code. */
 export default function LotSearch() {
+  const { t } = useI18n();
   const [code, setCode] = useState('');
   const [touched, setTouched] = useState(false);
   const invalid = touched && code.trim().length < 6;
@@ -24,16 +26,16 @@ export default function LotSearch() {
     <PublicShell active="accueil">
       <PageHeader
         index={1}
-        eyebrow="Traçabilité"
-        title="Vérifier un lot"
-        subtitle="Saisissez le code figurant sur l’étiquette ou scannez le QR du colis pour afficher la fiche publique."
+        eyebrow={t('ui.tracabilite')}
+        title={t('ui.verifierUnLot')}
+        subtitle={t('ui.saisissezLeCodeFigurantSurL')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <Reveal variant="up">
           <Card tone="white" style={styles.form}>
             <Input
-              label="Code de lot"
+              label={t('ui.codeDeLot')}
               value={code}
               onChangeText={(value) => {
                 setCode(value.toUpperCase());
@@ -44,8 +46,8 @@ export default function LotSearch() {
               autoCapitalize="characters"
               autoCorrect={false}
               icon="qr-code-outline"
-              error={invalid ? 'Le code semble incomplet (6 caractères minimum).' : null}
-              helper="Format observé : AK-<pays>-<année>-<séquence>."
+              error={invalid ? t('ui.lotCodeIncomplete') : null}
+              helper={t('ui.formatObserveAkPaysAnneeSequence')}
               returnKeyType="search"
               onSubmitEditing={() => {
                 if (code.trim().length < 6) {
@@ -56,7 +58,7 @@ export default function LotSearch() {
               }}
             />
             <Button
-              label="Afficher la fiche"
+              label={t('ui.afficherLaFiche')}
               variant="primary"
               icon="search"
               fullWidth

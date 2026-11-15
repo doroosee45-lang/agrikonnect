@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerLots() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function FarmerLots() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Mes lots" subtitle="Lots de traçabilité générés pour vos productions." />
+      <FarmerHeader title={t('ui.mesLots')} subtitle={t('ui.lotsDeTracabiliteGeneresPourVos_7879e')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Lots" icon="pricetag-outline">
-          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun lot" description="Les lots apparaissent ici dès qu'ils sont générés." icon="pricetag-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.lots')} icon="pricetag-outline">
+          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunLot')} description={t('ui.lesLotsApparaissentIciDesQu_49af3')} icon="pricetag-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const lot = row as Record<string, unknown>;

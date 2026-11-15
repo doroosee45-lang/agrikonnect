@@ -21,6 +21,7 @@ function Row({ label, value, onValueChange }: { label: string; value: boolean; o
 }
 
 export default function FarmerSettings() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale, setLocale } = useI18n();
   const me = useQuery({ queryKey: queryKeys.me, queryFn: () => authApi.me().then((r) => r.data), enabled: isAuthenticated, retry: false });
@@ -30,11 +31,11 @@ export default function FarmerSettings() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Paramètres" subtitle="Préférences de votre compte." />
+      <FarmerHeader title={t('ui.parametres_ef8f0')} subtitle={t('ui.preferencesDeVotreCompte')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Paramètres" icon="settings-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.parametres_ef8f0')} icon="settings-outline">
           <Card tone="white">
-            <Text preset="h3" style={styles.mb}>Langue</Text>
+            <Text preset="h3" style={styles.mb}>{t('common.language')}</Text>
             <View style={styles.chips}>
               {SUPPORTED_LOCALES.map((option) => {
                 const active = locale === option.code;
@@ -47,18 +48,16 @@ export default function FarmerSettings() {
             </View>
           </Card>
           <Card tone="white">
-            <Text preset="h3" style={styles.mb}>Notifications</Text>
-            <Row label="Notifications push" value={notifications} onValueChange={setNotifications} />
-            <Row label="Résumé hebdomadaire" value={digest} onValueChange={setDigest} />
+            <Text preset="h3" style={styles.mb}>{t('ui.notifications')}</Text>
+            <Row label={t('ui.notificationsPush')} value={notifications} onValueChange={setNotifications} />
+            <Row label={t('ui.resumeHebdomadaire')} value={digest} onValueChange={setDigest} />
           </Card>
           <Card tone="white">
-            <Text preset="h3" style={styles.mb}>Sécurité</Text>
-            <Row label="Double authentification (2FA)" value={mfa} onValueChange={setMfa} />
-            <Text preset="caption" color={COLORS.slateGray} style={styles.mt}>
-              Email vérifié : {me.data?.user.emailVerified ? 'oui' : 'non'} · Téléphone vérifié : {me.data?.user.phoneVerified ? 'oui' : 'non'}
-            </Text>
+            <Text preset="h3" style={styles.mb}>{t('ui.securite_33e96')}</Text>
+            <Row label={t('ui.doubleAuthentification2fa')} value={mfa} onValueChange={setMfa} />
+            <Text preset="caption" color={COLORS.slateGray} style={styles.mt}>{t('ui.emailVerifieTelephoneVerifie', { value: me.data?.user.emailVerified ? 'oui' : 'non', value2: me.data?.user.phoneVerified ? 'oui' : 'non' })}</Text>
           </Card>
-          <Button label="Enregistrer" variant="primary" onPress={() => {}} />
+          <Button label={t('common.save')} variant="primary" onPress={() => {}} />
         </AuthGate>
       </Section>
     </Screen>

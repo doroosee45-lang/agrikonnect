@@ -30,6 +30,7 @@ import { SPACING } from '@/theme/space';
 
 /** Fiche annonce : détails, certifications, contact via messagerie, statut. */
 export default function ListingDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -50,7 +51,7 @@ export default function ListingDetail() {
     onSuccess: (result) => {
       setContacting(false);
       setError(null);
-      setNotice('Conversation ouverte. Les coordonnées du vendeur ne sont jamais transmises.');
+      setNotice(t('ui.conversationOuverteLesCoordonneesDuVendeur'));
       void queryClient.invalidateQueries({ queryKey: queryKeys.messaging.conversations });
       if (result.data?.id) router.push(`/messages/${result.data.id}` as never);
     },
@@ -70,13 +71,13 @@ export default function ListingDetail() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={data?.title ?? 'Annonce'} subtitle={data ? `${data.countryCode}${data.province ? ` · ${data.province}` : ''}` : undefined} />
+      <AppHeader title={data?.title ?? t('ui.annonce')} subtitle={data ? `${data.countryCode}${data.province ? ` · ${data.province}` : ''}` : undefined} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour consulter le détail d'une annonce et contacter son auteur."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourConsulterLeDetail')}
           icon="storefront-outline"
         >
           {listing.isLoading ? (
@@ -103,33 +104,25 @@ export default function ListingDetail() {
 
                 <View style={styles.facts}>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Volume
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.volume')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {formatNumber(data.quantity, locale, 1)} {data.unit}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Prix indicatif
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.prixIndicatif')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                      {data.indicativePrice !== null ? formatCurrency(data.indicativePrice, data.currency, locale) : 'non communiqué'}
+                      {data.indicativePrice !== null ? formatCurrency(data.indicativePrice, data.currency, locale) : t('ui.nonCommunique_ff312')}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Qualité
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.qualite')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                      {data.quality ?? 'non précisée'}
+                      {data.quality ?? t('ui.nonPrecisee')}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Disponibilité
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.disponibilite_0f06e')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {data.availableFrom ? formatDate(data.availableFrom, locale) : '—'}
                       {data.availableTo ? ` → ${formatDate(data.availableTo, locale)}` : ''}
@@ -139,30 +132,21 @@ export default function ListingDetail() {
 
                 {data.certifications.length > 0 ? (
                   <View style={styles.block}>
-                    <Text preset="caption" color={COLORS.textPrimary}>
-                      Certifications déclarées
-                    </Text>
+                    <Text preset="caption" color={COLORS.textPrimary}>{t('ui.certificationsDeclarees')}</Text>
                     <ChipRow>
                       {data.certifications.map((certification) => (
                         <Chip key={certification} label={certification} tone="success" size="sm" />
                       ))}
                     </ChipRow>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Déclarées par le vendeur. Une certification n’est affichée comme vérifiée qu’après contrôle
-                      documentaire.
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.declareesParLeVendeurUneCertification')}</Text>
                   </View>
                 ) : null}
 
                 {data.conditions ? (
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    Conditions : {data.conditions}
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.conditions_eb4b0', { conditions: data.conditions })}</Text>
                 ) : null}
 
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Publiée le {formatDate(data.createdAt, locale)} · mise à jour {formatDate(data.updatedAt, locale)} · version {data.version}
-                  {data.expiresAt ? ` · expire le ${formatDate(data.expiresAt, locale)}` : ''}
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.publieeLeMiseAJourVersion', { createdAt: formatDate(data.createdAt, locale), updatedAt: formatDate(data.updatedAt, locale), version: data.version })}{data.expiresAt ? t('ui.expireLe_e1021', { expiresAt: formatDate(data.expiresAt, locale) }) : ''}
                 </Text>
               </Card>
 
@@ -176,40 +160,33 @@ export default function ListingDetail() {
               ) : null}
 
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Contacter l’auteur
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.contacterLAuteur')}</Text>
                 {contacting ? (
                   <>
                     <TextArea
-                      label="Message"
+                      label={t('ui.message')}
                       value={message}
                       onChangeText={setMessage}
-                      placeholder="Bonjour, je suis intéressé par ce volume…"
+                      placeholder={t('ui.bonjourJeSuisInteresseParCe')}
                       minHeight={90}
-                      optionalLabel="facultatif"
+                      optionalLabel={t('common.optional')}
                     />
                     {error ? <ErrorState error={error} showRequestId /> : null}
                     <View style={styles.actions}>
-                      <Button label="Ouvrir la conversation" onPress={() => contact.mutate()} variant="primary" size="sm" loading={contact.isPending} icon="chatbubble-outline" />
-                      <Button label="Annuler" onPress={() => setContacting(false)} variant="ghost" size="sm" />
+                      <Button label={t('ui.ouvrirLaConversation')} onPress={() => contact.mutate()} variant="primary" size="sm" loading={contact.isPending} icon="chatbubble-outline" />
+                      <Button label={t('common.cancel')} onPress={() => setContacting(false)} variant="ghost" size="sm" />
                     </View>
                   </>
                 ) : (
                   <>
-                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      Aucune coordonnée n’est échangée : la discussion passe par la messagerie de la plateforme et
-                      reste rattachée à cette annonce.
-                    </Text>
-                    <Button label="Contacter" onPress={() => setContacting(true)} variant="outline" size="sm" icon="chatbubble-outline" />
+                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.aucuneCoordonneeNEstEchangeeLa')}</Text>
+                    <Button label={t('ui.contacter')} onPress={() => setContacting(true)} variant="outline" size="sm" icon="chatbubble-outline" />
                   </>
                 )}
               </Card>
 
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Statut (votre annonce)
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.statutVotreAnnonce')}</Text>
                 {error ? <ErrorState error={error} showRequestId /> : null}
                 <View style={styles.actions}>
                   {['DRAFT', 'PUBLISHED', 'RESERVED', 'SOLD', 'EXPIRED'].map((status) => (
@@ -223,9 +200,7 @@ export default function ListingDetail() {
                     />
                   ))}
                 </View>
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Chaque changement de statut est journalisé et notifié aux interlocuteurs concernés.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.chaqueChangementDeStatutEstJournalise')}</Text>
               </Card>
             </>
           )}

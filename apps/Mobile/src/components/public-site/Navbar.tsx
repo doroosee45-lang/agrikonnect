@@ -111,7 +111,7 @@ export function Navbar({
             {!isCompact ? (
               isAuthenticated ? (
                 <Button
-                  label="Retour à mon espace"
+                  label={t('ui.retourAMonEspace')}
                   onPress={() => {
                     const etat = useAuthStore.getState();
                     router.push(getUserInitialRoute({ user: etat.user, permissions: etat.permissions }).route);
@@ -274,7 +274,7 @@ function MobileMenu({
         <Animated.View entering={FadeIn.delay(420).duration(DURATION.base)} style={styles.sheetCta}>
           {isAuthenticated ? (
             <Button
-              label="Retour à mon espace"
+              label={t('ui.retourAMonEspace')}
               onPress={() => {
                 const etat = useAuthStore.getState();
                 go(getUserInitialRoute({ user: etat.user, permissions: etat.permissions }).route);

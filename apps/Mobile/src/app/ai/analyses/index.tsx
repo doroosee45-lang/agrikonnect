@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AiAnalyses() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,15 +25,13 @@ export default function AiAnalyses() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Analyses IA" subtitle="Historique de vos analyses." />
+      <AppHeader title={t('ui.analysesIa')} subtitle={t('ui.historiqueDeVosAnalyses')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Analyses IA" icon="sparkles-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.analysesIa')} icon="sparkles-outline">
           <Card tone="pale" style={styles.notice}>
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Les réponses sont générées par une IA. Elles ne remplacent pas un avis agronomique et doivent être confrontées au terrain.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lesReponsesSontGenereesParUne')}</Text>
           </Card>
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune analyse" description="Vos analyses apparaîtront ici." icon="sparkles-outline" /> : (
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneAnalyse')} description={t('ui.vosAnalysesApparaitrontIci')} icon="sparkles-outline" /> : (
             <View style={styles.list}>
               {items.map((analysis, index) => (
                 <Reveal key={analysis.id} index={index} variant="up">

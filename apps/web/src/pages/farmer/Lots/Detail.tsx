@@ -10,42 +10,43 @@ import { useI18n } from '@/i18n';
 
 /** FARMER — détail d'un lot et ses étapes de traçabilité horodatées. */
 export default function FarmerLotDetail() {
+  const { t } = useI18n();
   const { code } = useParams<{ code: string }>();
   const { locale } = useI18n();
 
   return (
     <DetailPage<PublicLot>
       title={(lot) => lot.code}
-      subtitle="Fiche de traçabilité du lot."
+      subtitle={t('ui.ficheDeTracabiliteDuLot')}
       backHref="/farmer/lots"
-      backLabel="Retour aux lots"
+      backLabel={t('ui.retourAuxLots')}
       queryKey={queryKeys.lots.one(code ?? '')}
       fetch={() => lotApi.get(code ?? '').then((result) => result.data as unknown as PublicLot)}
       actions={(lot) => (
         <>
-          <Button label="QR code" variant="outline" size="sm" onClick={() => window.open(`/api/v1/public/lots/${lot.code}/qr.png`, '_blank')} />
-          <Button label="Fiche publique" variant="ghost" size="sm" onClick={() => window.open(`/public/lots/${lot.code}`, '_blank')} />
+          <Button label={t('ui.qrCode')} variant="outline" size="sm" onClick={() => window.open(`/api/v1/public/lots/${lot.code}/qr.png`, '_blank')} />
+          <Button label={t('ui.fichePublique')} variant="ghost" size="sm" onClick={() => window.open(`/public/lots/${lot.code}`, '_blank')} />
         </>
       )}
       sections={(lot) => [
         {
-          title: 'Identification',
+          title: t('ui.identification'),
           fields: [
-            { label: 'Code', value: <span style={{ fontFamily: 'monospace', fontSize: 14 }}>{lot.code}</span> },
-            { label: 'Culture', value: lot.crop?.name ?? lot.crop?.slug ?? '—' },
-            { label: 'Statut', value: <Chip label={lot.status} tone="neutral" size="sm" /> },
-            { label: 'Créé le', value: formatDate(lot.createdAt, locale) },
+            { label: t('ui.code'), value: <span style={{ fontFamily: 'monospace', fontSize: 14 }}>{lot.code}</span> },
+            { label: t('ui.culture'), value: lot.crop?.name ?? lot.crop?.slug ?? '—' },
+            { label: t('ui.statut'), value: <Chip label={lot.status} tone="neutral" size="sm" /> },
+            { label: t('ui.creeLe'), value: formatDate(lot.createdAt, locale) },
           ],
         },
         {
-          title: 'Chaîne de traçabilité',
-          notice: lot.verification.certification === false ? "Aucune certification n'est associée à ce lot. La mention « certification » reste désactivée tant qu'un certificat validé n'est pas joint." : undefined,
+          title: t('ui.chaineDeTracabilite'),
+          notice: lot.verification.certification === false ? t('ui.aucuneCertificationNEstAssocieeA') : undefined,
           fields: [
             {
-              label: 'Étapes',
+              label: t('ui.etapes'),
               value:
                 lot.timeline.length === 0 ? (
-                  'Aucune étape enregistrée.'
+                  t('ui.noStepRecordedYet')
                 ) : (
                   <Card tone="pale">
                     {lot.timeline.map((step, index) => (
@@ -64,10 +65,10 @@ export default function FarmerLotDetail() {
           ],
         },
         {
-          title: 'Divulgation',
-          notice: `Règle appliquée : ${lot.disclosure.rule}.`,
+          title: t('ui.divulgation'),
+          notice: t('ui.regleAppliquee', { rule: lot.disclosure.rule }),
           fields: [
-            { label: 'Champs masqués', value: lot.disclosure.hiddenFields.length > 0 ? lot.disclosure.hiddenFields.join(', ') : 'aucun' },
+            { label: t('ui.champsMasques'), value: lot.disclosure.hiddenFields.length > 0 ? lot.disclosure.hiddenFields.join(', ') : t('ui.aucun') },
           ],
         },
       ]}

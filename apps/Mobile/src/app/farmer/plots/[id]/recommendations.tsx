@@ -48,6 +48,7 @@ const LEVEL_TONES: Record<string, 'success' | 'warning' | 'info' | 'neutral'> = 
  * le niveau est « insuffisamment documenté » : rien n'est conclu.
  */
 export default function PlotRecommendations() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -127,36 +128,31 @@ export default function PlotRecommendations() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <PlotScreenHeader title="Semis & compatibilité" plotName={plot.data?.name} plotId={id} />
+      <PlotScreenHeader title={t('ui.semisCompatibilite')} plotName={plot.data?.name} plotId={id} />
 
       <Section bare contentStyle={styles.section}>
         {/* ── Quoi semer sur une période donnée ─────────────────────────── */}
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Recommandations de semis
-          </Text>
-          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-            Classement calculé sur la période demandée, à partir des mesures réellement disponibles. Sans données
-            suffisantes, aucune recommandation n’est produite : le moteur le dit plutôt que de deviner.
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.recommandationsDeSemis')}</Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.classementCalculeSurLaPeriodeDemandee')}</Text>
 
           <Input
-            label="Début de période"
+            label={t('ui.debutDePeriode')}
             value={periodStart}
             onChangeText={setPeriodStart}
-            placeholder="AAAA-MM-JJ"
+            placeholder={t('ui.aaaaMmJj')}
             autoCapitalize="none"
           />
           <Input
-            label="Fin de période"
+            label={t('ui.finDePeriode')}
             value={periodEnd}
             onChangeText={setPeriodEnd}
-            placeholder="AAAA-MM-JJ"
+            placeholder={t('ui.aaaaMmJj')}
             autoCapitalize="none"
           />
 
           <Button
-            label="Calculer"
+            label={t('ui.calculer')}
             variant="primary"
             fullWidth
             loading={computePlan.isPending}
@@ -182,19 +178,16 @@ export default function PlotRecommendations() {
 
               {created.recommendation.status === 'INSUFFICIENT_DATA' ? (
                 <EmptyState
-                  title="Données insuffisantes"
+                  title={t('ui.donneesInsuffisantes')}
                   description={
                     created.recommendation.insufficiencyReason ??
-                    'Le moteur n’a pas assez de mesures fiables sur cette parcelle pour classer une culture.'
+                    t('ui.leMoteurNAPasAssez_77e12')
                   }
                   icon="alert-circle-outline"
                 />
               ) : (
                 <>
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    {created.counts.candidates} culture(s) examinée(s) · {created.counts.ranked} classée(s) ·{' '}
-                    {created.counts.eliminated} écartée(s) · {created.counts.readingsUsed} mesure(s) utilisée(s)
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.cultureSExamineeSClasseeS_4647f', { candidates: created.counts.candidates, ranked: created.counts.ranked, eliminated: created.counts.eliminated, readingsUsed: created.counts.readingsUsed })}</Text>
                   <RankedBlock recommendation={created.recommendation} />
                 </>
               )}
@@ -203,17 +196,15 @@ export default function PlotRecommendations() {
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Historique des recommandations
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.historiqueDesRecommandations')}</Text>
           {recommendationHistory.isLoading ? <LoadingState count={1} height={64} /> : null}
           {recommendationHistory.isError ? (
             <ErrorState error={recommendationHistory.error} onRetry={() => void recommendationHistory.refetch()} />
           ) : null}
           {recommendationHistory.data && recommendationHistory.data.items.length === 0 ? (
             <EmptyState
-              title="Aucune recommandation"
-              description="Aucun classement n'a encore été calculé pour cette parcelle."
+              title={t('ui.aucuneRecommandation')}
+              description={t('ui.aucunClassementNAEncoreEte')}
               icon="leaf-outline"
             />
           ) : null}
@@ -225,10 +216,7 @@ export default function PlotRecommendations() {
                     {formatDate(recommendation.periodStart, locale)} →{' '}
                     {formatDate(recommendation.periodEnd, locale)}
                   </Text>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    {recommendation.requestedDays} j · {recommendation.mode} ·{' '}
-                    {recommendation.scores.length} culture(s) classée(s)
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.jCultureSClasseeS', { requestedDays: recommendation.requestedDays, mode: recommendation.mode, length: recommendation.scores.length })}</Text>
                 </View>
                 <Chip
                   label={recommendation.status}
@@ -246,14 +234,14 @@ export default function PlotRecommendations() {
               {recommendation.status === 'PENDING' ? (
                 <View style={styles.decisionRow}>
                   <Button
-                    label="Accepter"
+                    label={t('ui.accepter')}
                     variant="primary"
                     size="sm"
                     loading={decidePlan.isPending}
                     onPress={() => decidePlan.mutate({ recId: recommendation.id, decision: 'ACCEPTED' })}
                   />
                   <Button
-                    label="Refuser"
+                    label={t('ui.refuser')}
                     variant="outline"
                     size="sm"
                     loading={decidePlan.isPending}
@@ -264,7 +252,7 @@ export default function PlotRecommendations() {
 
               {recommendation.status === 'INSUFFICIENT_DATA' ? (
                 <Text preset="caption" color={COLORS.warning} style={styles.lineHeight}>
-                  {recommendation.insufficiencyReason ?? 'Données insuffisantes pour classer une culture.'}
+                  {recommendation.insufficiencyReason ?? t('ui.donneesInsuffisantesPourClasserUneCulture')}
                 </Text>
               ) : (
                 <RankedBlock recommendation={recommendation} />
@@ -275,16 +263,11 @@ export default function PlotRecommendations() {
 
         <Card tone="pale" style={styles.disclaimer}>
           <Ionicons name="information-circle-outline" size={16} color={COLORS.info} />
-          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-            Évaluation produite par un jeu de règles agronomiques validé et versionné. Elle ne remplace pas
-            l’avis d’un agronome et n’est jamais présentée comme une certification.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.evaluationProduiteParUnJeuDe')}</Text>
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Évaluer une culture
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.evaluerUneCulture')}</Text>
           {crops.isLoading ? (
             <LoadingState count={1} height={44} />
           ) : crops.isError ? (
@@ -303,7 +286,7 @@ export default function PlotRecommendations() {
               </ChipRow>
               {error ? <ErrorState error={error} showRequestId /> : null}
               <Button
-                label="Évaluer la compatibilité"
+                label={t('ui.evaluerLaCompatibilite')}
                 onPress={() => selected && compute.mutate(selected)}
                 variant="primary"
                 fullWidth
@@ -311,9 +294,7 @@ export default function PlotRecommendations() {
                 disabled={!selected}
               />
               {!selected ? (
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Sélectionnez une culture. Sans culture courante sur la parcelle, aucune évaluation n’est lancée.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.selectionnezUneCultureSansCultureCourante')}</Text>
               ) : null}
             </>
           )}
@@ -325,8 +306,8 @@ export default function PlotRecommendations() {
           <ErrorState error={suitability.error} onRetry={() => void suitability.refetch()} />
         ) : items.length === 0 ? (
           <EmptyState
-            title="Aucune évaluation"
-            description="Lancez une évaluation pour comparer la parcelle aux critères du jeu de règles applicable."
+            title={t('ui.aucuneEvaluation')}
+            description={t('ui.lancezUneEvaluationPourComparerLa')}
             icon="leaf-outline"
           />
         ) : (
@@ -339,18 +320,14 @@ export default function PlotRecommendations() {
                       <Text preset="h3" color={COLORS.textPrimary}>
                         {item.levelLabel}
                       </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        jeu de règles {item.ruleSetVersion} · {formatDate(item.generatedAt, locale)} · confiance {item.confidence}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.jeuDeReglesConfiance', { ruleSetVersion: item.ruleSetVersion, generatedAt: formatDate(item.generatedAt, locale), confidence: item.confidence })}</Text>
                     </View>
                     <Chip label={item.level} tone={LEVEL_TONES[item.level] ?? 'neutral'} size="sm" />
                   </View>
 
                   {item.coverage !== null ? (
                     <View style={styles.coverage}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Critères couverts par des données disponibles
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.criteresCouvertsParDesDonneesDisponibles')}</Text>
                       <Progress value={Math.round(item.coverage * 100)} />
                     </View>
                   ) : null}
@@ -361,9 +338,7 @@ export default function PlotRecommendations() {
 
                   {item.explanation.satisfied.length > 0 ? (
                     <View style={styles.block}>
-                      <Text preset="caption" color={COLORS.success}>
-                        Critères satisfaits
-                      </Text>
+                      <Text preset="caption" color={COLORS.success}>{t('ui.criteresSatisfaits')}</Text>
                       {item.explanation.satisfied.map((line) => (
                         <Text key={line} preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
                           • {line}
@@ -374,9 +349,7 @@ export default function PlotRecommendations() {
 
                   {item.explanation.unsatisfied.length > 0 ? (
                     <View style={styles.block}>
-                      <Text preset="caption" color={COLORS.warning}>
-                        Critères non satisfaits
-                      </Text>
+                      <Text preset="caption" color={COLORS.warning}>{t('ui.criteresNonSatisfaits')}</Text>
                       {item.explanation.unsatisfied.map((line) => (
                         <Text key={line} preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
                           • {line}
@@ -387,9 +360,7 @@ export default function PlotRecommendations() {
 
                   {item.explanation.missing.length > 0 ? (
                     <View style={styles.block}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Données manquantes
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.donneesManquantes_7bb32')}</Text>
                       {item.explanation.missing.map((line) => (
                         <Text key={line} preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
                           • {line}
@@ -399,10 +370,7 @@ export default function PlotRecommendations() {
                   ) : null}
 
                   {item.usedData ? (
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Sources utilisées : {item.usedData.sources.length > 0 ? item.usedData.sources.join(', ') : 'aucune'} ·{' '}
-                      {item.usedData.parameterCount} paramètre(s) du profil
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.sourcesUtiliseesParametreSDuProfil', { value: item.usedData.sources.length > 0 ? item.usedData.sources.join(', ') : 'aucune', parameterCount: item.usedData.parameterCount })}</Text>
                   ) : null}
 
                   <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
@@ -420,11 +388,10 @@ export default function PlotRecommendations() {
 
 /** Classement : score, couverture, sources, critères non évalués. */
 function RankedBlock({ recommendation }: { recommendation: CropRecommendation }) {
+  const { t } = useI18n();
   if (recommendation.scores.length === 0) {
     return (
-      <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-        Aucune culture classée.
-      </Text>
+      <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.aucuneCultureClassee')}</Text>
     );
   }
   return (
@@ -441,16 +408,14 @@ function RankedBlock({ recommendation }: { recommendation: CropRecommendation })
               tooFewCriteria={entry.tooFewCriteria}
             />
             <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-              {entry.cycleDays ? `cycle ${entry.cycleDays} j` : ''}
+              {entry.cycleDays ? t('ui.cycleJ', { cycleDays: entry.cycleDays }) : ''}
               {recommendation.sources.length > 0
                 ? `${entry.cycleDays ? ' · ' : ''}sources : ${recommendation.sources.join(', ')}`
                 : ''}
             </Text>
             {entry.notEvaluated.length > 0 ? (
               <View style={styles.nonEvalues}>
-                <Text preset="caption" color={COLORS.warning} style={styles.lineHeight}>
-                  {entry.notEvaluated.length} critère(s) non évalué(s) :
-                </Text>
+                <Text preset="caption" color={COLORS.warning} style={styles.lineHeight}>{t('ui.critereSNonEvalueS', { length: entry.notEvaluated.length })}</Text>
                 {entry.notEvaluated.map((critere) => (
                   /*
                    * `notEvaluated` contient des **objets** `{ key, label,
@@ -472,7 +437,7 @@ function RankedBlock({ recommendation }: { recommendation: CropRecommendation })
           */}
           <View style={{ alignItems: 'flex-end' }}>
             <Chip
-              label={`adéquation ${entry.score.toFixed(2)}`}
+              label={t('ui.adequation', { value: entry.score.toFixed(2) })}
               tone={index === 0 ? 'success' : 'neutral'}
               size="sm"
             />
@@ -482,7 +447,7 @@ function RankedBlock({ recommendation }: { recommendation: CropRecommendation })
             */}
             {recommendation.ruleSetVersion || entry.engineVersion ? (
               <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 4 }}>
-                {`moteur v${entry.engineVersion ?? recommendation.ruleSetVersion}`}
+                {t('ui.moteurV', { value: entry.engineVersion ?? recommendation.ruleSetVersion })}
                 {entry.combinationRuleLabel ? ` · ${entry.combinationRuleLabel}` : ''}
               </Text>
             ) : null}

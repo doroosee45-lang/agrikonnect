@@ -43,6 +43,7 @@ const STATUS_TONES: Record<string, 'neutral' | 'info' | 'success' | 'warning'> =
 
 /** Demandes d'achat : expression du besoin, budget, échéance, correspondances. */
 export default function Requests() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -99,18 +100,18 @@ export default function Requests() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Demandes d'achat" subtitle="Besoins exprimés par les acheteurs, avec budget et échéance." />
+      <AppHeader title={t('ui.demandesDAchat')} subtitle={t('ui.besoinsExprimesParLesAcheteursAvec')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour publier une demande d'achat ou y répondre par une offre."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourPublierUneDemande')}
           icon="cart-outline"
         >
           <View style={styles.toolbar}>
             <Button
-              label={creating ? 'Fermer' : 'Nouvelle demande'}
+              label={creating ? t('common.close') : t('ui.nouvelleDemande')}
               onPress={() => setCreating((value) => !value)}
               variant={creating ? 'ghost' : 'primary'}
               size="sm"
@@ -121,12 +122,10 @@ export default function Requests() {
           {creating ? (
             <Animated.View entering={FadeInDown.duration(DURATION.slow)} exiting={FadeOutUp.duration(DURATION.fast)}>
               <Card tone="white" style={styles.form}>
-                <Input label="Titre" value={title} onChangeText={setTitle} placeholder="Anacarde brute — 40 t" icon="cart-outline" autoCapitalize="sentences" />
+                <Input label={t('ui.titre')} value={title} onChangeText={setTitle} placeholder={t('ui.anacardeBrute40T')} icon="cart-outline" autoCapitalize="sentences" />
 
                 <View style={styles.block}>
-                  <Text preset="caption" color={COLORS.textPrimary}>
-                    Culture
-                  </Text>
+                  <Text preset="caption" color={COLORS.textPrimary}>{t('ui.culture')}</Text>
                   {crops.isLoading ? (
                     <LoadingState count={1} height={44} />
                   ) : (
@@ -139,23 +138,23 @@ export default function Requests() {
                 </View>
 
                 <View style={styles.row}>
-                  <Input label="Quantité" value={quantity} onChangeText={setQuantity} placeholder="40" icon="scale-outline" keyboardType="decimal-pad" />
-                  <Input label="Unité" value={unit} onChangeText={setUnit} placeholder="tonnes" icon="cube-outline" />
+                  <Input label={t('ui.quantite')} value={quantity} onChangeText={setQuantity} placeholder="40" icon="scale-outline" keyboardType="decimal-pad" />
+                  <Input label={t('ui.unite')} value={unit} onChangeText={setUnit} placeholder="tonnes" icon="cube-outline" />
                 </View>
                 <View style={styles.row}>
-                  <Input label="Budget unitaire" value={budget} onChangeText={setBudget} placeholder="650 000" icon="cash-outline" keyboardType="decimal-pad" optionalLabel="facultatif" />
-                  <Input label="Devise" value={currency} onChangeText={(v) => setCurrency(v.toUpperCase().slice(0, 3))} placeholder="XOF" icon="wallet-outline" maxLength={3} />
+                  <Input label={t('ui.budgetUnitaire')} value={budget} onChangeText={setBudget} placeholder="650 000" icon="cash-outline" keyboardType="decimal-pad" optionalLabel={t('common.optional')} />
+                  <Input label={t('ui.devise')} value={currency} onChangeText={(v) => setCurrency(v.toUpperCase().slice(0, 3))} placeholder="XOF" icon="wallet-outline" maxLength={3} />
                 </View>
                 <View style={styles.row}>
-                  <Input label="Pays de livraison" value={country} onChangeText={(v) => setCountry(v.toUpperCase().slice(0, 2))} placeholder="CI" icon="globe-outline" maxLength={2} />
-                  <Input label="Besoin avant le" value={neededBy} onChangeText={setNeededBy} placeholder="2026-06-30" icon="calendar-outline" optionalLabel="facultatif" />
+                  <Input label={t('ui.paysDeLivraison')} value={country} onChangeText={(v) => setCountry(v.toUpperCase().slice(0, 2))} placeholder="CI" icon="globe-outline" maxLength={2} />
+                  <Input label={t('ui.besoinAvantLe')} value={neededBy} onChangeText={setNeededBy} placeholder="2026-06-30" icon="calendar-outline" optionalLabel={t('common.optional')} />
                 </View>
-                <TextArea label="Cahier des charges" value={description} onChangeText={setDescription} placeholder="Qualité, humidité, conditionnement, incoterm…" minHeight={100} optionalLabel="facultatif" />
+                <TextArea label={t('ui.cahierDesCharges')} value={description} onChangeText={setDescription} placeholder={t('ui.qualiteHumiditeConditionnementIncoterm')} minHeight={100} optionalLabel={t('common.optional')} />
 
                 {error ? <ErrorState error={error} showRequestId /> : null}
 
                 <Button
-                  label="Publier la demande"
+                  label={t('ui.publierLaDemande')}
                   onPress={() => create.mutate()}
                   variant="primary"
                   fullWidth
@@ -172,10 +171,10 @@ export default function Requests() {
             <ErrorState error={requests.error} onRetry={() => void requests.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucune demande publiée"
-              description="Publiez un besoin : les vendeurs compatibles sont mis en correspondance à partir des annonces existantes."
+              title={t('ui.aucuneDemandePubliee')}
+              description={t('ui.publiezUnBesoinLesVendeursCompatibles')}
               icon="cart-outline"
-              action={{ label: 'Nouvelle demande', onPress: () => setCreating(true) }}
+              action={{ label: t('ui.nouvelleDemande'), onPress: () => setCreating(true) }}
             />
           ) : (
             <View style={styles.list}>
@@ -190,7 +189,7 @@ export default function Requests() {
                         <Text preset="caption" color={COLORS.slateGray}>
                           {item.crop?.names?.fr ?? item.crop?.slug ?? item.cropId} · {formatNumber(item.quantity, locale, 1)} {item.unit} ·{' '}
                           {item.deliveryCountry}
-                          {item.neededBy ? ` · avant le ${formatDate(item.neededBy, locale)}` : ''}
+                          {item.neededBy ? t('ui.avantLe', { neededBy: formatDate(item.neededBy, locale) }) : ''}
                         </Text>
                       </View>
                       <Chip label={item.status} tone={STATUS_TONES[item.status] ?? 'neutral'} size="sm" />
@@ -204,18 +203,16 @@ export default function Requests() {
 
                     <View style={styles.foot}>
                       <Text preset="bodyMedium" color={COLORS.forestGreen}>
-                        {item.budgetPrice !== null ? formatCurrency(item.budgetPrice, item.currency, locale) : 'Budget non communiqué'}
+                        {item.budgetPrice !== null ? formatCurrency(item.budgetPrice, item.currency, locale) : t('ui.budgetNonCommunique')}
                       </Text>
                       <View style={styles.actions}>
-                        <Button label="Détail" onPress={() => router.push(`/requests/${item.id}` as never)} variant="outline" size="sm" />
+                        <Button label={t('ui.detail')} onPress={() => router.push(`/requests/${item.id}` as never)} variant="outline" size="sm" />
                       </View>
                     </View>
 
                     <View style={styles.meta}>
                       <Ionicons name="time-outline" size={12} color={COLORS.slateGray} />
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        publiée le {formatDate(item.createdAt, locale)} · version {item.version}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.publieeLeVersion', { createdAt: formatDate(item.createdAt, locale), version: item.version })}</Text>
                     </View>
                   </Card>
                 </Reveal>

@@ -31,6 +31,7 @@ const STATUS_TONE = {
 } as const;
 
 export default function FarmerExport() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -42,17 +43,17 @@ export default function FarmerExport() {
   const items = query.data?.items ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Exportations" subtitle="Dossiers d'exportation et conformité documentaire." />
+      <FarmerHeader title={t('ui.exportations')} subtitle={t('ui.dossiersDExportationEtConformiteDocumentaire')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Exportations" icon="boat-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.exportations')} icon="boat-outline">
           {query.isLoading ? (
             <LoadingState count={3} height={90} />
           ) : query.isError ? (
             <ErrorState error={query.error} onRetry={() => void query.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucun dossier d'exportation"
-              description="Aucun dossier n'a été ouvert. Un dossier est distinct d'une commande."
+              title={t('ui.aucunDossierDExportation')}
+              description={t('ui.aucunDossierNAEteOuvert_8d7de')}
               icon="boat-outline"
             />
           ) : (
@@ -70,9 +71,7 @@ export default function FarmerExport() {
                           {order.incoterm ? ` · ${order.incoterm}` : ''} · {formatDate(order.createdAt, locale)}
                         </Text>
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {order.totalAmount !== null ? `${order.totalAmount} ${order.currency}` : 'montant non renseigné'} ·{' '}
-                          pièces {order._count?.documents ?? 0}/4
-                        </Text>
+                          {order.totalAmount !== null ? `${order.totalAmount} ${order.currency}` : t('ui.montantNonRenseigne')}{' '}{t('ui.pieces4', { value: order._count?.documents ?? 0 })}</Text>
                       </View>
                       <Chip label={order.status} tone={STATUS_TONE[order.status]} size="sm" />
                     </View>

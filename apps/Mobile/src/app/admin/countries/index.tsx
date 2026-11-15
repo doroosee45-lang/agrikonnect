@@ -9,9 +9,11 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /** ADMIN — référentiel pays (devises, langues, fuseaux) exposé par le backend. */
 export default function AdminCountries() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
     queryKey: queryKeys.countries.all,
@@ -22,10 +24,10 @@ export default function AdminCountries() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Pays" subtitle="Référentiel pays, devises et langues." />
+      <AppHeader title={t('ui.pays')} subtitle={t('ui.referentielPaysDevisesEtLangues')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Pays" icon="globe-outline">
-          {query.isLoading ? <LoadingState count={4} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun pays" description="Le référentiel est vide." icon="globe-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.pays')} icon="globe-outline">
+          {query.isLoading ? <LoadingState count={4} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunPays')} description={t('ui.leReferentielEstVide')} icon="globe-outline" /> : (
             <View style={styles.list}>
               {items.map((country, index) => (
                 <Reveal key={country.code} index={index} variant="up">

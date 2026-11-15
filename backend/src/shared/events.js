@@ -2,6 +2,17 @@ import { prisma } from '../config/prisma.js';
 import { logger } from './http/logger.js';
 import { sendEmail } from '../integrations/email.js';
 import { emitToUser } from '../realtime/bus.js';
+import { DEFAULT_LOCALE, normalizeLocale, translateMessage } from './i18n/index.js';
+
+/** Langue enregistrée sur le profil du destinataire (repli : français). */
+const recipientLocale = async (userId) => {
+  try {
+    const profile = await prisma.profile.findUnique({ where: { id: userId }, select: { locale: true } });
+    return normalizeLocale(profile?.locale) ?? DEFAULT_LOCALE;
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+};
 
 /**
  * Modèle d'événements central (NOTIF-02) : un événement → N canaux,
@@ -21,6 +32,15 @@ export const notify = async ({
   email = null,
 }) => {
   const created = [];
+
+  /*
+   * I18N-01 — une notification est écrite dans la langue du **destinataire**
+   * (`Profile.locale`), pas dans celle de la requête qui l'a déclenchée. Les
+   * textes source restent français ; repli français si la langue est inconnue.
+   */
+  const locale = await recipientLocale(userId);
+  title = translateMessage(title, locale);
+  body = body ? translateMessage(body, locale) : body;
 
   for (const channel of channels) {
     // Préférence explicite : si désactivée, on n'envoie pas sur ce canal.
@@ -51,9 +71,7 @@ export const notify = async ({
       emitToUser(userId, 'notification:new', {
         id: notification.id,
         type,
-        title,
         channel,
-        payload: payload ?? null,
       });
     } catch (error) {
       // P2002 = doublon de dedupeKey : comportement attendu, on ignore.

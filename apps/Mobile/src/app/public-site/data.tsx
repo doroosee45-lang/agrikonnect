@@ -18,6 +18,7 @@ import { SPACING } from '@/theme/space';
  * `published: false`. Rien n'est arrondi ni complété côté client.
  */
 export default function PublicSiteData() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const query = useQuery({
     queryKey: queryKeys.public.soilStats({}),
@@ -27,20 +28,18 @@ export default function PublicSiteData() {
   const data = query.data;
   return (
     <PublicShell active="data">
-      <PageHeader index="03" eyebrow="Données" title="Statistiques publiques" subtitle="Moyennes de paramètres mesurés, groupées par pays, sans rattachement à une exploitation identifiable." />
+      <PageHeader index="03" eyebrow={t('ui.donnees')} title={t('ui.statistiquesPubliques')} subtitle={t('ui.moyennesDeParametresMesuresGroupeesPar')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         {query.isLoading ? <LoadingState count={2} height={130} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !data || data.rows.length === 0 ? (
           <EmptyState
-            title="Aucune statistique publiable"
-            description={`Chaque groupe de moins de ${data?.kAnonymity ?? 10} analyses est supprimé plutôt qu\u2019arrondi ou complété.`}
+            title={t('ui.aucuneStatistiquePubliable')}
+            description={t('ui.chaqueGroupeDeMoinsDeAnalyses', { value: data?.kAnonymity ?? 10 })}
             icon="stats-chart-outline"
           />
         ) : (
           <>
             <Card tone="pale">
-              <Text preset="caption" color={COLORS.slateGray}>
-                Seuil de k-anonymat : {data.kAnonymity} analyses. Méthode : {data.provenance.method}. Règle : {data.provenance.rule}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.seuilDeKAnonymatAnalysesMethode', { kAnonymity: data.kAnonymity, method: data.provenance.method, rule: data.provenance.rule })}</Text>
             </Card>
             <View style={styles.list}>
               {data.rows.map((row, index) => (
@@ -53,13 +52,11 @@ export default function PublicSiteData() {
                     {row.parameters.filter((p) => p.published).map((parameter) => (
                       <View key={parameter.parameter} style={styles.param}>
                         <Text preset="bodySm">{parameter.parameter}</Text>
-                        <Text preset="bodySm">{formatNumber(parameter.mean, locale, 1)} ({parameter.samples} échantillons)</Text>
+                        <Text preset="bodySm">{t('ui.echantillons', { mean: formatNumber(parameter.mean, locale, 1), samples: parameter.samples })}</Text>
                       </View>
                     ))}
                     {row.withheldParameters.length > 0 ? (
-                      <Text preset="caption" color={COLORS.warning}>
-                        Paramètres non publiés (groupe trop petit) : {row.withheldParameters.join(', ')}
-                      </Text>
+                      <Text preset="caption" color={COLORS.warning}>{t('ui.parametresNonPubliesGroupeTropPetit', { value: row.withheldParameters.join(', ') })}</Text>
                     ) : null}
                   </Card>
                 </Reveal>
@@ -67,9 +64,7 @@ export default function PublicSiteData() {
             </View>
             {data.suppressedGroups.length > 0 ? (
               <Card tone="pale">
-                <Text preset="caption" color={COLORS.warning}>
-                  {data.suppressedGroups.length} groupe(s) supprimé(s) : {data.suppressedGroups.map((g) => `${g.countryCode} (${g.reason})`).join(' · ')}
-                </Text>
+                <Text preset="caption" color={COLORS.warning}>{t('ui.groupeSSupprimeS', { length: data.suppressedGroups.length, value: data.suppressedGroups.map((g) => `${g.countryCode} (${g.reason})`).join(' · ') })}</Text>
               </Card>
             ) : null}
           </>

@@ -28,6 +28,7 @@ import { SPACING } from '@/theme/space';
 
 /** Ventes : mes annonces et mes commandes, côté vendeur. */
 export default function Ventes() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -47,24 +48,22 @@ export default function Ventes() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Mes ventes" subtitle="Annonces publiées et commandes en cours, côté vendeur." />
+      <AppHeader title={t('ui.mesVentes')} subtitle={t('ui.annoncesPublieesEtCommandesEnCours')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour publier vos volumes et suivre vos ventes."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourPublierVosVolumes')}
           icon="pricetag-outline"
         >
           <View style={styles.toolbar}>
-            <Button label="Publier une annonce" onPress={() => router.push('/annonces/creer')} variant="primary" size="sm" icon="add" />
-            <Button label="Voir le marché" onPress={() => router.push('/annonces')} variant="ghost" size="sm" icon="storefront-outline" />
+            <Button label={t('ui.publierUneAnnonce')} onPress={() => router.push('/annonces/creer')} variant="primary" size="sm" icon="add" />
+            <Button label={t('ui.voirLeMarche')} onPress={() => router.push('/annonces')} variant="ghost" size="sm" icon="storefront-outline" />
           </View>
 
           <Card tone="ink" style={styles.summary}>
-            <Text preset="overline" color={COLORS.gold}>
-              Activité de vente
-            </Text>
+            <Text preset="overline" color={COLORS.gold}>{t('ui.activiteDeVente')}</Text>
             <View style={styles.counts}>
               <View style={styles.count}>
                 <Text preset="numeric" color={COLORS.pureWhite}>
@@ -86,29 +85,23 @@ export default function Ventes() {
                 <Text preset="numeric" color={COLORS.pureWhite}>
                   {formatNumber(sales.filter((order) => order.status === 'DELIVERED' || order.status === 'COMPLETED').length, locale)}
                 </Text>
-                <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
-                  finalisées
-                </Text>
+                <Text preset="caption" color="rgba(246, 247, 242, 0.7)">{t('ui.finalisees')}</Text>
               </View>
             </View>
-            <Text preset="caption" color="rgba(246, 247, 242, 0.65)" style={styles.lineHeight}>
-              Compteurs calculés à partir de vos annonces et commandes réelles : aucune projection n’est ajoutée.
-            </Text>
+            <Text preset="caption" color="rgba(246, 247, 242, 0.65)" style={styles.lineHeight}>{t('ui.compteursCalculesAPartirDeVos')}</Text>
           </Card>
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Mes annonces
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.mesAnnonces')}</Text>
           {listings.isLoading ? (
             <LoadingState count={2} height={110} />
           ) : listings.isError ? (
             <ErrorState error={listings.error} onRetry={() => void listings.refetch()} />
           ) : announcements.length === 0 ? (
             <EmptyState
-              title="Aucune annonce"
-              description="Publiez un volume disponible pour être contacté par des acheteurs."
+              title={t('ui.aucuneAnnonce')}
+              description={t('ui.publiezUnVolumeDisponiblePourEtre')}
               icon="pricetag-outline"
-              action={{ label: 'Publier une annonce', onPress: () => router.push('/annonces/creer') }}
+              action={{ label: t('ui.publierUneAnnonce'), onPress: () => router.push('/annonces/creer') }}
             />
           ) : (
             <View style={styles.list}>
@@ -120,10 +113,7 @@ export default function Ventes() {
                         <Text preset="bodyMedium" color={COLORS.textPrimary} numberOfLines={1}>
                           {item.title}
                         </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          {formatNumber(item.quantity, locale, 1)} {item.unit} · {item.countryCode} · publiée le{' '}
-                          {formatDate(item.createdAt, locale)}
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.publieeLe_1d428', { quantity: formatNumber(item.quantity, locale, 1), unit: item.unit, countryCode: item.countryCode, createdAt: formatDate(item.createdAt, locale) })}</Text>
                       </View>
                       <Chip
                         label={item.status}
@@ -133,9 +123,9 @@ export default function Ventes() {
                     </View>
                     <View style={styles.foot}>
                       <Text preset="bodyMedium" color={COLORS.forestGreen}>
-                        {item.indicativePrice !== null ? formatCurrency(item.indicativePrice, item.currency, locale) : 'Prix non communiqué'}
+                        {item.indicativePrice !== null ? formatCurrency(item.indicativePrice, item.currency, locale) : t('ui.prixNonCommunique')}
                       </Text>
-                      <Button label="Ouvrir" onPress={() => router.push(`/annonces/${item.id}` as never)} variant="outline" size="sm" />
+                      <Button label={t('ui.ouvrir')} onPress={() => router.push(`/annonces/${item.id}` as never)} variant="outline" size="sm" />
                     </View>
                   </Card>
                 </Reveal>
@@ -143,15 +133,13 @@ export default function Ventes() {
             </View>
           )}
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Commandes
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.commandes')}</Text>
           {orders.isLoading ? (
             <LoadingState count={2} height={100} />
           ) : orders.isError ? (
             <ErrorState error={orders.error} onRetry={() => void orders.refetch()} />
           ) : sales.length === 0 ? (
-            <EmptyState title="Aucune commande" description="Les commandes naissent d'une offre acceptée." icon="receipt-outline" />
+            <EmptyState title={t('ui.aucuneCommande')} description={t('ui.lesCommandesNaissentDUneOffre')} icon="receipt-outline" />
           ) : (
             <View style={styles.list}>
               {sales.map((order, index) => (
@@ -162,17 +150,15 @@ export default function Ventes() {
                         <Text preset="bodyMedium" color={COLORS.textPrimary}>
                           {order.number}
                         </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          {formatDate(order.createdAt, locale)} · paiement {order.paymentStatus}
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.paiement_70a0e', { createdAt: formatDate(order.createdAt, locale), paymentStatus: order.paymentStatus })}</Text>
                       </View>
                       <Chip label={order.status} tone={order.status === 'COMPLETED' ? 'success' : 'info'} size="sm" />
                     </View>
                     <View style={styles.foot}>
                       <Text preset="bodyMedium" color={COLORS.forestGreen}>
-                        {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : 'Montant à confirmer'}
+                        {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : t('ui.montantAConfirmer_2c077')}
                       </Text>
-                      <Button label="Suivre" onPress={() => router.push(`/marketplace/${order.id}` as never)} variant="outline" size="sm" icon="arrow-forward-outline" />
+                      <Button label={t('ui.suivre')} onPress={() => router.push(`/marketplace/${order.id}` as never)} variant="outline" size="sm" icon="arrow-forward-outline" />
                     </View>
                   </Card>
                 </Reveal>
@@ -182,10 +168,7 @@ export default function Ventes() {
 
           <Card tone="pale" style={styles.note}>
             <Ionicons name="information-circle-outline" size={16} color={COLORS.info} />
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Le prix d’une commande est figé dans un instantané à la validation : les variations de marché
-              ultérieures ne modifient pas une commande conclue.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lePrixDUneCommandeEst')}</Text>
           </Card>
         </AuthGate>
       </Section>

@@ -78,14 +78,14 @@ export default function Productions() {
 
   const create = useMutation({
     mutationFn: () => {
-      if (!selectedFarm) throw new Error('Sélectionnez une exploitation.');
-      if (!cropId) throw new Error('Sélectionnez une culture.');
+      if (!selectedFarm) throw new Error(t('ui.selectionnezUneExploitation'));
+      if (!cropId) throw new Error(t('ui.selectionnezUneCulture'));
       const quantityValue = Number(quantity.replace(/[^\d,.]/g, '').replace(',', '.'));
       if (!Number.isFinite(quantityValue) || quantityValue <= 0) {
-        throw new Error('Indiquez une quantité positive.');
+        throw new Error(t('ui.indiquezUneQuantitePositive'));
       }
-      if (!season.trim()) throw new Error('Indiquez la saison (ex. 2026-A).');
-      if (!harvestedAt.trim()) throw new Error('Indiquez la date de récolte.');
+      if (!season.trim()) throw new Error(t('ui.indiquezLaSaisonEx2026A'));
+      if (!harvestedAt.trim()) throw new Error(t('ui.indiquezLaDateDeRecolte'));
 
       return productionApi.create({
         farmId: selectedFarm,
@@ -102,7 +102,7 @@ export default function Productions() {
     onSuccess: (result) => {
       setCreating(false);
       setError(null);
-      setNotice(result.data.conversion.message ?? 'Production enregistrée.');
+      setNotice(result.data.conversion.message ?? t('ui.productionEnregistree'));
       setQuantity('');
       setSeason('');
       setHarvestedAt('');
@@ -119,12 +119,12 @@ export default function Productions() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title={t('farmer.productions')} subtitle="Vos récoltes déclarées, par saison et par culture." />
+      <FarmerHeader title={t('farmer.productions')} subtitle={t('ui.vosRecoltesDeclareesParSaisonEt')} />
 
       <Section bare contentStyle={styles.section}>
         <View style={styles.toolbar}>
           <Button
-            label={creating ? 'Fermer' : 'Déclarer une récolte'}
+            label={creating ? t('common.close') : t('ui.declarerUneRecolte')}
             onPress={() => setCreating((value) => !value)}
             variant={creating ? 'ghost' : 'primary'}
             size="sm"
@@ -134,40 +134,30 @@ export default function Productions() {
 
         {stats.data ? (
           <Card tone="ink" style={styles.stats}>
-            <Text preset="overline" color={COLORS.gold}>
-              Cumul déclaré
-            </Text>
+            <Text preset="overline" color={COLORS.gold}>{t('ui.cumulDeclare')}</Text>
             <View style={styles.statsRow}>
               <View style={styles.stat}>
                 <Text preset="numeric" color={COLORS.pureWhite}>
                   {formatNumber(stats.data.totals.records, locale)}
                 </Text>
-                <Text preset="caption" color="rgba(246, 247, 242, 0.65)">
-                  récoltes
-                </Text>
+                <Text preset="caption" color="rgba(246, 247, 242, 0.65)">{t('ui.recoltes_799f7')}</Text>
               </View>
               <View style={styles.stat}>
                 <Text preset="numeric" color={COLORS.pureWhite}>
                   {formatNumber(stats.data.totals.quantityKg, locale, 0)} kg
                 </Text>
-                <Text preset="caption" color="rgba(246, 247, 242, 0.65)">
-                  unités converties
-                </Text>
+                <Text preset="caption" color="rgba(246, 247, 242, 0.65)">{t('ui.unitesConverties')}</Text>
               </View>
               {stats.data.totals.recordsWithoutKg > 0 ? (
                 <View style={styles.stat}>
                   <Text preset="numeric" color={COLORS.gold}>
                     {formatNumber(stats.data.totals.recordsWithoutKg, locale)}
                   </Text>
-                  <Text preset="caption" color="rgba(246, 247, 242, 0.65)">
-                    non converties
-                  </Text>
+                  <Text preset="caption" color="rgba(246, 247, 242, 0.65)">{t('ui.nonConverties')}</Text>
                 </View>
               ) : null}
             </View>
-            <Text preset="caption" color="rgba(246, 247, 242, 0.6)" style={styles.lineHeight}>
-              Les unités locales non convertibles en kg ne sont pas additionnées : aucun total n’est inventé.
-            </Text>
+            <Text preset="caption" color="rgba(246, 247, 242, 0.6)" style={styles.lineHeight}>{t('ui.lesUnitesLocalesNonConvertiblesEn')}</Text>
           </Card>
         ) : null}
 
@@ -184,13 +174,9 @@ export default function Productions() {
           <Animated.View entering={FadeInDown.duration(DURATION.slow)} exiting={FadeOutUp.duration(DURATION.fast)}>
             <Card tone="white" style={styles.form}>
               <View style={styles.block}>
-                <Text preset="caption" color={COLORS.textPrimary}>
-                  Exploitation
-                </Text>
+                <Text preset="caption" color={COLORS.textPrimary}>{t('ui.exploitation_3097d')}</Text>
                 {(farms.data ?? []).length === 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Créez d’abord une exploitation.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.creezDAbordUneExploitation')}</Text>
                 ) : (
                   <ChipRow>
                     {(farms.data ?? []).slice(0, 8).map((farm) => (
@@ -209,13 +195,10 @@ export default function Productions() {
               </View>
 
               <View style={styles.block}>
-                <Text preset="caption" color={COLORS.textPrimary}>
-                  Parcelle <Text preset="caption" color={COLORS.slateGray}>(facultatif)</Text>
+                <Text preset="caption" color={COLORS.textPrimary}>{t('ui.parcelle')}{' '}<Text preset="caption" color={COLORS.slateGray}>{t('ui.facultatif')}</Text>
                 </Text>
                 {farmPlots.length === 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Aucune parcelle rattachée à cette exploitation.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucuneParcelleRattacheeACetteExploitation')}</Text>
                 ) : (
                   <ChipRow>
                     {farmPlots.slice(0, 10).map((plot) => (
@@ -226,13 +209,9 @@ export default function Productions() {
               </View>
 
               <View style={styles.block}>
-                <Text preset="caption" color={COLORS.textPrimary}>
-                  Culture
-                </Text>
+                <Text preset="caption" color={COLORS.textPrimary}>{t('ui.culture')}</Text>
                 {crops.isLoading ? (
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Chargement du référentiel…
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.chargementDuReferentiel')}</Text>
                 ) : crops.isError ? (
                   <ErrorState error={crops.error} onRetry={() => void crops.refetch()} />
                 ) : (
@@ -250,27 +229,24 @@ export default function Productions() {
               </View>
 
               <View style={styles.row}>
-                <Input label="Quantité" value={quantity} onChangeText={setQuantity} placeholder="42" icon="scale-outline" keyboardType="decimal-pad" />
-                <Input label="Unité locale" value={unit} onChangeText={setUnit} placeholder="sacs de 50 kg" icon="cube-outline" />
+                <Input label={t('ui.quantite')} value={quantity} onChangeText={setQuantity} placeholder="42" icon="scale-outline" keyboardType="decimal-pad" />
+                <Input label={t('ui.uniteLocale')} value={unit} onChangeText={setUnit} placeholder={t('ui.sacsDe50Kg')} icon="cube-outline" />
               </View>
               <View style={styles.row}>
-                <Input label="Saison" value={season} onChangeText={setSeason} placeholder="2026-A" icon="leaf-outline" autoCapitalize="characters" />
-                <Input label="Date de récolte" value={harvestedAt} onChangeText={setHarvestedAt} placeholder="2026-09-18" icon="calendar-outline" />
+                <Input label={t('ui.saison')} value={season} onChangeText={setSeason} placeholder="2026-A" icon="leaf-outline" autoCapitalize="characters" />
+                <Input label={t('ui.dateDeRecolte')} value={harvestedAt} onChangeText={setHarvestedAt} placeholder="2026-09-18" icon="calendar-outline" />
               </View>
               <View style={styles.row}>
-                <Input label="Qualité" value={quality} onChangeText={setQuality} placeholder="Grade A" icon="ribbon-outline" optionalLabel="facultatif" />
-                <Input label="Destination" value={destination} onChangeText={setDestination} placeholder="Coopérative / marché" icon="pricetag-outline" optionalLabel="facultatif" />
+                <Input label={t('ui.qualite')} value={quality} onChangeText={setQuality} placeholder={t('ui.gradeA')} icon="ribbon-outline" optionalLabel={t('common.optional')} />
+                <Input label={t('ui.destination')} value={destination} onChangeText={setDestination} placeholder={t('ui.cooperativeMarche')} icon="pricetag-outline" optionalLabel={t('common.optional')} />
               </View>
 
-              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                Enregistrement source « déclaré ». La conversion en kilogrammes provient du référentiel
-                d’unités ; elle est nulle si votre unité n’y figure pas.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.enregistrementSourceDeclareLaConversionEn')}</Text>
 
               {error ? <ErrorState error={error} showRequestId /> : null}
 
               <Button
-                label="Enregistrer la récolte"
+                label={t('ui.enregistrerLaRecolte')}
                 onPress={() => create.mutate()}
                 variant="primary"
                 fullWidth
@@ -287,10 +263,10 @@ export default function Productions() {
           <ErrorState error={productions.error} onRetry={() => void productions.refetch()} />
         ) : items.length === 0 ? (
           <EmptyState
-            title="Aucune récolte"
-            description="Déclarez une récolte pour suivre vos volumes par saison et par culture."
+            title={t('ui.aucuneRecolte')}
+            description={t('ui.declarezUneRecoltePourSuivreVos')}
             icon="leaf-outline"
-            action={{ label: 'Déclarer une récolte', onPress: () => setCreating(true) }}
+            action={{ label: t('ui.declarerUneRecolte'), onPress: () => setCreating(true) }}
           />
         ) : (
           <View style={styles.list}>
@@ -303,37 +279,28 @@ export default function Productions() {
                     </View>
                     <View style={styles.cardTitle}>
                       <Text preset="bodyMedium" color={COLORS.textPrimary} numberOfLines={1}>
-                        {production.crop?.names?.fr ?? production.crop?.slug ?? 'Culture'}
+                        {production.crop?.names?.fr ?? production.crop?.slug ?? t('ui.culture')}
                       </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        {production.farm?.name ?? '—'}
-                        {production.plot ? ` · ${production.plot.name}` : ''} · saison {production.season}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.saison_c00d2', { value: production.farm?.name ?? '—', value2: production.plot ? ` · ${production.plot.name}` : '', season: production.season })}</Text>
                     </View>
                     <ProvenanceTag kind={production.source === 'declared' ? 'declared' : 'measured'} />
                   </View>
 
                   <View style={styles.cardFacts}>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Quantité déclarée
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.quantiteDeclaree')}</Text>
                       <Text preset="bodySm" color={COLORS.textPrimary}>
                         {formatNumber(production.quantity, locale, 1)} {production.unit}
                       </Text>
                     </View>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Équivalent kg
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.equivalentKg')}</Text>
                       <Text preset="bodySm" color={production.quantityKg === null ? COLORS.slateGray : COLORS.textPrimary}>
-                        {production.quantityKg === null ? 'unité non convertible' : `${formatNumber(production.quantityKg, locale, 0)} kg`}
+                        {production.quantityKg === null ? t('ui.uniteNonConvertible') : `${formatNumber(production.quantityKg, locale, 0)} kg`}
                       </Text>
                     </View>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Récolte
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.recolte')}</Text>
                       <Text preset="bodySm" color={COLORS.textPrimary}>
                         {formatDate(production.harvestedAt, locale)}
                       </Text>
@@ -341,7 +308,7 @@ export default function Productions() {
                   </View>
 
                   <View style={styles.cardChips}>
-                    {production.quality ? <Chip label={`Qualité : ${production.quality}`} tone="neutral" size="sm" /> : null}
+                    {production.quality ? <Chip label={t('ui.qualite_da02a', { quality: production.quality })} tone="neutral" size="sm" /> : null}
                     {production.destination ? <Chip label={production.destination} tone="neutral" size="sm" /> : null}
                   </View>
                 </Card>

@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerGallery() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function FarmerGallery() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Galerie" subtitle="Médias rattachés à vos parcelles." />
+      <FarmerHeader title={t('ui.galerie')} subtitle={t('ui.mediasRattachesAVosParcelles')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Galerie" icon="images-outline">
-          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun média" description="Les photos et documents rattachés à vos parcelles apparaissent ici." icon="images-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.galerie')} icon="images-outline">
+          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunMedia')} description={t('ui.lesPhotosEtDocumentsRattachesA')} icon="images-outline" /> : (
             <View style={styles.list}>
               {items.map((media, index) => (
                 <Reveal key={String(media.id)} index={index} variant="up">

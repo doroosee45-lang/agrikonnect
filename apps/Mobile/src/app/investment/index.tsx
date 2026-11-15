@@ -15,27 +15,40 @@ import {
   ErrorState,
   FilterChip,
   LoadingState,
+  MobileHorizonDonutCard,
+  MobileHorizonOverviewCard,
   Reveal,
   Screen,
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatNumber } from '@/lib/format';
 import { investApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
-import { COLORS, TINTS } from '@/theme/colors';
-import { RADIUS, SPACING } from '@/theme/space';
+import { COLORS } from '@/theme/colors';
+import { SPACING } from '@/theme/space';
 
 const FILTERS = [
-  { key: 'all', label: 'Tous les projets' },
-  { key: 'followed', label: 'Suivis' },
-  { key: 'matches', label: 'Correspondances' },
+  { key: 'all', get label() { return tr('ui.tousLesProjets'); } },
+  { key: 'followed', get label() { return tr('ui.suivis'); } },
+  { key: 'matches', get label() { return tr('ui.correspondances'); } },
 ] as const;
 
-/** Espace investisseur (V4) : projets publiés, suivi et correspondances. */
+interface InvestDashData {
+  kpis?: {
+    publishedProjects?: number;
+    withVerifiedData?: number;
+    accessGranted?: number;
+    accessPending?: number;
+    fundingFollowUps?: number;
+  };
+}
+
+/** Espace Investisseur Mobile (/investment) — Design Horizon 100 % API reelle. */
 export default function Investment() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
@@ -43,25 +56,48 @@ export default function Investment() {
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [filter, setFilter] = useState<'all' | 'followed' | 'matches'>('all');
 
+  const unwrapList = <T,>(raw: unknown): T[] => {
+    if (Array.isArray(raw)) return raw as T[];
+    if (raw && typeof raw === 'object' && Array.isArray((raw as { items?: unknown }).items)) {
+      return (raw as { items: T[] }).items;
+    }
+    return [];
+  };
+
+  const investorProfile = useQuery({
+    queryKey: ['investors', 'me'],
+    queryFn: () => investApi.profile().then((r) => r.data).catch(() => null),
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  const hasProfile = Boolean(investorProfile.data);
+
   const projects = useQuery({
     queryKey: queryKeys.invest.projects({ limit: 30 }),
-    queryFn: () => investApi.projects({ limit: 30 }).then((result) => result.data),
-    enabled: isAuthenticated && filter === 'all',
+    queryFn: () => investApi.projects({ limit: 30 }).then((result) => unwrapList<NonNullable<typeof result.data>[number]>(result.data)),
+    enabled: isAuthenticated,
   });
   const followed = useQuery({
     queryKey: queryKeys.invest.followed,
-    queryFn: () => investApi.followed().then((result) => result.data),
-    enabled: isAuthenticated && filter === 'followed',
+    queryFn: () => investApi.followed().then((result) => unwrapList<NonNullable<typeof result.data>[number]>(result.data)),
+    enabled: isAuthenticated,
   });
   const matches = useQuery({
     queryKey: queryKeys.invest.matches,
-    queryFn: () => investApi.matches().then((result) => result.data),
-    enabled: isAuthenticated && filter === 'matches',
+    queryFn: () =>
+      investApi
+        .matches()
+        .then((result) => unwrapList<NonNullable<typeof result.data>[number]>(result.data))
+        .catch(() => []),
+    enabled: isAuthenticated && hasProfile,
+    retry: false,
   });
   const dashboard = useQuery({
     queryKey: queryKeys.invest.dashboard,
-    queryFn: () => investApi.dashboard().then((result) => result.data),
-    enabled: isAuthenticated,
+    queryFn: () => investApi.dashboard().then((result) => result.data as InvestDashData).catch(() => null),
+    enabled: isAuthenticated && hasProfile,
+    retry: false,
   });
 
   const follow = useMutation({
@@ -73,39 +109,85 @@ export default function Investment() {
   });
 
   const active = filter === 'all' ? projects : filter === 'followed' ? followed : matches;
-  const items = active.data ?? [];
+  const items = unwrapList<NonNullable<typeof projects.data>[number]>(active.data);
+  const allCount = unwrapList(projects.data).length;
+  const followedCount = unwrapList(followed.data).length;
+  const matchCount = unwrapList(matches.data).length;
+  const kpis = dashboard.data?.kpis;
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Investissement" subtitle="Projets publiés, données liées et suivi de portefeuille." />
+      <AppHeader
+        title={t('ui.investissement')}
+        subtitle={t('ui.projetsAgricolesStructuresDataRooms')}
+        ctaLabel={t('ui.portefeuille')}
+        onCtaPress={() => router.push('/investment/followed')}
+      />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous avec un compte investisseur pour consulter les projets et leurs données."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousAvecUnCompteInvestisseur')}
           icon="trending-up-outline"
         >
           <Card tone="pale" style={styles.note}>
             <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.info} />
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Les documents sensibles passent par une data room à accès tracé : chaque consultation est
-              journalisée. Un contact avec le porteur de projet passe par une demande acceptée, jamais par une
-              coordonnée publiée.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.absenceDIntermediationFinanciereAgrikonnectAssur')}</Text>
           </Card>
 
-          {dashboard.data ? (
-            <Card tone="ink" style={styles.dashboard}>
-              <Text preset="overline" color={COLORS.gold}>
-                Tableau de bord investisseur
-              </Text>
-              <Text preset="caption" color="rgba(246, 247, 242, 0.75)" style={styles.lineHeight}>
-                {Object.keys(dashboard.data as Record<string, unknown>).length} indicateur(s) chargé(s) depuis GET
-                /invest. Les valeurs affichées proviennent des projets suivis et des demandes d’accès traitées.
-              </Text>
-            </Card>
-          ) : null}
+          <MobileHorizonOverviewCard
+            title={t('ui.vueDEnsembleDuDealflow')}
+            items={[
+              {
+                id: 'pub',
+                label: t('ui.projetsPublies'),
+                value: formatNumber(kpis?.publishedProjects ?? allCount, locale),
+                subtitle: t('ui.dossiersAccessibles'),
+                badge: t('ui.ouverts'),
+                tone: 'green',
+                icon: 'briefcase-outline',
+                onPress: () => setFilter('all'),
+              },
+              {
+                id: 'fol',
+                label: t('ui.projetsSuivis'),
+                value: formatNumber(followedCount, locale),
+                subtitle: t('ui.dansVotreSelection'),
+                tone: 'blue',
+                icon: 'bookmark-outline',
+                onPress: () => setFilter('followed'),
+              },
+              {
+                id: 'mat',
+                label: t('ui.correspondances'),
+                value: formatNumber(matchCount, locale),
+                subtitle: t('ui.alignesAVotreThese'),
+                tone: 'amber',
+                icon: 'sparkles-outline',
+                onPress: () => setFilter('matches'),
+              },
+              {
+                id: 'room',
+                label: t('ui.dataRooms'),
+                value: formatNumber(kpis?.accessGranted ?? 0, locale),
+                subtitle: t('ui.enAttente_9ecb1', { value: formatNumber(kpis?.accessPending ?? 0, locale) }),
+                tone: 'green',
+                icon: 'lock-open-outline',
+              },
+            ]}
+          />
+
+          <MobileHorizonDonutCard
+            title={t('ui.couvertureDuPortefeuille')}
+            totalValue={formatNumber(allCount, locale)}
+            totalLabel={t('ui.projets')}
+            segments={[
+              { label: t('ui.suivis'), value: followedCount, tone: 'green' },
+              { label: t('ui.correspondances'), value: matchCount, tone: 'blue' },
+              { label: t('ui.autresPublies'), value: Math.max(0, allCount - followedCount), tone: 'amber' },
+            ]}
+          />
 
           <ChipRow>
             {FILTERS.map((item) => (
@@ -114,18 +196,18 @@ export default function Investment() {
           </ChipRow>
 
           {active.isLoading ? (
-            <LoadingState count={3} height={140} />
+            <LoadingState count={2} height={140} />
           ) : active.isError ? (
             <ErrorState error={active.error} onRetry={() => void active.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucun projet"
+              title={t('ui.aucunProjet')}
               description={
                 filter === 'followed'
-                  ? 'Suivez des projets pour les retrouver ici et recevoir leurs rapports.'
+                  ? t('ui.suivezDesProjetsPourLesRetrouver')
                   : filter === 'matches'
-                    ? 'Aucune correspondance avec votre profil investisseur pour le moment.'
-                    : 'Aucun projet publié actuellement.'
+                    ? t('ui.aucuneCorrespondanceAvecVotreTheseInvestisseur')
+                    : t('ui.aucunProjetPublieActuellement')
               }
               icon="briefcase-outline"
             />
@@ -143,53 +225,32 @@ export default function Investment() {
                     <Text preset="h3" color={COLORS.textPrimary} numberOfLines={2}>
                       {project.title}
                     </Text>
-                    {project.description ? (
-                      <Text preset="caption" color={COLORS.slateGray} numberOfLines={3} style={styles.lineHeight}>
-                        {project.description}
-                      </Text>
-                    ) : null}
 
                     <View style={styles.facts}>
                       <View style={styles.fact}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Surface existante
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.surface')}</Text>
                         <Text preset="bodySm" color={COLORS.textPrimary}>
                           {project.existingAreaHa !== null ? `${formatNumber(project.existingAreaHa, locale, 0)} ha` : '—'}
                         </Text>
                       </View>
                       <View style={styles.fact}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Besoin de financement
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.besoin')}</Text>
                         <Text preset="bodySm" color={COLORS.textPrimary}>
                           {project.fundingNeed !== null ? formatNumber(project.fundingNeed, locale, 0) : '—'}
                         </Text>
                       </View>
-                      <View style={styles.fact}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Apport propre
-                        </Text>
-                        <Text preset="bodySm" color={COLORS.textPrimary}>
-                          {project.ownContribution !== null ? formatNumber(project.ownContribution, locale, 0) : '—'}
-                        </Text>
-                      </View>
-                      <View style={styles.fact}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Durée
-                        </Text>
-                        <Text preset="bodySm" color={COLORS.textPrimary}>
-                          {project.durationMonths !== null ? `${formatNumber(project.durationMonths, locale, 0)} mois` : '—'}
-                        </Text>
-                      </View>
                     </View>
 
-                    <Chip label={project.fieldStatus} tone="info" size="sm" />
-
                     <View style={styles.actions}>
-                      <Button label="Ouvrir le projet" onPress={() => router.push(`/investment/projects/${project.id}` as never)} variant="outline" size="sm" icon="arrow-forward-outline" />
                       <Button
-                        label="Suivre"
+                        label={t('ui.ouvrirLeProjet')}
+                        onPress={() => router.push(`/investment/projects/${project.id}` as never)}
+                        variant="outline"
+                        size="sm"
+                        icon="arrow-forward-outline"
+                      />
+                      <Button
+                        label={t('ui.suivre')}
                         onPress={() => follow.mutate(project.id)}
                         variant="ghost"
                         size="sm"
@@ -210,15 +271,14 @@ export default function Investment() {
 
 const styles = StyleSheet.create({
   section: { paddingTop: SPACING.sm, paddingBottom: SPACING.xxl, gap: SPACING.md },
-  lineHeight: { lineHeight: 18 },
+  lineHeight: { lineHeight: 18, flex: 1 },
   note: { flexDirection: 'row', gap: SPACING.sm, alignItems: 'flex-start' },
-  dashboard: { gap: SPACING.sm },
   grid: { gap: SPACING.md },
   gridWide: { flexDirection: 'row', flexWrap: 'wrap' },
   item: { flex: 1, minWidth: 300 },
   card: { gap: SPACING.sm },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs },
   facts: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.lg },
-  fact: { minWidth: 130, gap: 2 },
+  fact: { minWidth: 110, gap: 2 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
 });

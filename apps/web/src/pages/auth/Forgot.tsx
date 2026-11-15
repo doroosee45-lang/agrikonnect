@@ -5,8 +5,10 @@ import { Link } from 'react-router-dom';
 import { Button, Card, Input, Section, Text } from '@/components/ui';
 import { authApi } from '@/services/endpoints';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 export default function ForgotPassword() {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +23,7 @@ export default function ForgotPassword() {
       await authApi.forgotPassword(email);
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de l\'envoi');
+      setError(err instanceof Error ? err.message : t('ui.erreurLorsDeLEnvoi'));
     } finally {
       setLoading(false);
     }
@@ -36,26 +38,20 @@ export default function ForgotPassword() {
         style={{ width: '100%', maxWidth: 420 }}
       >
         <Card tone="white" style={{ padding: 32 }}>
-          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>
-            Mot de passe oublié
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>
-            Entrez votre email pour réinitialiser votre mot de passe.
-          </Text>
+          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>{t('ui.motDePasseOublie')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>{t('ui.entrezVotreEmailPourReinitialiserVotre')}</Text>
 
           {sent ? (
             <div style={{ textAlign: 'center' }}>
-              <Text preset="bodyMd" color={COLORS.success} style={{ marginBottom: 24 }}>
-                ✓ Un email de réinitialisation a été envoyé à {email}
-              </Text>
+              <Text preset="bodyMd" color={COLORS.success} style={{ marginBottom: 24 }}>{t('ui.unEmailDeReinitialisationAEte', { email })}</Text>
               <Link to="/auth/login">
-                <Button label="Retour à la connexion" variant="outline" fullWidth />
+                <Button label={t('ui.retourALaConnexion')} variant="outline" fullWidth />
               </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <Input
-                label="Email"
+                label={t('ui.email')}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -67,14 +63,12 @@ export default function ForgotPassword() {
                 <div style={{ fontSize: 13, color: COLORS.error, textAlign: 'center' }}>{error}</div>
               ) : null}
 
-              <Button label="Envoyer le lien" type="submit" loading={loading} fullWidth />
+              <Button label={t('ui.envoyerLeLien')} type="submit" loading={loading} fullWidth />
             </form>
           )}
 
           <div style={{ marginTop: 24, textAlign: 'center' }}>
-            <Link to="/auth/login" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-              ← Retour à la connexion
-            </Link>
+            <Link to="/auth/login" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourALaConnexion_b56d3')}</Link>
           </div>
         </Card>
       </motion.div>

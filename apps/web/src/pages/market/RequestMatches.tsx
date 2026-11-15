@@ -12,6 +12,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** MARKET — annonces correspondant à une demande d'achat. */
 export default function MarketRequestMatches() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
@@ -27,23 +28,19 @@ export default function MarketRequestMatches() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Correspondances" description="Annonces correspondant à cette demande." icon="🔍">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.correspondances')} description={t('ui.annoncesCorrespondantACetteDemande')} icon="🔍">
         <div style={{ marginBottom: 24 }}>
-          <a href={`/market/requests/${id}`} style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour à la demande
-          </a>
+          <a href={`/market/requests/${id}`} style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourALaDemande')}</a>
         </div>
 
-        <Text preset="h1" style={{ marginBottom: 32 }}>
-          Correspondances
-        </Text>
+        <Text preset="h1" style={{ marginBottom: 32 }}>{t('ui.correspondances')}</Text>
 
         {query.isLoading ? (
           <LoadingState count={2} height={110} />
         ) : query.isError ? (
           <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
         ) : matches.length === 0 ? (
-          <EmptyState title="Aucune correspondance" description="Aucune annonce ne correspond actuellement à cette demande." icon="🔍" />
+          <EmptyState title={t('ui.aucuneCorrespondance')} description={t('ui.aucuneAnnonceNeCorrespondActuellementA')} icon="🔍" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {matches.map((match, index) => (

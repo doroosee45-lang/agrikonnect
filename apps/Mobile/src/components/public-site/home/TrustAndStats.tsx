@@ -32,24 +32,24 @@ export function TrustBand() {
     {
       kind: 'measured' as const,
       icon: 'analytics-outline' as const,
-      title: 'Mesuré',
-      body: 'Analyse de laboratoire, capteur de terrain, drone : la valeur provient d’un instrument identifié, avec sa date et sa méthode.',
+      title: t('ui.mesure_5600f'),
+      body: t('ui.analyseDeLaboratoireCapteurDeTerrain'),
       tone: TINTS.successBg,
       color: COLORS.success,
     },
     {
       kind: 'satellite' as const,
       icon: 'planet-outline' as const,
-      title: 'Estimé',
-      body: 'Imagerie satellite, modèle pédologique, fusion de sources : la valeur est approchée. Le marqueur ≈ le dit explicitement.',
+      title: t('ui.estime'),
+      body: t('ui.imagerieSatelliteModelePedologiqueFusionDe'),
       tone: TINTS.infoBg,
       color: COLORS.info,
     },
     {
       kind: 'declared' as const,
       icon: 'create-outline' as const,
-      title: 'Déclaré',
-      body: 'Saisie du producteur ou de l’agent. Rien n’est inventé pour combler un manque : un champ absent reste absent.',
+      title: t('common.declared'),
+      body: t('ui.saisieDuProducteurOuDeL'),
       tone: TINTS.warningBg,
       color: COLORS.warning,
     },
@@ -58,7 +58,7 @@ export function TrustBand() {
   return (
     <Section
       index={1}
-      eyebrow="Provenance"
+      eyebrow={t('ui.provenance')}
       title={t('home.trustTitle')}
       subtitle={t('home.trustSubtitle')}
       background={COLORS.pureWhite}
@@ -88,9 +88,7 @@ export function TrustBand() {
         <Card tone="pale" style={styles.legend}>
           <Ionicons name="shield-checkmark-outline" size={18} color={COLORS.forestGreen} />
           <Text preset="bodySm" color={COLORS.textPrimary} style={styles.legendText}>
-            {t('provenance.legend')} — et « vérifié par AGRIKONNECT » ne signifie jamais la même chose que
-            « déclaré par le producteur ».
-          </Text>
+            {t('provenance.legend')}{' '}{t('ui.etVerifieParAgrikonnectNeSignifie')}</Text>
         </Card>
       </Reveal>
     </Section>
@@ -104,10 +102,10 @@ export function StatsBand({ stats }: { stats: HeroStats }) {
   const wide = width >= 820;
 
   const items = [
-    { value: stats.farms, label: 'profils producteurs publiés', source: '/public/farms' },
-    { value: stats.located, label: 'exploitations géolocalisées', source: '/public/map' },
-    { value: stats.soilAssessments, label: 'analyses de sol agrégées', source: '/public/soil-stats' },
-    { value: stats.countries, label: 'pays représentés', source: '/public/map' },
+    { value: stats.farms, label: t('ui.profilsProducteursPublies'), source: '/public/farms' },
+    { value: stats.located, label: t('ui.exploitationsGeolocalisees'), source: '/public/map' },
+    { value: stats.soilAssessments, label: t('ui.analysesDeSolAgregees'), source: '/public/soil-stats' },
+    { value: stats.countries, label: t('ui.paysRepresentes'), source: '/public/map' },
   ];
 
   return (

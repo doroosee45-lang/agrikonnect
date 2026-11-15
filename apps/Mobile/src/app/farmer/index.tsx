@@ -1,5 +1,5 @@
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 
@@ -7,123 +7,132 @@ import { FarmerHeader } from '@/components/farmer/FarmerHeader';
 import {
   Button,
   Card,
-  Chip,
   EmptyState,
   ErrorState,
   LoadingState,
-  PressableCard,
-  ProvenanceTag,
-  Reveal,
+  MobileHorizonDonutCard,
+  MobileHorizonOverviewCard,
+  MobileHorizonTrackCard,
   Screen,
   Section,
   Text,
 } from '@/components/ui';
+import type { MobileHorizonTrack } from '@/components/ui';
 import { useI18n } from '@/i18n';
 import { formatNumber, formatRelative } from '@/lib/format';
 import { alertApi, authApi, dashboardApi, plotApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
-import { COLORS, TINTS } from '@/theme/colors';
-import { RADIUS, SPACING } from '@/theme/space';
+import { COLORS } from '@/theme/colors';
+import { SPACING } from '@/theme/space';
 
-/** Pilotage : compteurs réels, dossier, parcelles récentes, actions rapides. */
+/** Espace Producteur Mobile (/farmer) — Design Horizon 100 % API reelle (sans texte debug). */
 export default function FarmerHome() {
   const { t, locale } = useI18n();
-  const { width } = useWindowDimensions();
-  const wide = width >= 820;
 
   const me = useQuery({ queryKey: queryKeys.me, queryFn: () => authApi.me().then((r) => r.data) });
   const plots = useQuery({
-    queryKey: queryKeys.plots.list({ limit: 5 }),
-    queryFn: () => plotApi.list({ limit: 5 }).then((r) => r.data),
+    queryKey: queryKeys.plots.list({ limit: 8 }),
+    queryFn: () => plotApi.list({ limit: 8 }).then((r) => r.data),
   });
   const dashboard = useQuery({
     queryKey: queryKeys.dashboard.farmer,
-    queryFn: () => dashboardApi.farmer().then((r) => r.data),
+    queryFn: () => dashboardApi.farmer().then((r) => r.data as Record<string, unknown>),
   });
-
-  /*
-   * Compteur d'alertes non traitées, pour relier le tableau de bord à la boîte
-   * d'alertes avec une information réelle. `openCount` vient de la meta de la
-   * liste : un seul aller-retour, pas de requête de comptage en plus.
-   */
   const alertes = useQuery({
     queryKey: queryKeys.alerts.list({ open: true, limit: 1, page: 1 }),
     queryFn: () => alertApi.list({ open: true, limit: 1, page: 1 }).then((r) => r.data),
   });
 
   const counts = me.data?.counts;
+  const completenessPct = me.data?.completeness.percent ?? 0;
   const alertesOuvertes = alertes.data?.openCount ?? 0;
   const items = plots.data ?? [];
+  const tiles = ((dashboard.data ?? {}).tiles ?? {}) as Record<string, unknown>;
+  const totalAreaHa = Number(tiles.totalAreaHa ?? 0) || 0;
+
+  const plotTracks: MobileHorizonTrack[] = useMemo(
+    () =>
+      items.slice(0, 4).map((plot) => ({
+        id: plot.id,
+        code: plot.name,
+        subtitle: formatRelative(plot.updatedAt, locale),
+        statusLabel: plot.status,
+        tone: plot.status === 'ACTIVE' ? 'green' : 'amber',
+        leftCode: plot.geometryType.slice(0, 5),
+        rightCode: plot.areaHa !== null ? `${formatNumber(plot.areaHa, locale, 1)} ha` : t('ui.trackCodePlot'),
+        progressPct: plot.source === 'declared' ? 65 : 100,
+        icon: 'leaf-outline',
+        onPress: () => router.push(`/farmer/plots/${plot.id}` as never),
+      })),
+    [items, locale],
+  );
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title={t('farmer.title')} subtitle="Vue d’ensemble de vos exploitations, parcelles et productions." />
+      <FarmerHeader title={t('farmer.title')} subtitle={t('ui.pilotageTempsReelDeVosExploitations')} />
 
       <Section bare contentStyle={styles.section}>
         {me.isLoading ? (
-          <LoadingState count={2} height={110} />
+          <LoadingState count={3} height={110} />
         ) : me.isError ? (
           <ErrorState error={me.error} onRetry={() => void me.refetch()} />
         ) : (
           <>
-            <View style={[styles.counts, wide ? styles.countsWide : null]}>
-              {[
-                { label: t('farmer.farms'), value: counts?.farms ?? 0, icon: 'home-outline' as const, href: '/farmer/farms' },
-                { label: t('farmer.plots'), value: counts?.plots ?? 0, icon: 'map-outline' as const, href: '/farmer/plots' },
-                { label: t('farmer.productions'), value: counts?.productions ?? 0, icon: 'leaf-outline' as const, href: '/farmer/productions' },
-              ].map((item, index) => (
-                <Reveal key={item.label} index={index} variant="up" style={styles.countItem}>
-                  <PressableCard onPress={() => router.push(item.href as never)} style={styles.countCard}>
-                    <View style={styles.countIcon}>
-                      <Ionicons name={item.icon} size={17} color={COLORS.forestGreen} />
-                    </View>
-                    <Text preset="numeric" color={COLORS.textPrimary} style={styles.countValue}>
-                      {formatNumber(item.value, locale)}
-                    </Text>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      {item.label}
-                    </Text>
-                  </PressableCard>
-                </Reveal>
-              ))}
-            </View>
+            <MobileHorizonOverviewCard
+              title={t('ui.vueDEnsembleAgricole')}
+              items={[
+                {
+                  id: 'farms',
+                  label: t('farmer.farms'),
+                  value: formatNumber(counts?.farms ?? 0, locale),
+                  subtitle: totalAreaHa > 0 ? t('ui.haCumules', { totalAreaHa: formatNumber(totalAreaHa, locale, 1) }) : t('ui.domaineActif'),
+                  badge: t('ui.sites'),
+                  tone: 'green',
+                  icon: 'home-outline',
+                  onPress: () => router.push('/farmer/farms'),
+                },
+                {
+                  id: 'plots',
+                  label: t('farmer.plots'),
+                  value: formatNumber(counts?.plots ?? items.length, locale),
+                  subtitle: t('ui.cadastreesSuivies'),
+                  badge: 'GPS',
+                  tone: 'blue',
+                  icon: 'map-outline',
+                  onPress: () => router.push('/farmer/plots'),
+                },
+                {
+                  id: 'productions',
+                  label: t('farmer.productions'),
+                  value: formatNumber(counts?.productions ?? 0, locale),
+                  subtitle: t('ui.campagnesSaisies'),
+                  badge: t('ui.lotsQr'),
+                  tone: 'amber',
+                  icon: 'leaf-outline',
+                  onPress: () => router.push('/farmer/productions'),
+                },
+                {
+                  id: 'alerts',
+                  label: t('ui.alertesOuvertes'),
+                  value: formatNumber(alertesOuvertes, locale),
+                  subtitle: t('ui.suiviAgronomiqueSol'),
+                  badge: alertesOuvertes > 0 ? t('ui.aTraiter') : 'RAS',
+                  tone: alertesOuvertes > 0 ? 'red' : 'green',
+                  icon: 'notifications-outline',
+                  onPress: () => router.push('/farmer/alerts'),
+                },
+              ]}
+            />
 
-            <Reveal variant="up">
-              <Card tone="ink" style={styles.actions}>
-                <Text preset="overline" color={COLORS.gold}>
-                  Actions rapides
-                </Text>
-                <View style={styles.actionRow}>
-                  <Button label={t('farmer.newPlot')} onPress={() => router.push('/farmer/plots')} variant="gold" size="sm" icon="add" />
-                  <Button label="Déclarer une production" onPress={() => router.push('/farmer/productions')} variant="dark" size="sm" icon="leaf-outline" />
-                  <Button label="Diagnostic de sol" onPress={() => router.push('/farmer/soil')} variant="dark" size="sm" icon="flask-outline" />
-              <Button label="Rendements réels" onPress={() => router.push('/farmer/season-feedback')} variant="dark" size="sm" icon="stats-chart-outline" />
-              <Button
-                label={alertesOuvertes > 0 ? `Boîte d’alertes (${alertesOuvertes})` : 'Boîte d’alertes'}
-                onPress={() => router.push('/farmer/alerts')}
-                variant="dark"
-                size="sm"
-                icon="notifications-outline"
-              />
-                </View>
-                {dashboard.data ? (
-                  <Text preset="caption" color="rgba(246, 247, 242, 0.6)" style={styles.lineHeight}>
-                    Tableau de bord chargé depuis GET /dashboard.
-                  </Text>
-                ) : null}
-              </Card>
-            </Reveal>
-
-            <View style={styles.listHeader}>
-              <Text preset="h3" color={COLORS.textPrimary}>
-                Parcelles récentes
-              </Text>
-              <PressableCard onPress={() => router.push('/farmer/plots')} style={styles.seeAll}>
-                <Text preset="caption" color={COLORS.forestGreen}>
-                  {t('common.seeAll')}
-                </Text>
-              </PressableCard>
-            </View>
+            <Card tone="white" style={styles.actions}>
+              <Text preset="h3" color={COLORS.textPrimary}>{t('ui.operationsRapides')}</Text>
+              <View style={styles.actionRow}>
+                <Button label={t('farmer.newPlot')} onPress={() => router.push('/farmer/plots')} variant="primary" size="sm" icon="add" />
+                <Button label={t('ui.declarerRecolte')} onPress={() => router.push('/farmer/productions')} variant="outline" size="sm" icon="leaf-outline" />
+                <Button label={t('ui.diagnosticSol')} onPress={() => router.push('/farmer/soil')} variant="outline" size="sm" icon="flask-outline" />
+                <Button label={t('ui.rendementsReels')} onPress={() => router.push('/farmer/season-feedback')} variant="ghost" size="sm" icon="stats-chart-outline" />
+              </View>
+            </Card>
 
             {plots.isLoading ? (
               <LoadingState count={2} height={90} />
@@ -132,36 +141,28 @@ export default function FarmerHome() {
             ) : items.length === 0 ? (
               <EmptyState
                 title={t('farmer.noPlots')}
-                description="Une parcelle localisée active la météo, le diagnostic de sol et la traçabilité des lots."
+                description={t('ui.uneParcelleLocaliseeActiveLaMeteo')}
                 icon="map-outline"
                 action={{ label: t('farmer.newPlot'), onPress: () => router.push('/farmer/plots') }}
               />
             ) : (
-              <View style={styles.list}>
-                {items.map((plot, index) => (
-                  <Reveal key={plot.id} index={index} variant="up">
-                    <PressableCard onPress={() => router.push(`/farmer/plots/${plot.id}` as never)} style={styles.plotCard}>
-                      <View style={styles.plotIcon}>
-                        <Ionicons name="leaf-outline" size={15} color={COLORS.livingGreen} />
-                      </View>
-                      <View style={styles.plotBody}>
-                        <Text preset="bodyMedium" color={COLORS.textPrimary} numberOfLines={1}>
-                          {plot.name}
-                        </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          {plot.areaHa !== null ? `${formatNumber(plot.areaHa, locale, 2)} ha · ` : ''}
-                          {plot.status} · {formatRelative(plot.updatedAt, locale)}
-                        </Text>
-                      </View>
-                      <View style={styles.plotAside}>
-                        <ProvenanceTag kind={plot.source === 'declared' ? 'declared' : 'measured'} />
-                        <Chip label={plot.geometryType} tone="neutral" size="sm" />
-                      </View>
-                    </PressableCard>
-                  </Reveal>
-                ))}
-              </View>
+              <MobileHorizonTrackCard
+                title={t('ui.parcellesActivesProvenance')}
+                items={plotTracks}
+              />
             )}
+
+            <MobileHorizonDonutCard
+              title={t('ui.completudeDuDossierProducteur')}
+              totalValue={`${Math.round(completenessPct)}%`}
+              totalLabel={t('ui.completude_2d727')}
+              segments={[
+                { label: t('ui.exploitations'), value: counts?.farms ?? 0, tone: 'green' },
+                { label: t('ui.parcelles'), value: counts?.plots ?? 0, tone: 'blue' },
+                { label: t('ui.recoltes'), value: counts?.productions ?? 0, tone: 'amber' },
+                { label: t('ui.alertesOuvertes'), value: alertesOuvertes, tone: 'red' },
+              ]}
+            />
           </>
         )}
       </Section>
@@ -170,35 +171,7 @@ export default function FarmerHome() {
 }
 
 const styles = StyleSheet.create({
-  section: { paddingTop: SPACING.sm, paddingBottom: SPACING.xxl, gap: SPACING.lg },
-  lineHeight: { lineHeight: 18 },
-  counts: { gap: SPACING.md },
-  countsWide: { flexDirection: 'row' },
-  countItem: { flex: 1 },
-  countCard: { gap: SPACING.xs, alignItems: 'flex-start' },
-  countIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: RADIUS.md,
-    backgroundColor: TINTS.forestGreenBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  countValue: { fontSize: 26, lineHeight: 30 },
-  actions: { gap: SPACING.md },
+  section: { paddingTop: SPACING.sm, paddingBottom: SPACING.xxl, gap: SPACING.md },
+  actions: { gap: SPACING.sm },
   actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
-  listHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  seeAll: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm },
-  list: { gap: SPACING.sm },
-  plotCard: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  plotIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: RADIUS.md,
-    backgroundColor: TINTS.livingGreenBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  plotBody: { flex: 1, gap: 2 },
-  plotAside: { alignItems: 'flex-end', gap: 4 },
 });

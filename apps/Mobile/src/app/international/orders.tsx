@@ -20,6 +20,7 @@ import { SPACING } from '@/theme/space';
  * la charge de l'utilisateur.
  */
 export default function InternationalOrders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -31,10 +32,10 @@ export default function InternationalOrders() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Commandes internationales" subtitle="Vos commandes d'exportation." />
+      <AppHeader title={t('ui.commandesInternationales')} subtitle={t('ui.vosCommandesDExportation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Commandes internationales" icon="globe-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune commande" description="Vos commandes internationales apparaîtront ici." icon="globe-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.commandesInternationales')} icon="globe-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneCommande')} description={t('ui.vosCommandesInternationalesApparaitrontIci')} icon="globe-outline" /> : (
             <View style={styles.list}>
               {items.map((order, index) => (
                 <Reveal key={order.id} index={index} variant="up">
@@ -43,7 +44,7 @@ export default function InternationalOrders() {
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium" style={{ fontFamily: 'monospace' }}>{order.number}</Text>
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {formatDate(order.createdAt, locale)} · {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : 'montant non renseigné'}
+                          {formatDate(order.createdAt, locale)} · {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : t('ui.montantNonRenseigne')}
                         </Text>
                       </View>
                       <Chip label={order.status} tone={order.status === 'DISPUTED' ? 'error' : 'neutral'} size="sm" />

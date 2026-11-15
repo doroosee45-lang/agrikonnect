@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminProjects() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminProjects() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Projets" subtitle="Projets de financement." />
+      <AppHeader title={t('ui.projets')} subtitle={t('ui.projetsDeFinancement')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Projets" icon="briefcase-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun projet" description="Aucun projet enregistré." icon="briefcase-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.projets')} icon="briefcase-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunProjet')} description={t('ui.aucunProjetEnregistre')} icon="briefcase-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const project = row as Record<string, unknown>;

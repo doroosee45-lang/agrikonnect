@@ -35,6 +35,7 @@ const MEMBER_TONES: Record<string, 'success' | 'warning' | 'neutral'> = {
 
 /** Coopérative : identité, membres et consentement enregistré. */
 export default function Cooperatives() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -64,23 +65,23 @@ export default function Cooperatives() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Coopérative" subtitle="Identité, membres et agrégation des volumes." />
+      <AppHeader title={t('ui.cooperative')} subtitle={t('ui.identiteMembresEtAgregationDesVolumes')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous avec un compte coopérative pour gérer vos membres et vos offres groupées."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousAvecUnCompteCooperative')}
           icon="people-outline"
         >
           {current.isLoading ? (
             <LoadingState count={2} height={120} />
           ) : current.isError || !current.data ? (
             <EmptyState
-              title="Aucune coopérative"
-              description="Votre organisation n'a pas encore de fiche coopérative. Créez-la depuis l'espace organisation pour fédérer vos membres."
+              title={t('ui.aucuneCooperative')}
+              description={t('ui.votreOrganisationNAPasEncore')}
               icon="people-outline"
-              action={{ label: 'Espace organisation', onPress: () => undefined }}
+              action={{ label: t('ui.espaceOrganisation'), onPress: () => undefined }}
             />
           ) : (
             <>
@@ -91,13 +92,13 @@ export default function Cooperatives() {
                   </View>
                   <View style={styles.headText}>
                     <Text preset="h2" color={COLORS.textPrimary}>
-                      {current.data.organization?.name ?? 'Coopérative'}
+                      {current.data.organization?.name ?? t('ui.cooperative')}
                     </Text>
                     <Text preset="caption" color={COLORS.slateGray}>
                       {current.data.organization?.countryCode ?? '—'}
                       {current.data.province ? ` · ${current.data.province}` : ''}
                       {current.data.territory ? ` · ${current.data.territory}` : ''}
-                      {current.data.foundedYear ? ` · fondée en ${current.data.foundedYear}` : ''}
+                      {current.data.foundedYear ? t('ui.fondeeEn', { foundedYear: current.data.foundedYear }) : ''}
                     </Text>
                   </View>
                 </View>
@@ -113,25 +114,19 @@ export default function Cooperatives() {
                 {overview.data ? (
                   <View style={styles.facts}>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Membres
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.membres')}</Text>
                       <Text preset="bodyMedium" color={COLORS.textPrimary}>
                         {formatNumber(Number(overview.data.members?.total ?? 0), locale)}
                       </Text>
                     </View>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Actifs
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.actifs')}</Text>
                       <Text preset="bodyMedium" color={COLORS.textPrimary}>
                         {formatNumber(Number(overview.data.members?.active ?? 0), locale)}
                       </Text>
                     </View>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        En attente
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.enAttente')}</Text>
                       <Text preset="bodyMedium" color={COLORS.textPrimary}>
                         {formatNumber(Number(overview.data.members?.pending ?? 0), locale)}
                       </Text>
@@ -140,9 +135,7 @@ export default function Cooperatives() {
                 ) : null}
               </Card>
 
-              <Text preset="overline" color={COLORS.forestGreen}>
-                Membres
-              </Text>
+              <Text preset="overline" color={COLORS.forestGreen}>{t('ui.membres')}</Text>
 
               {members.isLoading ? (
                 <LoadingState count={2} height={80} />
@@ -150,8 +143,8 @@ export default function Cooperatives() {
                 <ErrorState error={members.error} onRetry={() => void members.refetch()} />
               ) : rows.length === 0 ? (
                 <EmptyState
-                  title="Aucun membre"
-                  description="Invitez vos producteurs : chaque adhésion enregistre le consentement et sa date."
+                  title={t('ui.aucunMembre')}
+                  description={t('ui.invitezVosProducteursChaqueAdhesionEnregistre')}
                   icon="person-add-outline"
                 />
               ) : (
@@ -164,8 +157,8 @@ export default function Cooperatives() {
                             {member.user ? `${member.user.firstName} ${member.user.lastName}` : member.memberUserId}
                           </Text>
                           <Text preset="caption" color={COLORS.slateGray}>
-                            {member.joinedAt ? `adhésion ${formatDate(member.joinedAt, locale)}` : 'adhésion en attente'}
-                            {member.consentRecordedAt ? ` · consentement ${formatDate(member.consentRecordedAt, locale)}` : ''}
+                            {member.joinedAt ? t('ui.adhesion', { joinedAt: formatDate(member.joinedAt, locale) }) : t('ui.adhesionEnAttente')}
+                            {member.consentRecordedAt ? t('ui.consentement_d7490', { consentRecordedAt: formatDate(member.consentRecordedAt, locale) }) : ''}
                           </Text>
                         </View>
                         <View style={styles.memberAside}>
@@ -185,11 +178,8 @@ export default function Cooperatives() {
               )}
 
               <Card tone="pale" style={styles.note}>
-                <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-                  L’agrégation de volumes (offre groupée) calcule un aperçu avant toute création : aucun volume
-                  n’est additionné sans l’accord enregistré du membre concerné.
-                </Text>
-                <Button label="Voir les offres groupées" onPress={() => undefined} variant="outline" size="sm" icon="layers-outline" />
+                <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lAgregationDeVolumesOffreGroupee')}</Text>
+                <Button label={t('ui.voirLesOffresGroupees')} onPress={() => undefined} variant="outline" size="sm" icon="layers-outline" />
               </Card>
             </>
           )}

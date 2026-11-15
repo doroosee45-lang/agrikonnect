@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerProjectDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,24 +26,24 @@ export default function FarmerProjectDetail() {
   const project = query.data as Record<string, unknown> | undefined;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title={String(project?.title ?? '—')} subtitle="Pilotage du projet." />
+      <FarmerHeader title={String(project?.title ?? '—')} subtitle={t('ui.pilotageDuProjet')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Projet" icon="layers-outline">
-          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !project ? <Text preset="body">Projet introuvable.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.projet')} icon="layers-outline">
+          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !project ? <Text preset="body">{t('ui.projetIntrouvable_85f8f')}</Text> : (
             <>
               <Card tone="white" style={styles.card}>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                   <Chip label={String(project.status ?? '—')} tone="neutral" size="sm" />
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Créé le</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.creeLe')}</Text>
                   <Text preset="bodySm">{project.createdAt ? formatDate(String(project.createdAt), locale) : '—'}</Text>
                 </View>
               </Card>
-              <Button label="Data room" variant="outline" onPress={() => router.push(`/farmer/projects/${id}/dataroom`)} />
-              <Button label="Rapports" variant="outline" onPress={() => router.push(`/farmer/projects/${id}/reports`)} />
-              <Button label="Journal d'accès" variant="ghost" onPress={() => router.push(`/farmer/projects/${id}/access-log`)} />
+              <Button label={t('ui.dataRoom')} variant="outline" onPress={() => router.push(`/farmer/projects/${id}/dataroom`)} />
+              <Button label={t('ui.rapports')} variant="outline" onPress={() => router.push(`/farmer/projects/${id}/reports`)} />
+              <Button label={t('ui.journalDAcces')} variant="ghost" onPress={() => router.push(`/farmer/projects/${id}/access-log`)} />
             </>
           )}
         </AuthGate>

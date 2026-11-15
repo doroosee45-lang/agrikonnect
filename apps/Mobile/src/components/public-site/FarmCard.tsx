@@ -7,6 +7,7 @@ import { formatNumber, type Locale } from '@/lib/format';
 import { COLORS, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
 import type { PublicFarmListItem } from '@/services/api/types';
+import { useI18n } from '@/i18n';
 
 /** Carte d'annuaire : fiche publique d'un producteur (données réelles). */
 export function FarmCard({
@@ -18,6 +19,7 @@ export function FarmCard({
   locale?: Locale;
   compact?: boolean;
 }) {
+  const { t } = useI18n();
   const crops = farm.crops
     .map((item) => item.crop.names?.[locale] ?? item.crop.names?.fr ?? item.crop.slug)
     .slice(0, compact ? 2 : 3);
@@ -34,7 +36,7 @@ export function FarmCard({
           </Text>
         </View>
         <Chip
-          label={farm.verificationStatus ? 'Vérifié' : 'Déclaré'}
+          label={farm.verificationStatus ? t('common.verified') : t('common.declared')}
           tone={farm.verificationStatus ? 'success' : 'neutral'}
           icon={farm.verificationStatus ? 'shield-checkmark' : 'document-text-outline'}
           size="sm"
@@ -65,9 +67,7 @@ export function FarmCard({
             {formatNumber(farm.totalAreaHa, locale, 1)} ha
           </Text>
         ) : (
-          <Text preset="caption" color={COLORS.slateGray}>
-            Surface non déclarée
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray}>{t('ui.surfaceNonDeclaree')}</Text>
         )}
         <ProvenanceTag kind={farm.verificationStatus ? 'verified' : 'declared'} />
       </View>

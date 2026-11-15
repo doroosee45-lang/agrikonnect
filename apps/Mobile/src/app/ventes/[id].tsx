@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function VenteDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,25 +26,25 @@ export default function VenteDetail() {
   const order = query.data;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={order?.number ?? '—'} subtitle="Détail de la vente." />
+      <AppHeader title={order?.number ?? '—'} subtitle={t('ui.detailDeLaVente')} />
       <Section bare contentStyle={styles.section}>
-        {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !order ? <Text preset="body">Vente introuvable.</Text> : (
+        {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !order ? <Text preset="body">{t('ui.venteIntrouvable')}</Text> : (
           <Card tone="white" style={styles.card}>
             <Text preset="h3" style={{ fontFamily: 'monospace' }}>{order.number}</Text>
             <View style={styles.field}>
-              <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
               <Chip label={order.status} tone={order.status === 'DISPUTED' ? 'error' : 'neutral'} size="sm" />
             </View>
             <View style={styles.field}>
-              <Text preset="caption" color={COLORS.slateGray}>Montant</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.montant')}</Text>
               <Text preset="bodySm">{order.totalAmount !== null ? `${order.totalAmount} ${order.currency}` : '—'}</Text>
             </View>
             <View style={styles.field}>
-              <Text preset="caption" color={COLORS.slateGray}>Paiement</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.paiement')}</Text>
               <Chip label={order.paymentStatus} tone={order.paymentStatus === 'PAID' ? 'success' : 'neutral'} size="sm" />
             </View>
             <View style={styles.field}>
-              <Text preset="caption" color={COLORS.slateGray}>Créée le</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.creeeLe')}</Text>
               <Text preset="bodySm">{formatDate(order.createdAt, locale)}</Text>
             </View>
           </Card>

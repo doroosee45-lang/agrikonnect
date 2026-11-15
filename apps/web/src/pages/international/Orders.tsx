@@ -8,24 +8,25 @@ import { useI18n } from '@/i18n';
 
 /** INTERNATIONAL — commandes en flux d'exportation. */
 export default function InternationalOrders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Order>
-      title="Commandes internationales"
-      subtitle="Commandes en flux d'exportation et leur suivi."
+      title={t('ui.commandesInternationales')}
+      subtitle={t('ui.commandesEnFluxDExportationEt')}
       icon="🚢"
       queryKey={queryKeys.orders.list({ limit: 100 })}
       fetch={() => orderApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(order) => order.id}
       rowHref={(order) => `/app/orders/${order.id}`}
       columns={[
-        { key: 'number', label: 'Référence', render: (order) => <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{order.number}</span> },
-        { key: 'status', label: 'Statut', render: (order) => <Chip label={order.status} tone="neutral" size="sm" /> },
-        { key: 'totalAmount', label: 'Montant', render: (order) => (order.totalAmount !== null ? `${order.totalAmount} ${order.currency}` : '—') },
-        { key: 'createdAt', label: 'Créée le', render: (order) => formatDate(order.createdAt, locale) },
+        { key: 'number', label: t('ui.reference'), render: (order) => <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{order.number}</span> },
+        { key: 'status', label: t('ui.statut'), render: (order) => <Chip label={order.status} tone="neutral" size="sm" /> },
+        { key: 'totalAmount', label: t('ui.montant'), render: (order) => (order.totalAmount !== null ? `${order.totalAmount} ${order.currency}` : '—') },
+        { key: 'createdAt', label: t('ui.creeeLe'), render: (order) => formatDate(order.createdAt, locale) },
       ]}
-      emptyTitle="Aucune commande"
-      emptyDescription="Les commandes internationales apparaissent ici."
+      emptyTitle={t('ui.aucuneCommande')}
+      emptyDescription={t('ui.lesCommandesInternationalesApparaissentIci')}
     />
   );
 }

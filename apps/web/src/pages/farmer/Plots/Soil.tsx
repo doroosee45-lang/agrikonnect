@@ -12,26 +12,25 @@ import { PlotModule } from '@/components/pages';
 
 /** FARMER — profil de sol fusionné (SOIL-10 → SOIL-13). */
 export default function FarmerPlotSoil() {
+  const { t } = useI18n();
   const { locale } = useI18n();
 
   return (
     <PlotModule<SoilProfileResult>
-      title="Sol"
-      subtitle="Profil fusionné à partir de vos analyses. Les paramètres manquants sont signalés, jamais estimés."
+      title={t('ui.sol')}
+      subtitle={t('ui.profilFusionneAPartirDeVos')}
       icon="🧪"
       queryKey={(plotId) => queryKeys.soil.profile(plotId)}
       fetch={(plotId) => soilApi.profile(plotId).then((result) => result.data)}
-      emptyTitle="Aucun paramètre"
-      emptyDescription="Aucune analyse de sol n'est enregistrée pour cette parcelle."
+      emptyTitle={t('ui.aucunParametre')}
+      emptyDescription={t('ui.aucuneAnalyseDeSolNEst')}
       isEmpty={(data) => Object.keys(data.fusedProfile).length === 0}
       render={(data) => (
         <>
           {data.missingParameters.length > 0 ? (
             <Card tone="white" style={{ marginBottom: 20, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 18 }}>⚠️</span>
-              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-                Paramètres manquants : {data.missingParameters.join(', ')}. Aucune valeur n'est inventée pour les compléter.
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.parametresManquantsAucuneValeurNEst', { value: data.missingParameters.join(', ') })}</Text>
             </Card>
           ) : null}
 

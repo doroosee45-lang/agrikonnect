@@ -1,4 +1,5 @@
 import type { Dictionary } from './fr';
+import { uiEn } from './ui.en';
 
 /** English mirror of `fr.ts`. The `Dictionary` type enforces key parity. */
 export const en: Dictionary = {
@@ -195,4 +196,5 @@ export const en: Dictionary = {
     server: 'Server error. Our teams have been notified.',
     unknown: 'Unexpected error.',
   },
+  ui: uiEn,
 };

@@ -37,6 +37,7 @@ import { VERT } from '../../../theme/agrikonnect';
  * distinct de la déclaration, et directive d'indexation calculée côté serveur.
  */
 export default function FarmProfile() {
+  const { t } = useI18n();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
@@ -71,7 +72,7 @@ export default function FarmProfile() {
 
   const farm = data?.farm;
   const messageError =
-    touched && message.trim().length < 10 ? 'Message trop court (10 caractères minimum).' : null;
+    touched && message.trim().length < 10 ? t('ui.messageTropCourt10CaracteresMinimum') : null;
 
   return (
     <PublicShell active="farmers">
@@ -82,7 +83,7 @@ export default function FarmProfile() {
       ) : isError ? (
         <Section contentStyle={styles.section}>
           <ErrorState error={error} onRetry={() => void refetch()} />
-          <Button label="Retour à l’annuaire" onPress={() => router.push('/farmers')} variant="outline" size="sm" />
+          <Button label={t('ui.retourALAnnuaire')} onPress={() => router.push('/farmers')} variant="outline" size="sm" />
         </Section>
       ) : farm ? (
         <>
@@ -90,9 +91,7 @@ export default function FarmProfile() {
             {farm.gallery[0] ? (
               <AppImage uri={farm.gallery[0].url} style={styles.cover} scrim="bottom" radius={0}>
                 <View style={styles.coverContent}>
-                  <Text preset="overline" color={COLORS.gold}>
-                    Fiche publique
-                  </Text>
+                  <Text preset="overline" color={COLORS.gold}>{t('ui.fichePublique')}</Text>
                   <Text preset="heroDisplay" color={COLORS.pureWhite}>
                     {farm.name}
                   </Text>
@@ -101,9 +100,7 @@ export default function FarmProfile() {
             ) : (
               <View style={[styles.cover, styles.coverFallback]}>
                 <View style={styles.coverContent}>
-                  <Text preset="overline" color={COLORS.gold}>
-                    Fiche publique
-                  </Text>
+                  <Text preset="overline" color={COLORS.gold}>{t('ui.fichePublique')}</Text>
                   <Text preset="heroDisplay" color={COLORS.pureWhite}>
                     {farm.name}
                   </Text>
@@ -122,7 +119,7 @@ export default function FarmProfile() {
                     icon={farm.verification.verifiedAt ? 'shield-checkmark' : 'document-text-outline'}
                   />
                   <Chip label={farm.countryCode} tone="forest" icon="globe-outline" />
-                  {farm.source ? <Chip label={`Source : ${farm.source}`} tone="neutral" size="sm" /> : null}
+                  {farm.source ? <Chip label={t('ui.source', { source: farm.source })} tone="neutral" size="sm" /> : null}
                 </View>
 
                 {farm.description ? (
@@ -130,18 +127,16 @@ export default function FarmProfile() {
                     {farm.description}
                   </Text>
                 ) : (
-                  <Text preset="bodySm" color={COLORS.slateGray}>
-                    Aucune description publiée.
-                  </Text>
+                  <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneDescriptionPubliee')}</Text>
                 )}
 
                 <Card tone="white" style={styles.facts}>
                   {[
-                    { label: 'Surface déclarée', value: farm.totalAreaHa !== null ? `${formatNumber(farm.totalAreaHa, locale, 1)} ha` : '—', provenance: 'declared' as const },
-                    { label: 'Parcelles', value: String(farm.plotsCount), provenance: 'declared' as const },
-                    { label: 'Travailleurs', value: farm.workers !== null ? formatNumber(farm.workers, locale) : '—', provenance: 'declared' as const },
-                    { label: 'Capacité', value: farm.capacity ?? '—', provenance: 'declared' as const },
-                    { label: 'Fondée en', value: farm.foundedYear ? String(farm.foundedYear) : '—', provenance: 'declared' as const },
+                    { label: t('ui.surfaceDeclaree'), value: farm.totalAreaHa !== null ? `${formatNumber(farm.totalAreaHa, locale, 1)} ha` : '—', provenance: 'declared' as const },
+                    { label: t('ui.parcelles'), value: String(farm.plotsCount), provenance: 'declared' as const },
+                    { label: t('ui.travailleurs'), value: farm.workers !== null ? formatNumber(farm.workers, locale) : '—', provenance: 'declared' as const },
+                    { label: t('ui.capacite'), value: farm.capacity ?? '—', provenance: 'declared' as const },
+                    { label: t('ui.fondeeEn_7c422'), value: farm.foundedYear ? String(farm.foundedYear) : '—', provenance: 'declared' as const },
                   ].map((fact) => (
                     <View key={fact.label} style={styles.factRow}>
                       <Text preset="caption" color={COLORS.slateGray}>
@@ -158,37 +153,26 @@ export default function FarmProfile() {
                 </Card>
 
                 <Card tone="white" style={styles.block}>
-                  <Text preset="overline" color={COLORS.livingGreen}>
-                    Localisation publiée
-                  </Text>
+                  <Text preset="overline" color={COLORS.livingGreen}>{t('ui.localisationPubliee')}</Text>
                   <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
                     {[farm.adminPath.village, farm.adminPath.sector, farm.adminPath.territory, farm.adminPath.province]
                       .filter(Boolean)
-                      .join(' · ') || 'Aucun découpage administratif publié.'}
+                      .join(' · ') || t('ui.aucunDecoupageAdministratifPublie')}
                   </Text>
                   {farm.location ? (
                     <View style={styles.locationRow}>
                       <Ionicons name="locate-outline" size={14} color={COLORS.forestGreen} />
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Position {farm.location.precision} — {formatNumber(farm.location.coordinates[1], locale, 2)},{' '}
-                        {formatNumber(farm.location.coordinates[0], locale, 2)}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.position', { precision: farm.location.precision, value: formatNumber(farm.location.coordinates[1], locale, 2), value2: formatNumber(farm.location.coordinates[0], locale, 2) })}</Text>
                     </View>
                   ) : (
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Cette exploitation n’a pas publié de position.
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.cetteExploitationNAPasPublie')}</Text>
                   )}
                 </Card>
 
                 <Card tone="white" style={styles.block}>
-                  <Text preset="overline" color={COLORS.livingGreen}>
-                    Cultures
-                  </Text>
+                  <Text preset="overline" color={COLORS.livingGreen}>{t('ui.cultures')}</Text>
                   {farm.crops.length === 0 ? (
-                    <Text preset="bodySm" color={COLORS.slateGray}>
-                      Aucune culture déclarée.
-                    </Text>
+                    <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneCultureDeclaree')}</Text>
                   ) : (
                     <View style={styles.chips}>
                       {farm.crops.map((crop) => (
@@ -200,9 +184,7 @@ export default function FarmProfile() {
 
                 {farm.gallery.length > 0 ? (
                   <View style={styles.block}>
-                    <Text preset="overline" color={COLORS.livingGreen}>
-                      Galerie
-                    </Text>
+                    <Text preset="overline" color={COLORS.livingGreen}>{t('ui.galerie')}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gallery}>
                       {farm.gallery.map((media, index) => (
                         <Reveal key={`${media.url}-${index}`} index={index} variant="scale">
@@ -216,15 +198,10 @@ export default function FarmProfile() {
 
               <Reveal index={1} variant="right" style={styles.side}>
                 <Card tone="white" style={styles.block}>
-                  <Text preset="overline" color={COLORS.livingGreen}>
-                    Contact
-                  </Text>
+                  <Text preset="overline" color={COLORS.livingGreen}>{t('ui.contact')}</Text>
 
                   {farm.contact.masked ? (
-                    <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-                      Les coordonnées ne sont pas publiées. Votre message sera transmis directement au
-                      producteur, sans révéler les vôtres.
-                    </Text>
+                    <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.lesCoordonneesNeSontPasPubliees')}</Text>
                   ) : (
                     <View style={styles.contactList}>
                       {farm.contact.phone ? <ContactRow icon="call-outline" value={farm.contact.phone} /> : null}
@@ -235,19 +212,19 @@ export default function FarmProfile() {
 
                   <Divider />
 
-                  <Input label="Votre nom" value={name} onChangeText={setName} placeholder="Nom et prénom" icon="person-outline" optionalLabel="facultatif" />
-                  <Input label="E-mail de réponse" value={email} onChangeText={setEmail} placeholder="vous@exemple.com" icon="mail-outline" optionalLabel="facultatif" keyboardType="email-address" autoCapitalize="none" />
-                  <Input label="Téléphone" value={phone} onChangeText={setPhone} placeholder="+225 07 00 00 00 00" icon="call-outline" optionalLabel="facultatif" keyboardType="phone-pad" />
+                  <Input label={t('ui.votreNom')} value={name} onChangeText={setName} placeholder={t('ui.nomEtPrenom')} icon="person-outline" optionalLabel={t('common.optional')} />
+                  <Input label={t('ui.eMailDeReponse')} value={email} onChangeText={setEmail} placeholder="vous@exemple.com" icon="mail-outline" optionalLabel={t('common.optional')} keyboardType="email-address" autoCapitalize="none" />
+                  <Input label={t('ui.telephone_d3b02')} value={phone} onChangeText={setPhone} placeholder="+225 07 00 00 00 00" icon="call-outline" optionalLabel={t('common.optional')} keyboardType="phone-pad" />
                   <TextArea
-                    label="Message"
+                    label={t('ui.message')}
                     value={message}
                     onChangeText={setMessage}
                     onBlur={() => setTouched(true)}
-                    placeholder="Volume recherché, période, conditions…"
+                    placeholder={t('ui.volumeRecherchePeriodeConditions')}
                     error={messageError}
                   />
                   <Button
-                    label="Transmettre le message"
+                    label={t('ui.transmettreLeMessage')}
                     variant="primary"
                     icon="send-outline"
                     fullWidth
@@ -260,27 +237,18 @@ export default function FarmProfile() {
                   />
 
                   {contact.isSuccess ? (
-                    <Text preset="caption" color={COLORS.success}>
-                      Message transmis au producteur.
-                    </Text>
+                    <Text preset="caption" color={COLORS.success}>{t('ui.messageTransmisAuProducteur')}</Text>
                   ) : null}
                   {contact.isError ? <ErrorState error={contact.error} /> : null}
                 </Card>
 
                 <Card tone="ink" style={styles.block}>
-                  <Text preset="overline" color={COLORS.gold}>
-                    QR du profil
-                  </Text>
+                  <Text preset="overline" color={COLORS.gold}>{t('ui.qrDuProfil')}</Text>
                   <View style={styles.qrRow}>
                     <AppImage uri={publicApi.farmQrUrl(farm.slug, 'png', 320)} style={styles.qr} radius={RADIUS.sm} />
                     <View style={styles.qrText}>
-                      <Text preset="bodySm" color={DARK.textMuted} style={styles.lineHeight}>
-                        Le QR encode uniquement l’URL publique de cette fiche. Aucun identifiant technique
-                        n’y figure.
-                      </Text>
-                      <Text preset="caption" color={DARK.textFaint}>
-                        Rendu produit par le serveur (PNG 320 px).
-                      </Text>
+                      <Text preset="bodySm" color={DARK.textMuted} style={styles.lineHeight}>{t('ui.leQrEncodeUniquementLUrl')}</Text>
+                      <Text preset="caption" color={DARK.textFaint}>{t('ui.renduProduitParLeServeurPng')}</Text>
                     </View>
                   </View>
                 </Card>
@@ -294,31 +262,23 @@ export default function FarmProfile() {
                     />
                     <Text preset="bodySm" color={COLORS.textPrimary} style={styles.lineHeight}>
                       {farm.seo.indexable
-                        ? 'Profil vérifié : indexable par les moteurs de recherche.'
-                        : 'Profil non vérifié : non indexé par les moteurs de recherche, accessible par lien direct.'}
+                        ? t('ui.profilVerifieIndexableParLesMoteurs')
+                        : t('ui.profilNonVerifieNonIndexePar')}
                     </Text>
                   </View>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Directive produite côté serveur ({farm.seo.robots}).
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.directiveProduiteCoteServeur', { robots: farm.seo.robots })}</Text>
                 </Card>
 
                 <Card tone="white" style={styles.block}>
-                  <Text preset="overline" color={COLORS.livingGreen}>
-                    Responsable
-                  </Text>
+                  <Text preset="overline" color={COLORS.livingGreen}>{t('ui.responsable')}</Text>
                   {farm.owner ? (
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {farm.owner.firstName} {farm.owner.lastName}
                     </Text>
                   ) : (
-                    <Text preset="bodySm" color={COLORS.slateGray}>
-                      Non publié.
-                    </Text>
+                    <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.nonPublie_08219')}</Text>
                   )}
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Mise à jour {formatDate(farm.updatedAt, locale)} · {formatNumber(farm.viewCount, locale)} vues
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.miseAJourVues', { updatedAt: formatDate(farm.updatedAt, locale), viewCount: formatNumber(farm.viewCount, locale) })}</Text>
                 </Card>
               </Reveal>
             </View>

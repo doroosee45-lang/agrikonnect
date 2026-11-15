@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function PublicSiteVenteDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -25,27 +26,27 @@ export default function PublicSiteVenteDetail() {
   const order = query.data;
   return (
     <PublicShell active="ventes">
-      <PageHeader index="17" eyebrow="Commande" title={order?.number ?? 'Fiche commande'} subtitle="Instantané figé à la commande." />
+      <PageHeader index="17" eyebrow={t('ui.commande')} title={order?.number ?? t('ui.ficheCommande')} subtitle={t('ui.instantaneFigeALaCommande_9e377')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Commande" icon="cart-outline">
-          {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !order ? <Text preset="body">Commande introuvable.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.commande')} icon="cart-outline">
+          {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !order ? <Text preset="body">{t('ui.commandeIntrouvable')}</Text> : (
             <Reveal index={0} variant="up">
               <Card tone="white" style={styles.card}>
                 <Text preset="h3" style={{ fontFamily: 'monospace' }}>{order.number}</Text>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                   <Chip label={order.status} tone={order.status === 'DISPUTED' ? 'error' : 'neutral'} size="sm" />
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Paiement</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.paiement')}</Text>
                   <Chip label={order.paymentStatus} tone={order.paymentStatus === 'PAID' ? 'success' : 'neutral'} size="sm" />
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Montant</Text>
-                  <Text preset="bodySm">{order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : 'non renseigné'}</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.montant')}</Text>
+                  <Text preset="bodySm">{order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : t('ui.nonRenseigne')}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Passée le</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.passeeLe')}</Text>
                   <Text preset="bodySm">{formatDate(order.createdAt, locale)}</Text>
                 </View>
               </Card>

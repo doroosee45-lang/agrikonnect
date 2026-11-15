@@ -10,6 +10,7 @@ import { lienProfilFerme } from '../../shared/links.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 import { approximate, isValidCoordinate, parseBbox } from '../../shared/geo.js';
 import { sendEmail } from '../../integrations/email.js';
+import { translateMessage } from '../../shared/i18n/index.js';
 
 /**
  * Projections publiques (CDC A.3 : « jamais le document brut »).
@@ -160,28 +161,31 @@ export const contactFarm = async (slug, payload) => {
 
   const ownerId = farm.organization.memberships[0]?.userId;
   const owner = ownerId
-    ? await prisma.profile.findUnique({ where: { id: ownerId }, select: { email: true } })
+    ? await prisma.profile.findUnique({ where: { id: ownerId }, select: { email: true, locale: true } })
     : null;
 
   if (owner?.email) {
+    // I18N-01 — l'e-mail est rédigé dans la langue du destinataire (Profile.locale).
+    const L = (message) => translateMessage(message, owner.locale);
+    const nonRenseigne = L('non renseigné');
     await sendEmail({
       to: owner.email,
-      subject: `AGRIKONNECT — Nouveau message concernant ${farm.name}`,
+      subject: L(`AGRIKONNECT — Nouveau message concernant ${farm.name}`),
       text: [
-        'Un visiteur souhaite te contacter via ton profil public.',
+        L('Un visiteur souhaite te contacter via ton profil public.'),
         '',
-        `Nom : ${payload.name ?? 'non renseigné'}`,
-        `Email de réponse : ${payload.email ?? 'non renseigné'}`,
-        `Téléphone : ${payload.phone ?? 'non renseigné'}`,
+        `${L('Nom :')} ${payload.name ?? nonRenseigne}`,
+        `${L('Email de réponse :')} ${payload.email ?? nonRenseigne}`,
+        `${L('Téléphone :')} ${payload.phone ?? nonRenseigne}`,
         '',
         payload.message,
         '',
-        '— Réponds directement à ce visiteur depuis tes coordonnées. AGRIKONNECT n\'a pas transmis les tiennes.',
+        L('— Réponds directement à ce visiteur depuis tes coordonnées. AGRIKONNECT n\'a pas transmis les tiennes.'),
       ].join('\n'),
     });
   }
 
-  return { sent: true, message: 'Message transmis au producteur' };
+  return { sent: true, message: translateMessage('Message transmis au producteur') };
 };
 
 /**

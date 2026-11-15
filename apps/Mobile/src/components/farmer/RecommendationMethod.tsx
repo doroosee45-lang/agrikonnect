@@ -4,6 +4,7 @@ import { Card, Chip, Text } from '@/components/ui';
 import type { RecommendationCreated } from '@/services/api/types';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Méthode de calcul d'une recommandation — écran 2, mobile.
@@ -57,6 +58,7 @@ function Ligne({ intitule, valeur }: { intitule: string; valeur: string }) {
 }
 
 export function MethodeDeCalcul({ data }: { data: MethodeDonnees }) {
+  const { t } = useI18n();
   const {
     engineVersion,
     scoringModelLabel,
@@ -72,7 +74,7 @@ export function MethodeDeCalcul({ data }: { data: MethodeDonnees }) {
     <View style={styles.conteneur}>
       {indicative ? (
         <Card tone="gold" style={styles.bloc}>
-          <Chip label="Recommandation indicative" tone="warning" size="sm" />
+          <Chip label={t('ui.recommandationIndicative')} tone="warning" size="sm" />
           {/* Raisons fournies par l'API : elles nomment la cause réelle. */}
           {indicativeReasons.map((raison) => (
             /* Les raisons sont des phrases distinctes, stables pour un calcul donné. */
@@ -84,16 +86,12 @@ export function MethodeDeCalcul({ data }: { data: MethodeDonnees }) {
       ) : null}
 
       <Card tone="white" style={styles.bloc}>
-        <Text preset="overline" color={COLORS.forestGreen}>
-          Méthode de calcul
-        </Text>
+        <Text preset="overline" color={COLORS.forestGreen}>{t('ui.methodeDeCalcul')}</Text>
 
-        <Ligne intitule="Moteur" valeur={`v${engineVersion} — ${scoringModelLabel}`} />
+        <Ligne intitule={t('ui.moteur')} valeur={`v${engineVersion} — ${scoringModelLabel}`} />
 
         <View style={styles.ligne}>
-          <Text preset="caption" color={COLORS.slateGray} style={styles.intitule}>
-            Règle de combinaison
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.intitule}>{t('ui.regleDeCombinaison')}</Text>
           {/* Libellé fourni par l'API, jamais recopié ici. */}
           <Text preset="bodySm" color={COLORS.textPrimary} style={styles.gras}>
             {combinationRuleLabel}
@@ -107,10 +105,10 @@ export function MethodeDeCalcul({ data }: { data: MethodeDonnees }) {
         ) : null}
 
         <Ligne
-          intitule="Critères évalués"
-          valeur={`${counts.ranked} culture(s) classée(s) sur ${counts.candidates} examinée(s) · ${counts.eliminated} écartée(s) · ${counts.insufficientData} sans données suffisantes`}
+          intitule={t('ui.criteresEvalues')}
+          valeur={t('ui.criteriaSummary', { ranked: counts.ranked, candidates: counts.candidates, eliminated: counts.eliminated, insufficientData: counts.insufficientData })}
         />
-        <Ligne intitule="Mesures utilisées" valeur={`${counts.readingsUsed} lecture(s)`} />
+        <Ligne intitule={t('ui.mesuresUtilisees')} valeur={t('ui.readingsCount', { count: counts.readingsUsed })} />
       </Card>
 
       <Card tone="pale" style={styles.bloc}>
@@ -142,11 +140,12 @@ export function LigneMethodeCulture({
   evaluatedCount?: number;
   tooFewCriteria?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-      {`couverture ${Math.round(coverage * 100)} %`}
-      {typeof evaluatedCount === 'number' ? ` · ${evaluatedCount} critère(s) évalué(s)` : ''}
-      {tooFewCriteria ? ' · trop peu de critères pour classer' : ''}
+      {t('ui.couverture', { value: Math.round(coverage * 100) })}
+      {typeof evaluatedCount === 'number' ? t('ui.critereSEvalueS', { evaluatedCount }) : ''}
+      {tooFewCriteria ? t('ui.tropPeuDeCriteresPourClasser') : ''}
     </Text>
   );
 }

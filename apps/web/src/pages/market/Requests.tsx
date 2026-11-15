@@ -8,25 +8,26 @@ import { useI18n } from '@/i18n';
 
 /** MARKET — demandes d'achat publiées. */
 export default function MarketRequests() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<PurchaseRequest>
-      title="Demandes d'achat"
-      subtitle="Demandes d'achat publiées par les acheteurs."
+      title={t('ui.demandesDAchat')}
+      subtitle={t('ui.demandesDAchatPublieesParLes')}
       icon="📋"
       queryKey={queryKeys.requests.list({ limit: 100 })}
       fetch={() => requestApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(request) => request.id}
       rowHref={(request) => `/market/requests/${request.id}`}
-      action={{ label: 'Nouvelle demande', href: '/market/requests/new' }}
+      action={{ label: t('ui.nouvelleDemande'), href: '/market/requests/new' }}
       columns={[
-        { key: 'cropId', label: 'Culture', render: (request) => request.cropId },
-        { key: 'quantity', label: 'Quantité', render: (request) => `${request.quantity} ${request.unit}` },
-        { key: 'status', label: 'Statut', render: (request) => <Chip label={request.status} tone={request.status === 'OPEN' ? 'success' : 'neutral'} size="sm" /> },
-        { key: 'createdAt', label: 'Publiée le', render: (request) => formatDate(request.createdAt, locale) },
+        { key: 'cropId', label: t('ui.culture'), render: (request) => request.cropId },
+        { key: 'quantity', label: t('ui.quantite'), render: (request) => `${request.quantity} ${request.unit}` },
+        { key: 'status', label: t('ui.statut'), render: (request) => <Chip label={request.status} tone={request.status === 'OPEN' ? 'success' : 'neutral'} size="sm" /> },
+        { key: 'createdAt', label: t('ui.publieeLe'), render: (request) => formatDate(request.createdAt, locale) },
       ]}
-      emptyTitle="Aucune demande"
-      emptyDescription="Aucune demande d'achat n'est actuellement publiée."
+      emptyTitle={t('ui.aucuneDemande')}
+      emptyDescription={t('ui.aucuneDemandeDAchatNEst')}
     />
   );
 }

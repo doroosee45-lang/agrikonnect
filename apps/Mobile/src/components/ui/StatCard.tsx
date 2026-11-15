@@ -7,6 +7,7 @@ import { ICON_SIZE, RADIUS, SPACING } from '@/theme/space';
 
 import { Card, PressableCard, type CardProps } from './Card';
 import { Text } from './Text';
+import { useI18n, tr } from '@/i18n';
 
 /**
  * MIROIR NATIF du StatCard du design system web.
@@ -57,8 +58,8 @@ const SENS_TEXTE: Record<StatTendance['sens'], string> = {
 };
 
 const SENS_LIBELLE: Record<StatTendance['sens'], string> = {
-  up: 'en hausse',
-  down: 'en baisse',
+  get up() { return tr('ui.enHausse'); },
+  get down() { return tr('ui.enBaisse'); },
   flat: 'stable',
 };
 
@@ -75,6 +76,7 @@ export function StatCard({
   onPress,
   style,
 }: StatCardProps) {
+  const { t } = useI18n();
   const contenu = (
     <>
       <View style={styles.entete}>
@@ -101,7 +103,7 @@ export function StatCard({
             <View
               style={[styles.badge, { backgroundColor: SENS_FOND[tendance.sens] }]}
               accessible
-              accessibilityLabel={`Tendance ${SENS_LIBELLE[tendance.sens]} : ${tendance.valeur}`}
+              accessibilityLabel={t('ui.tendance', { value: SENS_LIBELLE[tendance.sens], valeur: tendance.valeur })}
             >
               <Ionicons name={SENS_ICONE[tendance.sens]} size={ICON_SIZE.xs} color={SENS_TEXTE[tendance.sens]} />
               <Text preset="caption" color={SENS_TEXTE[tendance.sens]}>
@@ -123,7 +125,7 @@ export function StatCard({
 
           {source ? (
             <Text preset="caption" color={COLORS.slateGray}>
-              {`Source : ${source}`}
+              {t('ui.source', { source })}
             </Text>
           ) : null}
 

@@ -6,9 +6,11 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** ADMIN — paramètres plateforme (lecture ; l'écriture passe par PUT /admin/settings). */
 export default function AdminSettings() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const settings = useQuery({
@@ -21,13 +23,9 @@ export default function AdminSettings() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Paramètres" description="Configuration de la plateforme." icon="⚙️">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Paramètres
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Valeurs de configuration servies par GET /admin/settings.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.parametres_ef8f0')} description={t('ui.configurationDeLaPlateforme')} icon="⚙️">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.parametres_ef8f0')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.valeursDeConfigurationServiesParGet')}</Text>
 
         {settings.isLoading ? (
           <LoadingState count={2} height={100} />
@@ -35,9 +33,7 @@ export default function AdminSettings() {
           <ErrorState error={settings.error} onRetry={() => void settings.refetch()} showRequestId />
         ) : entries.length === 0 ? (
           <Card tone="white">
-            <Text preset="bodyMd" color={COLORS.slateGray}>
-              Aucun paramètre exposé.
-            </Text>
+            <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.aucunParametreExpose')}</Text>
           </Card>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>

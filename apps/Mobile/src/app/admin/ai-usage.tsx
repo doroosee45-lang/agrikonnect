@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminAiUsage() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminAiUsage() {
   const items = (query.data as unknown as Array<Record<string, unknown>>) ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Usage IA" subtitle="Consommation et escalades IA." />
+      <AppHeader title={t('ui.usageIa')} subtitle={t('ui.consommationEtEscaladesIa')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Usage IA" icon="analytics-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune donnée" description="Aucune donnée d'usage IA." icon="analytics-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.usageIa')} icon="analytics-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneDonnee')} description={t('ui.aucuneDonneeDUsageIa')} icon="analytics-outline" /> : (
             <View style={styles.list}>
               {items.map((item, index) => (
                 <Reveal key={String(item.id ?? index)} index={index} variant="up">

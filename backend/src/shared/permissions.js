@@ -134,6 +134,7 @@ export const PERMISSIONS = {
   'reports.review': MODERATION,
   'admin.users': ADMIN_ROLES,
   'admin.audit': ADMIN_ROLES,
+  'admin.content': ['SUPER_ADMIN', 'ADMIN'],
   'admin.settings': ['SUPER_ADMIN', 'ADMIN'],
   'admin.dashboard': [...ADMIN_ROLES, 'MODERATOR'],
   'admin.jobs': ADMIN_ROLES,

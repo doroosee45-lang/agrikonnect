@@ -10,6 +10,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 type Dict = Record<string, unknown>;
 
@@ -25,13 +26,14 @@ const asNombre = (value: unknown): number | null => (typeof value === 'number' ?
 const ROLES = ['', 'FARMER', 'BUYER', 'SUPPLIER', 'COOPERATIVE_ADMIN', 'TRANSPORTER', 'INVESTOR'];
 
 const CANAUX: Record<string, string> = {
-  IN_APP: 'dans l application',
+  get IN_APP() { return tr('ui.dansLApplication'); },
   EMAIL: 'e-mail',
   SMS: 'SMS',
 };
 
 /** M7 U-M7-1 — annonces internes ciblées (rôle/pays) et historique d'envois. */
 export default function AdminNotifications() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const queryClient = useQueryClient();
   const [titre, setTitre] = useState('');
@@ -63,7 +65,7 @@ export default function AdminNotifications() {
       setErreur('');
       const sortie = asDict(result.data);
       setAvis(
-        `Annonce diffusée : ${asNombre(sortie.targeted) ?? 0} destinataire(s) ciblé(s), ${asNombre(sortie.delivered) ?? 0} remise(s).`,
+        t('ui.annonceDiffuseeDestinataireSCibleS', { value: asNombre(sortie.targeted) ?? 0, value2: asNombre(sortie.delivered) ?? 0 }),
       );
       setTitre('');
       setCorps('');
@@ -71,7 +73,7 @@ export default function AdminNotifications() {
     },
     onError: (error) => {
       const dict = asDict(error);
-      setErreur(typeof dict.message === 'string' && dict.message ? dict.message : 'Diffusion impossible');
+      setErreur(typeof dict.message === 'string' && dict.message ? dict.message : t('ui.diffusionImpossible'));
     },
   });
 
@@ -84,49 +86,46 @@ export default function AdminNotifications() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Notifications" subtitle="Annonces internes ciblées (rôle et/ou pays) et historique d'envois (U-M7-1)." />
+      <AppHeader title={t('ui.notifications')} subtitle={t('ui.annoncesInternesCibleesRoleEtOu')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Notifications" icon="megaphone-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.notifications')} icon="megaphone-outline">
           {historique.isLoading ? (
             <LoadingState count={3} height={100} />
           ) : historique.isError ? (
             <ErrorState error={historique.error} onRetry={() => void historique.refetch()} />
           ) : (
             <View style={styles.list}>
-              <Text preset="caption" color={COLORS.slateGray}>
-                Diffusez une annonce ciblée par rôle et/ou par pays (U-M7-1). Chaque envoi est audité
-                (admin.notification.broadcast) ; le ciblage est obligatoire.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.diffusezUneAnnonceCibleeParRole')}</Text>
 
-              <Text preset="h3">Nouvelle annonce</Text>
+              <Text preset="h3">{t('ui.nouvelleAnnonce')}</Text>
               <Input
-                label="Titre"
-                placeholder="Ex. : Maintenance planifiée"
+                label={t('ui.titre')}
+                placeholder={t('ui.exMaintenancePlanifiee')}
                 value={titre}
                 onChangeText={setTitre}
                 icon="text-outline"
               />
               <Input
-                label="Message"
-                placeholder="Corps de l annonce"
+                label={t('ui.message')}
+                placeholder={t('ui.corpsDeLAnnonce')}
                 value={corps}
                 onChangeText={setCorps}
                 icon="document-text-outline"
               />
-              <Text preset="caption" color={COLORS.slateGray}>Rôle ciblé</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.roleCible')}</Text>
               <View style={styles.chips}>
                 {ROLES.map((valeur) => (
                   <FilterChip
                     key={valeur || 'aucun'}
-                    label={valeur || 'Aucun rôle'}
+                    label={valeur || t('ui.aucunRole')}
                     active={role === valeur}
                     onPress={() => setRole(valeur)}
                   />
                 ))}
               </View>
               <Input
-                label="Pays ciblé (code ISO 2 lettres)"
-                placeholder="Ex. : CD"
+                label={t('ui.paysCibleCodeIso2Lettres')}
+                placeholder={t('ui.exCd')}
                 value={pays}
                 onChangeText={(texte) => setPays(texte.toUpperCase())}
                 icon="globe-outline"
@@ -156,57 +155,48 @@ export default function AdminNotifications() {
                 </Card>
               ) : null}
               <Button
-                label="Diffuser l annonce"
+                label={t('ui.diffuserLAnnonce')}
                 size="sm"
                 icon="megaphone-outline"
                 onPress={() => diffuser.mutate()}
                 disabled={diffuser.isPending || titre.trim().length < 3 || corps.trim().length < 3 || canaux.length === 0}
               />
 
-              <Text preset="h3">Historique des envois</Text>
+              <Text preset="h3">{t('ui.historiqueDesEnvois')}</Text>
               {annonces.length === 0 ? (
-                <EmptyState title="Aucune annonce" description="Aucune annonce diffusée pour l instant." icon="megaphone-outline" />
+                <EmptyState title={t('ui.aucuneAnnonce')} description={t('ui.aucuneAnnonceDiffuseePourLInstant_9973f')} icon="megaphone-outline" />
               ) : (
                 annonces.map((annonce, index) => (
                   <Card key={`${asText(annonce.at)}-${String(index)}`} tone="white">
                     <View style={styles.rowHead}>
                       <Text preset="bodySm">{asText(annonce.title)}</Text>
-                      <Chip label={`ciblés : ${asNombre(annonce.targeted) ?? 0}`} tone="neutral" size="sm" />
-                      <Chip label={`remis : ${asNombre(annonce.delivered) ?? 0}`} tone="success" size="sm" />
+                      <Chip label={t('ui.cibles', { value: asNombre(annonce.targeted) ?? 0 })} tone="neutral" size="sm" />
+                      <Chip label={t('ui.deliveredCount', { count: asNombre(annonce.delivered) ?? 0 })} tone="success" size="sm" />
                     </View>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      {formatDate(String(annonce.at ?? ''))} · rôle {asText(annonce.role)} · pays {asText(annonce.country)} ·
-                      canaux {asArray(annonce.channels).map((c) => asText(c)).join(', ') || '—'}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.rolePaysCanaux_522d7', { value: formatDate(String(annonce.at ?? '')), role: asText(annonce.role), country: asText(annonce.country), value2: asArray(annonce.channels).map((c) => asText(c)).join(', ') || '—' })}</Text>
                   </Card>
                 ))
               )}
 
-              <Text preset="h3">Délivrance SMS</Text>
+              <Text preset="h3">{t('ui.delivranceSms')}</Text>
               <Card tone="white">
                 <View style={styles.chips}>
-                  <Chip label={`${asNombre(messages.total) ?? 0} message(s) observé(s)`} tone="neutral" size="sm" />
-                  <Chip label={`${asNombre(messages.delivered) ?? 0} délivrés`} tone="success" size="sm" />
-                  <Chip label={`${asNombre(messages.pending) ?? 0} en cours`} tone="info" size="sm" />
-                  <Chip label={`${asNombre(messages.failed) ?? 0} échoués`} tone="error" size="sm" />
+                  <Chip label={t('ui.messageSObserveS', { value: asNombre(messages.total) ?? 0 })} tone="neutral" size="sm" />
+                  <Chip label={t('ui.delivres', { value: asNombre(messages.delivered) ?? 0 })} tone="success" size="sm" />
+                  <Chip label={t('ui.enCours_37f85', { value: asNombre(messages.pending) ?? 0 })} tone="info" size="sm" />
+                  <Chip label={t('ui.echoues', { value: asNombre(messages.failed) ?? 0 })} tone="error" size="sm" />
                   <Chip
-                    label={taux !== null ? `taux de délivrance ${(taux * 100).toFixed(1)} %` : 'taux non calculable'}
+                    label={taux !== null ? t('ui.tauxDeDelivrance', { value: (taux * 100).toFixed(1) }) : t('ui.tauxNonCalculable')}
                     tone={taux !== null ? 'forest' : 'neutral'}
                     size="sm"
                   />
                 </View>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Calculé depuis les états réels de sms_messages (échantillon plafonné à {asNombre(messages.sampleCappedAt) ?? 5000}) ;
-                  les lots sms_batch_logs ci-dessous détaillent chaque campagne.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.calculeDepuisLesEtatsReelsDe_89917', { value: asNombre(messages.sampleCappedAt) ?? 5000 })}</Text>
                 {lots.length === 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray}>Aucun lot SMS enregistré.</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunLotSmsEnregistre')}</Text>
                 ) : (
                   lots.map((lot) => (
-                    <Text key={asText(lot.batchId)} preset="caption" color={COLORS.slateGray}>
-                      {asText(lot.batchId)} — candidats {asNombre(lot.candidates) ?? 0} · envoyés {asNombre(lot.sent) ?? 0} ·
-                      ignorés {asNombre(lot.skipped) ?? 0} · échoués {asNombre(lot.failed) ?? 0} · mode {asText(lot.mode)}
-                    </Text>
+                    <Text key={asText(lot.batchId)} preset="caption" color={COLORS.slateGray}>{t('ui.candidatsEnvoyesIgnoresEchouesMode', { batchId: asText(lot.batchId), value: asNombre(lot.candidates) ?? 0, value2: asNombre(lot.sent) ?? 0, value3: asNombre(lot.skipped) ?? 0, value4: asNombre(lot.failed) ?? 0, mode: asText(lot.mode) })}</Text>
                   ))
                 )}
               </Card>

@@ -6,9 +6,11 @@ import { insightsApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** ADMIN — produits de données : politique de divulgation réelle. */
 export default function AdminDataProducts() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const policy = useQuery({
@@ -19,13 +21,9 @@ export default function AdminDataProducts() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Produits de données" description="Jeux de données et politique de divulgation." icon="🗃️">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Produits de données
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Politique de divulgation appliquée aux agrégats publiés.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.produitsDeDonnees')} description={t('ui.jeuxDeDonneesEtPolitiqueDe')} icon="🗃️">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.produitsDeDonnees')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.politiqueDeDivulgationAppliqueeAuxAgregats')}</Text>
 
         {policy.isLoading ? (
           <LoadingState count={2} height={100} />
@@ -34,21 +32,15 @@ export default function AdminDataProducts() {
         ) : !policy.data ? null : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <Card tone="ink" style={{ padding: 32 }}>
-              <Text preset="overline" color={COLORS.gold} style={{ marginBottom: 12 }}>
-                Seuil de k-anonymat
-              </Text>
+              <Text preset="overline" color={COLORS.gold} style={{ marginBottom: 12 }}>{t('ui.seuilDeKAnonymat')}</Text>
               <Text preset="numeric" color={COLORS.pureWhite} style={{ marginBottom: 8 }}>
                 {policy.data.minGroupSize}
               </Text>
-              <Text preset="caption" color="rgba(246, 247, 242, 0.75)" style={{ lineHeight: 1.7 }}>
-                Tout groupe plus petit est masqué. Aucune donnée personnelle n'est publiée.
-              </Text>
+              <Text preset="caption" color="rgba(246, 247, 242, 0.75)" style={{ lineHeight: 1.7 }}>{t('ui.toutGroupePlusPetitEstMasque')}</Text>
             </Card>
 
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Règles appliquées
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.reglesAppliquees')}</Text>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 20 }}>
                 {policy.data.rules.map((rule, index) => (
                   <motion.li
@@ -67,9 +59,7 @@ export default function AdminDataProducts() {
             </Card>
 
             <Card tone="pale">
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Interdictions
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.interdictions')}</Text>
               <ul style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 20 }}>
                 {policy.data.forbidden.map((item) => (
                   <li key={item}>

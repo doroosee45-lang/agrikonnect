@@ -31,61 +31,62 @@ const STATUS_TONE = {
 } as const;
 
 export default function FarmerExportDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
 
   return (
     <DetailPage<ExportOrderDetail>
       title={(detail) => detail.exportOrder.reference}
-      subtitle="Dossier d'exportation : conformité documentaire et change appliqué."
+      subtitle={t('ui.dossierDExportationConformiteDocumentaireEt')}
       backHref="/farmer/export"
-      backLabel="Retour aux exportations"
+      backLabel={t('ui.retourAuxExportations')}
       queryKey={queryKeys.exports.one(id ?? '')}
       fetch={() => exportApi.get(id ?? '').then((result) => result.data)}
       actions={(detail) => (
         <Link to={`/farmer/export/${detail.exportOrder.id}/documents`}>
-          <Button label="Documents du dossier" variant="outline" size="sm" />
+          <Button label={t('ui.documentsDuDossier')} variant="outline" size="sm" />
         </Link>
       )}
       sections={(detail) => {
         const { exportOrder, compliance, finance } = detail;
         return [
           {
-            title: 'Dossier',
+            title: t('ui.dossier'),
             fields: [
               {
-                label: 'Référence',
+                label: t('ui.reference'),
                 value: <span style={{ fontFamily: 'monospace', fontSize: 14 }}>{exportOrder.reference}</span>,
               },
               {
-                label: 'Statut',
+                label: t('ui.statut'),
                 value: <Chip label={exportOrder.status} tone={STATUS_TONE[exportOrder.status]} size="sm" />,
               },
-              { label: 'Créé le', value: formatDate(exportOrder.createdAt, locale) },
-              { label: 'Mis à jour le', value: formatDate(exportOrder.updatedAt, locale) },
+              { label: t('ui.creeLe'), value: formatDate(exportOrder.createdAt, locale) },
+              { label: t('ui.misAJourLe'), value: formatDate(exportOrder.updatedAt, locale) },
             ],
           },
           {
-            title: 'Logistique',
+            title: t('ui.logistique'),
             fields: [
-              { label: 'Destination', value: exportOrder.destinationCountry },
-              { label: 'Incoterm', value: exportOrder.incoterm ?? 'non précisé' },
-              { label: 'Acheteur', value: exportOrder.buyerOrgId ?? '—' },
-              { label: 'Transporteur', value: exportOrder.logisticsPartnerOrgId ?? 'non désigné' },
-              { label: 'Appel d’offres', value: exportOrder.tenderId ?? '—' },
+              { label: t('ui.destination'), value: exportOrder.destinationCountry },
+              { label: t('ui.incoterm'), value: exportOrder.incoterm ?? t('ui.nonPrecise') },
+              { label: t('ui.acheteur'), value: exportOrder.buyerOrgId ?? '—' },
+              { label: t('ui.transporteur'), value: exportOrder.logisticsPartnerOrgId ?? t('ui.nonDesigne') },
+              { label: t('ui.appelDOffres'), value: exportOrder.tenderId ?? '—' },
             ],
           },
           {
-            title: 'Conformité documentaire',
+            title: t('ui.conformiteDocumentaire'),
             notice:
               compliance.canBeCertified
-                ? 'Les quatre pièces obligatoires sont présentes : le dossier peut être certifié.'
-                : `Certification impossible tant que ${compliance.missing.join(', ')} manque(nt). Ce contrôle est appliqué côté serveur.`,
+                ? t('ui.lesQuatrePiecesObligatoiresSontPresentes')
+                : t('ui.certificationImpossibleTantQueManqueNt', { value: compliance.missing.join(', ') }),
             fields: compliance.required.map((item) => ({
               label: item.label,
               value: (
                 <Chip
-                  label={item.present ? 'présent' : 'manquant'}
+                  label={item.present ? t('ui.present') : t('ui.manquant')}
                   tone={item.present ? 'success' : 'error'}
                   size="sm"
                 />
@@ -93,35 +94,35 @@ export default function FarmerExportDetail() {
             })),
           },
           {
-            title: 'Montant et change',
+            title: t('ui.montantEtChange'),
             notice: finance.conversion.error ?? undefined,
             fields: [
               {
-                label: 'Montant',
+                label: t('ui.montant'),
                 value:
-                  finance.totalAmount !== null ? `${finance.totalAmount} ${finance.currency}` : 'non renseigné',
+                  finance.totalAmount !== null ? `${finance.totalAmount} ${finance.currency}` : t('ui.valueNotProvided'),
               },
-              { label: 'Devise', value: finance.currency },
+              { label: t('ui.devise'), value: finance.currency },
               {
-                label: 'Taux de change',
-                value: finance.fxRate ? JSON.stringify(finance.fxRate) : 'aucun taux enregistré',
+                label: t('ui.tauxDeChange'),
+                value: finance.fxRate ? JSON.stringify(finance.fxRate) : t('ui.noRateRecorded'),
               },
               {
-                label: 'Conversion',
-                value: finance.conversion.amount !== null ? String(finance.conversion.amount) : 'non converti',
+                label: t('ui.conversion'),
+                value: finance.conversion.amount !== null ? String(finance.conversion.amount) : t('ui.notConvertedValue'),
               },
             ],
           },
           {
-            title: 'Pièces rattachées',
+            title: t('ui.piecesRattachees'),
             fields: [
               {
-                label: 'Documents',
+                label: t('ui.documents'),
                 value: (
                   <Link to={`/farmer/export/${exportOrder.id}/documents`} style={{ color: VERT[800] }}>
                     {exportOrder.documents.length > 0
-                      ? `${exportOrder.documents.length} pièce(s) — consulter`
-                      : 'Aucune pièce rattachée — consulter'}
+                      ? t('ui.pieceSConsulter', { length: exportOrder.documents.length })
+                      : t('ui.aucunePieceRattacheeConsulter')}
                   </Link>
                 ),
               },

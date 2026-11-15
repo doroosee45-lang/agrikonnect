@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function OrganizationOrders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,10 +25,10 @@ export default function OrganizationOrders() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Commandes" subtitle="Commandes de votre organisation." />
+      <AppHeader title={t('ui.commandes')} subtitle={t('ui.commandesDeVotreOrganisation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Commandes" icon="receipt-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune commande" description="Les commandes apparaîtront ici." icon="receipt-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.commandes')} icon="receipt-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneCommande')} description={t('ui.lesCommandesApparaitrontIci')} icon="receipt-outline" /> : (
             <View style={styles.list}>
               {items.map((order, index) => (
                 <Reveal key={order.id} index={index} variant="up">
@@ -36,7 +37,7 @@ export default function OrganizationOrders() {
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium" style={{ fontFamily: 'monospace' }}>{order.number}</Text>
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {formatDate(order.createdAt, locale)} · {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : 'montant non renseigné'}
+                          {formatDate(order.createdAt, locale)} · {order.totalAmount !== null ? formatCurrency(order.totalAmount, order.currency, locale) : t('ui.montantNonRenseigne')}
                         </Text>
                       </View>
                       <View style={styles.right}>

@@ -10,6 +10,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function PublicSiteMap() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const query = useQuery({
     queryKey: queryKeys.public.map({ locale }),
@@ -19,11 +20,11 @@ export default function PublicSiteMap() {
   const features = query.data?.features ?? [];
   return (
     <PublicShell active="explore">
-      <Section index={6} eyebrow="Carte" title="Carte des exploitations" subtitle="Exploitations agricoles publiées et données agrégées." background={COLORS.naturalWhite} contentStyle={styles.section}>
+      <Section index={6} eyebrow={t('ui.carte')} title={t('ui.carteDesExploitations')} subtitle={t('ui.exploitationsAgricolesPublieesEtDonneesAgregees')} background={COLORS.naturalWhite} contentStyle={styles.section}>
         {query.isLoading ? <LoadingState count={2} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : (
           <Card tone="white" style={styles.card}>
             <Text preset="h3">{query.data?.meta?.count ?? 0} exploitations</Text>
-            <Text preset="caption" color={COLORS.slateGray}>{query.data?.meta?.note ?? 'Données agrégées'}</Text>
+            <Text preset="caption" color={COLORS.slateGray}>{query.data?.meta?.note ?? t('ui.donneesAgregees')}</Text>
             {features.length > 0 ? (
               <View style={styles.list}>
                 {features.slice(0, 5).map((feature, index) => (

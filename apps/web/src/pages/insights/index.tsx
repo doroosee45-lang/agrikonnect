@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Insights() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [countryCode, setCountryCode] = useState('CD');
@@ -39,22 +40,18 @@ export default function Insights() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Données de marché"
-        description="Connectez-vous pour consulter les indicateurs agrégés par pays."
+        title={t('ui.donneesDeMarche')}
+        description={t('ui.connectezVousPourConsulterLesIndicateurs')}
         icon="📊"
       >
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Données de marché
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Indicateurs agrégés avec seuil de k-anonymat : aucune donnée personnelle n'est révélée.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.donneesDeMarche')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.indicateursAgregesAvecSeuilDeK')}</Text>
         </div>
 
         <div style={{ maxWidth: 240, marginBottom: 32 }}>
           <Input
-            label="Code pays (ISO 3166-1 alpha-2)"
+            label={t('ui.codePaysIso31661Alpha')}
             value={countryCode}
             onChange={(e) => setCountryCode(e.target.value.toUpperCase().slice(0, 2))}
             maxLength={2}
@@ -66,9 +63,7 @@ export default function Insights() {
           <Card tone="pale" style={{ marginBottom: 32, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
             <span style={{ fontSize: 20 }}>🔒</span>
             <div>
-              <Text preset="bodySm" color={COLORS.textPrimary} style={{ fontWeight: 600, marginBottom: 4 }}>
-                Politique de divulgation — seuil minimal : {policy.data.minGroupSize}
-              </Text>
+              <Text preset="bodySm" color={COLORS.textPrimary} style={{ fontWeight: 600, marginBottom: 4 }}>{t('ui.politiqueDeDivulgationSeuilMinimal', { minGroupSize: policy.data.minGroupSize })}</Text>
               <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
                 {policy.data.rules.join(' · ')}
               </Text>
@@ -76,15 +71,13 @@ export default function Insights() {
           </Card>
         ) : null}
 
-        <Text preset="h3" style={{ marginBottom: 16 }}>
-          Indicateurs
-        </Text>
+        <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.indicateurs')}</Text>
         {overview.isLoading ? (
           <LoadingState count={2} height={100} />
         ) : overview.isError ? (
           <ErrorState error={overview.error} onRetry={() => void overview.refetch()} />
         ) : Object.keys(indicators).length === 0 ? (
-          <EmptyState title="Aucun indicateur" description="Aucune donnée agrégée disponible pour ce pays." icon="📊" />
+          <EmptyState title={t('ui.aucunIndicateur')} description={t('ui.aucuneDonneeAgregeeDisponiblePourCe')} icon="📊" />
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginBottom: 40 }}>
             {Object.entries(indicators).map(([key, indicator], index) => (
@@ -100,9 +93,7 @@ export default function Insights() {
                     {key}
                   </Text>
                   {indicator.value === null ? (
-                    <Text preset="bodyMd" color={COLORS.warning}>
-                      Masqué
-                    </Text>
+                    <Text preset="bodyMd" color={COLORS.warning}>{t('ui.masque')}</Text>
                   ) : (
                     <Text preset="numeric" color={COLORS.forestGreen}>
                       {formatNumber(indicator.value, locale)}
@@ -123,15 +114,13 @@ export default function Insights() {
           </div>
         )}
 
-        <Text preset="h3" style={{ marginBottom: 16 }}>
-          Cultures
-        </Text>
+        <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.cultures')}</Text>
         {crops.isLoading ? (
           <LoadingState count={2} height={80} />
         ) : crops.isError ? (
           <ErrorState error={crops.error} onRetry={() => void crops.refetch()} />
         ) : (crops.data?.crops ?? []).length === 0 ? (
-          <EmptyState title="Aucune culture" description="Aucune culture agrégée pour ce pays." icon="🌾" />
+          <EmptyState title={t('ui.aucuneCulture')} description={t('ui.aucuneCultureAgregeePourCePays')} icon="🌾" />
         ) : (
           <Card tone="white">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -149,11 +138,9 @@ export default function Insights() {
                 >
                   <div>
                     <Text preset="bodyMd" color={COLORS.textPrimary} style={{ fontWeight: 600 }}>
-                      {crop.crop.names?.fr ?? crop.crop.names?.en ?? crop.crop.slug ?? 'Culture'}
+                      {crop.crop.names?.fr ?? crop.crop.names?.en ?? crop.crop.slug ?? t('ui.culture')}
                     </Text>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      {crop.organizations} organisations · {crop.source} · {crop.method}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.organisations_5714d', { organizations: crop.organizations, source: crop.source, method: crop.method })}</Text>
                   </div>
                   <Text preset="bodyMd" color={COLORS.forestGreen} style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {formatNumber(crop.volumeKg, locale)} kg

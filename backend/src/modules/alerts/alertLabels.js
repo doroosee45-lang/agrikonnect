@@ -18,6 +18,7 @@
  * divergerait de celle que l'agriculteur voit sur l'écran de recommandations.
  */
 import { RANGE_LABELS } from '../recommendation/agronomicRanges.js';
+import { translateMessage } from '../../shared/i18n/index.js';
 
 /**
  * Source de l'alerte.
@@ -100,10 +101,11 @@ export const describeAlert = (alert, { range = null } = {}) => {
 
   return {
     ...alert,
-    sourceTypeLabel: SOURCE_TYPE_LABELS[alert.sourceType] ?? alert.sourceType,
-    severityLabel: SEVERITY_LABELS[alert.severity] ?? alert.severity,
-    statusLabel: STATUS_LABELS[alert.status] ?? alert.status,
-    parameterLabel: parameterLabel(alert.parameter),
+    // I18N-01 — libellés rendus dans la langue de la requête (source française).
+    sourceTypeLabel: translateMessage(SOURCE_TYPE_LABELS[alert.sourceType] ?? alert.sourceType),
+    severityLabel: translateMessage(SEVERITY_LABELS[alert.severity] ?? alert.severity),
+    statusLabel: translateMessage(STATUS_LABELS[alert.status] ?? alert.status),
+    parameterLabel: translateMessage(parameterLabel(alert.parameter)),
     /** Unité de la grandeur, pour que « 6,1 » ne soit pas un nombre nu. */
     unit: unite,
     /**

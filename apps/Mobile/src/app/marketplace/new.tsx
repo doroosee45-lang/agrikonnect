@@ -45,33 +45,33 @@ export default function MarketplaceNew() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Nouvelle annonce" subtitle="Publiez une offre ou une demande." />
+      <AppHeader title={t('ui.nouvelleAnnonce')} subtitle={t('ui.publiezUneOffreOuUneDemande')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Nouvelle annonce" icon="add-circle-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.nouvelleAnnonce')} icon="add-circle-outline">
           <Card tone="white">
             <View style={styles.form}>
               <View style={styles.typeRow}>
-                <Button label="Offre" variant={type === 'OFFER' ? 'primary' : 'outline'} size="sm" onPress={() => setType('OFFER')} />
-                <Button label="Demande" variant={type === 'DEMAND' ? 'primary' : 'outline'} size="sm" onPress={() => setType('DEMAND')} />
+                <Button label={t('ui.offre')} variant={type === 'OFFER' ? 'primary' : 'outline'} size="sm" onPress={() => setType('OFFER')} />
+                <Button label={t('ui.demande')} variant={type === 'DEMAND' ? 'primary' : 'outline'} size="sm" onPress={() => setType('DEMAND')} />
               </View>
-              <Input label="Titre" value={title} onChangeText={setTitle} />
-              <Input label="Culture (ID)" value={cropId} onChangeText={setCropId} />
+              <Input label={t('ui.titre')} value={title} onChangeText={setTitle} />
+              <Input label={t('ui.cultureId')} value={cropId} onChangeText={setCropId} />
               <View style={styles.row2}>
-                <Input label="Quantité" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
-                <Input label="Unité" value={unit} onChangeText={setUnit} />
+                <Input label={t('ui.quantite')} value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
+                <Input label={t('ui.unite')} value={unit} onChangeText={setUnit} />
               </View>
-              <Input label="Qualité" value={quality} onChangeText={setQuality} />
+              <Input label={t('ui.qualite')} value={quality} onChangeText={setQuality} />
               <View style={styles.row2}>
-                <Input label="Prix indicatif" value={price} onChangeText={setPrice} keyboardType="numeric" />
-                <Input label="Devise" value={currency} onChangeText={setCurrency} />
+                <Input label={t('ui.prixIndicatif')} value={price} onChangeText={setPrice} keyboardType="numeric" />
+                <Input label={t('ui.devise')} value={currency} onChangeText={setCurrency} />
               </View>
               <View style={styles.row2}>
-                <Input label="Pays" value={countryCode} onChangeText={setCountryCode} />
-                <Input label="Province" value={province} onChangeText={setProvince} />
+                <Input label={t('ui.pays')} value={countryCode} onChangeText={setCountryCode} />
+                <Input label={t('ui.province')} value={province} onChangeText={setProvince} />
               </View>
               {error ? <ErrorState error={error} /> : null}
-              <Text preset="caption" color={COLORS.slateGray}>{"Les champs marqués d'un astérisque sont obligatoires."}</Text>
-              <Button label="Publier" onPress={() => create.mutate()} loading={create.isPending} disabled={title.trim().length === 0 || cropId.trim().length === 0} />
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.lesChampsMarquesDUnAsterisque')}</Text>
+              <Button label={t('ui.publier')} onPress={() => create.mutate()} loading={create.isPending} disabled={title.trim().length === 0 || cropId.trim().length === 0} />
             </View>
           </Card>
         </AuthGate>

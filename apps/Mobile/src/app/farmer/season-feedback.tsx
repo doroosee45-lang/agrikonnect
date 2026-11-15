@@ -25,6 +25,8 @@ import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 import type { SeasonFeedback } from '@/services/api/types';
+import { useI18n } from '@/i18n';
+import { bcpLocale } from '@/lib/format';
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -34,13 +36,9 @@ const CURRENT_YEAR = new Date().getFullYear();
  * Le backend renvoie le même texte dans `scoreNote`. Il est répété ici pour que
  * l'écran reste honnête même si la réponse ne le porte pas.
  */
-const SCORE_NOTE =
-  'Le score d’une recommandation mesure l’adéquation d’un sol à une culture, pas un '
-  + 'rendement attendu. Un rendement faible sur une culture bien classée peut venir du '
-  + 'climat, des ravageurs ou de la récolte, qui ne sont pas mesurés ici.';
 
 const formatKg = (value: number) =>
-  new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
+  new Intl.NumberFormat(bcpLocale(), { maximumFractionDigits: 0 }).format(value);
 
 const emptyForm = () => ({
   plotId: '',
@@ -68,6 +66,7 @@ const emptyForm = () => ({
  *   donnée saisie, et il disparaît quand la surface est inconnue.
  */
 export default function SeasonFeedbackScreen() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [form, setForm] = useState(emptyForm);
@@ -118,8 +117,7 @@ export default function SeasonFeedbackScreen() {
       }),
     onSuccess: (response) => {
       setSaved(
-        `Rendement enregistré : ${formatKg(response.data.seasonFeedback.actualYieldKg)} kg. `
-        + 'Merci — c’est cette donnée qui permet d’améliorer les recommandations.',
+        t('ui.yieldSavedThanks', { kg: formatKg(response.data.seasonFeedback.actualYieldKg) }),
       );
       setForm(emptyForm);
       invalidate();
@@ -139,30 +137,23 @@ export default function SeasonFeedbackScreen() {
   return (
     <Screen background={COLORS.naturalWhite}>
       <AppHeader
-        title="Rendements réels"
-        subtitle="Déclarez ce que vous avez réellement récolté."
+        title={t('ui.rendementsReels')}
+        subtitle={t('ui.declarezCeQueVousAvezReellement')}
       />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
-          title="Connexion requise"
-          description="Connectez-vous pour déclarer vos rendements."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourDeclarerVosRendements')}
           isAuthenticated={isAuthenticated}
           icon="leaf-outline"
         >
           {/* ── Formulaire ───────────────────────────────────── */}
           <Card tone="white" style={styles.card}>
-            <Text preset="bodyMedium" color={COLORS.textPrimary}>
-              Déclarer un rendement
-            </Text>
-            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-              Toutes les valeurs sont déclaratives. Rien n'est estimé à votre place : un champ
-              laissé vide reste vide.
-            </Text>
+            <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.declarerUnRendement')}</Text>
+            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.toutesLesValeursSontDeclarativesRien_fe43e')}</Text>
 
-            <Text preset="caption" color={COLORS.forestGreen}>
-              Parcelle
-            </Text>
+            <Text preset="caption" color={COLORS.forestGreen}>{t('ui.parcelle')}</Text>
             <ChipRow>
               {(plots.data ?? []).map((plot) => (
                 <FilterChip
@@ -174,9 +165,7 @@ export default function SeasonFeedbackScreen() {
               ))}
             </ChipRow>
 
-            <Text preset="caption" color={COLORS.forestGreen}>
-              Culture
-            </Text>
+            <Text preset="caption" color={COLORS.forestGreen}>{t('ui.culture')}</Text>
             <ChipRow>
               {(crops.data ?? []).map((crop) => (
                 <FilterChip
@@ -189,53 +178,53 @@ export default function SeasonFeedbackScreen() {
             </ChipRow>
 
             <Input
-              label="Saison"
+              label={t('ui.saison')}
               value={form.season}
               onChangeText={set('season')}
-              placeholder="Saison A"
+              placeholder={t('ui.saisonA')}
             />
             <Input
-              label="Année"
+              label={t('ui.annee')}
               value={form.year}
               onChangeText={set('year')}
               keyboardType="number-pad"
             />
             <Input
-              label="Début de période"
+              label={t('ui.debutDePeriode')}
               value={form.periodStart}
               onChangeText={set('periodStart')}
               placeholder="2026-03-01"
               icon="calendar-outline"
             />
             <Input
-              label="Fin de période"
+              label={t('ui.finDePeriode')}
               value={form.periodEnd}
               onChangeText={set('periodEnd')}
               placeholder="2026-06-30"
               icon="calendar-outline"
             />
             <Input
-              label="Rendement total récolté (kg)"
+              label={t('ui.rendementTotalRecolteKg')}
               value={form.actualYieldKg}
               onChangeText={set('actualYieldKg')}
               keyboardType="numeric"
               placeholder="4200"
-              helper="Le total de la récolte, pas un rendement à l'hectare."
+              helper={t('ui.leTotalDeLaRecoltePas')}
             />
             <Input
-              label="Surface récoltée (ha)"
+              label={t('ui.surfaceRecolteeHa')}
               value={form.areaHa}
               onChangeText={set('areaHa')}
               keyboardType="numeric"
               placeholder="1.5"
-              optionalLabel="facultatif"
-              helper="Sans surface, aucun rendement à l'hectare ne sera calculé."
+              optionalLabel={t('common.optional')}
+              helper={t('ui.sansSurfaceAucunRendementAL')}
             />
             <TextArea
-              label="Observations"
+              label={t('ui.observations')}
               value={form.observations}
               onChangeText={set('observations')}
-              optionalLabel="facultatif"
+              optionalLabel={t('common.optional')}
               minHeight={80}
             />
 
@@ -246,12 +235,12 @@ export default function SeasonFeedbackScreen() {
             */}
             <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
               {previewPerHa !== null
-                ? `Soit ${previewPerHa.toLocaleString('fr-FR')} kg/ha (calculé à partir de vos deux valeurs).`
-                : 'Rendement par hectare : non calculé — la surface n’est pas renseignée.'}
+                ? t('ui.soitKgHaCalculeAPartir', { value: previewPerHa.toLocaleString(bcpLocale()) })
+                : t('ui.rendementParHectareNonCalculeLa')}
             </Text>
 
             <Button
-              label="Enregistrer le rendement"
+              label={t('ui.enregistrerLeRendement')}
               onPress={() => create.mutate()}
               variant="primary"
               fullWidth
@@ -269,9 +258,7 @@ export default function SeasonFeedbackScreen() {
 
           {/* ── Rendements déclarés ──────────────────────────── */}
           <Card tone="white" style={styles.card}>
-            <Text preset="bodyMedium" color={COLORS.textPrimary}>
-              Rendements déclarés
-            </Text>
+            <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.rendementsDeclares')}</Text>
 
             {feedbacks.isLoading ? (
               <LoadingState count={3} height={80} />
@@ -279,31 +266,29 @@ export default function SeasonFeedbackScreen() {
               <ErrorState error={feedbacks.error} onRetry={() => void feedbacks.refetch()} />
             ) : items.length === 0 ? (
               <EmptyState
-                title="Aucun rendement déclaré"
-                description="Les rendements apparaîtront ici après votre première récolte."
+                title={t('ui.aucunRendementDeclare')}
+                description={t('ui.lesRendementsApparaitrontIciApresVotre')}
               />
             ) : (
               items.map((item: SeasonFeedback) => (
                 <View key={item.id} style={styles.row}>
                   <Text preset="caption" color={COLORS.textPrimary}>
-                    {item.plot?.name ?? 'Parcelle'} — {item.crop?.slug ?? item.cropId}
+                    {item.plot?.name ?? t('ui.parcelle')} — {item.crop?.slug ?? item.cropId}
                   </Text>
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    {item.season} {item.year} · {formatKg(item.actualYieldKg)} kg
-                    {item.areaHa ? ` sur ${item.areaHa} ha` : ''}
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.kg_2ed7f', { season: item.season, year: item.year, actualYieldKg: formatKg(item.actualYieldKg) })}{item.areaHa ? t('ui.surHa', { areaHa: item.areaHa }) : ''}
                     {item.yieldPerHa !== null
-                      ? ` · ${item.yieldPerHa.toLocaleString('fr-FR')} kg/ha`
-                      : ' · surface inconnue'}
+                      ? t('ui.kgHa_73865', { value: item.yieldPerHa.toLocaleString(bcpLocale()) })
+                      : t('ui.surfaceInconnue_70117')}
                   </Text>
                   <View style={styles.rowActions}>
                     <Chip
-                      label={item.source === 'declared' ? 'Déclaré' : item.source}
+                      label={item.source === 'declared' ? t('common.declared') : item.source}
                       tone="neutral"
                       size="sm"
                     />
                     {item.version > 1 ? <Chip label={`v${item.version}`} tone="info" size="sm" /> : null}
                     <Button
-                      label={compareId === item.id ? 'Masquer' : 'Comparer'}
+                      label={compareId === item.id ? t('ui.masquer') : t('ui.comparer')}
                       onPress={() => setCompareId(compareId === item.id ? null : item.id)}
                       variant="ghost"
                       size="sm"
@@ -323,21 +308,17 @@ export default function SeasonFeedbackScreen() {
                 <ErrorState error={comparison.error} />
               ) : (
                 <>
-                  <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                    Comparaison avec la recommandation
-                  </Text>
+                  <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.comparaisonAvecLaRecommandation')}</Text>
 
                   {comparison.data?.comparable && comparison.data.recommendation ? (
                     <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
                       {comparison.data.recommendation.cultureRank
-                        ? `Cette culture était classée ${comparison.data.recommendation.cultureRank.rank}ᵉ `
-                          + `sur ${comparison.data.recommendation.culturesClassified} avec un score de `
-                          + `${comparison.data.recommendation.cultureRank.score ?? '—'}.`
-                        : 'Cette culture ne figurait pas dans le classement de la recommandation.'}
+                        ? t('ui.cropRankedWithScore', { rank: comparison.data.recommendation.cultureRank.rank, total: comparison.data.recommendation.culturesClassified, score: comparison.data.recommendation.cultureRank.score ?? '—' })
+                        : t('ui.cetteCultureNeFiguraitPasDans')}
                     </Text>
                   ) : (
                     <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      {comparison.data?.reason ?? 'Rapprochement indisponible.'}
+                      {comparison.data?.reason ?? t('ui.rapprochementIndisponible')}
                     </Text>
                   )}
 
@@ -347,7 +328,7 @@ export default function SeasonFeedbackScreen() {
                     désaveu de la recommandation.
                   */}
                   <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    {comparison.data?.scoreNote ?? SCORE_NOTE}
+                    {t('ui.scoreNote')}
                   </Text>
                 </>
               )}

@@ -2,7 +2,13 @@ import { API_BASE_URL } from '@/lib/config';
 
 import { api, cleanQuery, http } from './http';
 import {
+  type AdminBlogPost,
+  type BlogPost,
+  type BlogPostInput,
+  type BlogPostStatus,
+  type BlogPostSummary,
   type AiAnalysis,
+
   type ApiClient,
   type ApiKeyCreated,
   type ApiKeyItem,
@@ -155,6 +161,12 @@ import {
 // ─── Public (aucune authentification) ─────────────────────────
 
 export const publicApi = {
+  /** Public published articles: anonymous, no session required. */
+  blogPosts: (params: PageQuery & { includeContent?: boolean } = {}) =>
+    api.get<BlogPostSummary[]>('/public/blog-posts', { params: cleanQuery(params), anonymous: true }),
+  blogPost: (slug: string) =>
+    api.get<BlogPost>(`/public/blog-posts/${encodeURIComponent(slug)}`, { anonymous: true }),
+
   /** MAP-01→04 — carte par emprise, positions approximatives. */
   map: (params: { bbox?: string; countryCode?: string; province?: string; cropId?: string; locale?: string; limit?: number } = {}) =>
     api.get<MapResult>('/public/map', { params: cleanQuery(params), anonymous: true }),
@@ -847,6 +859,16 @@ export const transportApi = {
 // ─── Administration ───────────────────────────────────────────
 
 export const adminApi = {
+  /** Editing endpoints; the server enforces admin.content. */
+  blogPosts: (params: PageQuery & { status?: BlogPostStatus } = {}) =>
+    api.get<AdminBlogPost[]>('/admin/blog-posts', { params: cleanQuery(params) }),
+  createBlogPost: (payload: BlogPostInput) =>
+    api.post<AdminBlogPost>('/admin/blog-posts', payload),
+  updateBlogPost: (id: string, payload: Partial<BlogPostInput>) =>
+    api.patch<AdminBlogPost>(`/admin/blog-posts/${encodeURIComponent(id)}`, payload),
+  deleteBlogPost: (id: string) =>
+    api.delete<{ id: string }>(`/admin/blog-posts/${encodeURIComponent(id)}`),
+
   /** M1 — KPIs du tableau de bord (filtres pays/période, RG-M1-1). */
   dashboard: (params: { country?: string; from?: string; to?: string } = {}) =>
     api.get<Record<string, unknown>>('/admin/dashboard', { params: cleanQuery(params) }),

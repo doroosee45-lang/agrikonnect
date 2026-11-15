@@ -1,3 +1,5 @@
+import { uiFr } from './ui.fr';
+
 /**
  * Dictionnaire français — source de vérité des clés i18n.
  * Toute nouvelle clé s'ajoute d'abord ici, puis dans `en.ts` (le typage
@@ -198,6 +200,7 @@ export const fr = {
     server: 'Erreur serveur. Nos équipes sont prévenues.',
     unknown: 'Erreur inattendue.',
   },
+  ui: uiFr,
 } as const;
 
 /**

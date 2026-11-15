@@ -207,11 +207,12 @@ export const review = async (id, { status, reason }, req) => {
     select: { createdBy: true },
   });
   const profile = owner?.createdBy
-    ? await prisma.profile.findUnique({ where: { id: owner.createdBy }, select: { email: true } })
+    ? await prisma.profile.findUnique({ where: { id: owner.createdBy }, select: { email: true, locale: true } })
     : null;
 
   if (profile?.email) {
-    const tpl = templates.verificationDecision({ approved: status === 'APPROVED', reason });
+    // I18N-01 — e-mail rédigé dans la langue du destinataire (Profile.locale).
+    const tpl = templates.verificationDecision({ approved: status === 'APPROVED', reason, locale: profile.locale });
     await sendEmail({ to: profile.email, ...tpl });
   }
 

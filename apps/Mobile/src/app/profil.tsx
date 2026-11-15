@@ -57,16 +57,16 @@ export default function Profil() {
     <PublicShell active="profil" heroCarousel={false}>
       <PageHeader
         index={1}
-        eyebrow="Compte"
-        title="Mon profil"
-        subtitle="Identité, complétude du dossier, organisations et sécurité. Les informations affichées proviennent de votre espace, pas d’une estimation."
+        eyebrow={t('ui.compte')}
+        title={t('ui.monProfil')}
+        subtitle={t('ui.identiteCompletudeDuDossierOrganisationsEt')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connectez-vous pour voir votre profil"
-          description="Votre profil regroupe votre identité, l’état de vérification de vos contacts et l’avancement de votre dossier."
+          title={t('ui.connectezVousPourVoirVotreProfil')}
+          description={t('ui.votreProfilRegroupeVotreIdentiteL')}
           icon="person-outline"
         >
           {me.isLoading ? (
@@ -90,20 +90,20 @@ export default function Profil() {
                     <View style={styles.identityMeta}>
                       <Chip label={user.countryCode} tone="neutral" size="sm" icon="globe-outline" />
                       <Chip
-                        label={user.emailVerified ? 'E-mail vérifié' : 'E-mail non vérifié'}
+                        label={user.emailVerified ? t('ui.eMailVerifie_aa657') : t('ui.eMailNonVerifie')}
                         tone={user.emailVerified ? 'success' : 'warning'}
                         size="sm"
                         icon={user.emailVerified ? 'checkmark-circle' : 'alert-circle'}
                       />
                       <Chip
-                        label={user.phoneVerified ? 'Téléphone vérifié' : 'Téléphone non vérifié'}
+                        label={user.phoneVerified ? t('ui.telephoneVerifie_8a357') : t('ui.telephoneNonVerifie_f890f')}
                         tone={user.phoneVerified ? 'success' : 'warning'}
                         size="sm"
                         icon={user.phoneVerified ? 'checkmark-circle' : 'alert-circle'}
                       />
                     </View>
                     <Text preset="caption" color={DARK.textFaint}>
-                      {user.email ?? 'Aucun e-mail'} · {user.phone ?? 'Aucun téléphone'}
+                      {user.email ?? t('ui.aucunEMail')} · {user.phone ?? t('ui.aucunTelephone')}
                     </Text>
                   </View>
                 </Card>
@@ -111,9 +111,7 @@ export default function Profil() {
                 {completeness ? (
                   <Card tone="white" style={styles.completeness}>
                     <View style={styles.completenessHeader}>
-                      <Text preset="h3" color={COLORS.textPrimary}>
-                        Complétude du dossier
-                      </Text>
+                      <Text preset="h3" color={COLORS.textPrimary}>{t('ui.completudeDuDossier')}</Text>
                       <Text preset="numeric" color={COLORS.forestGreen} style={styles.percent}>
                         {completeness.percent} %
                       </Text>
@@ -121,10 +119,7 @@ export default function Profil() {
 
                     <Progress value={completeness.percent} />
 
-                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      {completeness.done} critères sur {completeness.total} remplis. Ce pourcentage est
-                      indicatif : il mesure le remplissage, pas la fiabilité.
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.criteresSurRemplisCePourcentageEst', { done: completeness.done, total: completeness.total })}</Text>
 
                     <View style={styles.criteria}>
                       {completeness.criteria.map((criterion) => (
@@ -146,9 +141,9 @@ export default function Profil() {
                 {me.data?.counts ? (
                   <Card tone="white" style={styles.counts}>
                     {[
-                      { label: 'Exploitations', value: me.data.counts.farms, icon: 'home-outline' as const },
-                      { label: 'Parcelles', value: me.data.counts.plots, icon: 'map-outline' as const },
-                      { label: 'Productions', value: me.data.counts.productions, icon: 'leaf-outline' as const },
+                      { label: t('ui.exploitations'), value: me.data.counts.farms, icon: 'home-outline' as const },
+                      { label: t('ui.parcelles'), value: me.data.counts.plots, icon: 'map-outline' as const },
+                      { label: t('ui.productions'), value: me.data.counts.productions, icon: 'leaf-outline' as const },
                     ].map((item) => (
                       <View key={item.label} style={styles.countItem}>
                         <Ionicons name={item.icon} size={16} color={COLORS.livingGreen} />
@@ -166,13 +161,9 @@ export default function Profil() {
 
               <Reveal index={1} variant="right" style={styles.sideColumn}>
                 <Card tone="white" style={styles.sideCard}>
-                  <Text preset="overline" color={COLORS.livingGreen}>
-                    Organisations
-                  </Text>
+                  <Text preset="overline" color={COLORS.livingGreen}>{t('ui.organisations')}</Text>
                   {user.organizations.length === 0 ? (
-                    <Text preset="bodySm" color={COLORS.slateGray}>
-                      Aucune organisation rattachée.
-                    </Text>
+                    <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneOrganisationRattachee')}</Text>
                   ) : (
                     user.organizations.map((organization) => (
                       <View key={organization.id} style={styles.orgRow}>
@@ -195,9 +186,7 @@ export default function Profil() {
                 </Card>
 
                 <Card tone="white" style={styles.sideCard}>
-                  <Text preset="overline" color={COLORS.livingGreen}>
-                    Sécurité
-                  </Text>
+                  <Text preset="overline" color={COLORS.livingGreen}>{t('ui.securite_33e96')}</Text>
                   <View style={styles.securityRow}>
                     <Ionicons
                       name={mfa.data?.enabled ? 'shield-checkmark' : 'shield-outline'}
@@ -205,34 +194,28 @@ export default function Profil() {
                       color={mfa.data?.enabled ? COLORS.success : COLORS.warning}
                     />
                     <View style={styles.securityBody}>
-                      <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                        Double authentification
-                      </Text>
+                      <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.doubleAuthentification')}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
                         {mfa.isLoading
-                          ? 'Vérification…'
+                          ? t('ui.verification')
                           : mfa.data?.enabled
-                            ? `Activée (${mfa.data.method ?? 'TOTP'})`
-                            : 'Désactivée — recommandée pour les comptes qui publient.'}
+                            ? t('ui.activee_a9ccb', { value: mfa.data.method ?? 'TOTP' })
+                            : t('ui.desactiveeRecommandeePourLesComptesQui')}
                       </Text>
                     </View>
                   </View>
-                  <ProvenanceTag kind="verified" label="Session gérée par jeton rotatif (≤ 15 min)" />
+                  <ProvenanceTag kind="verified" label={t('ui.sessionGereeParJetonRotatif15')} />
                 </Card>
 
                 {permissions.data ? (
                   <Card tone="white" style={styles.sideCard}>
-                    <Text preset="overline" color={COLORS.livingGreen}>
-                      Permissions effectives
-                    </Text>
+                    <Text preset="overline" color={COLORS.livingGreen}>{t('ui.permissionsEffectives')}</Text>
                     <View style={styles.permissionList}>
                       {permissions.data.roles.map((role) => (
                         <Chip key={role} label={role} tone="forest" size="sm" />
                       ))}
                     </View>
-                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      {permissions.data.permissions.length} permissions accordées sur ce rôle.
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.permissionsAccordeesSurCeRole', { length: permissions.data.permissions.length })}</Text>
                   </Card>
                 ) : null}
 

@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth';
 import { getUserInitialRoute } from '@/lib/redirects';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Vérification de l'adresse e-mail.
@@ -26,6 +27,7 @@ import { SPACING } from '@/theme/space';
  * `console.*` ni dans un log applicatif.
  */
 export default function AuthVerifyEmail() {
+  const { t } = useI18n();
   const params = useLocalSearchParams<{ token?: string; token_hash?: string; email?: string }>();
   const jetonUrl = typeof params.token_hash === 'string' ? params.token_hash
     : typeof params.token === 'string' ? params.token : '';
@@ -66,31 +68,27 @@ export default function AuthVerifyEmail() {
   return (
     <Screen background={COLORS.naturalWhite}>
       <AppHeader
-        title="Vérification d'email"
+        title={t('ui.verificationDEmail')}
         subtitle={
           verifie
-            ? 'Votre adresse est vérifiée.'
-            : 'Collez le jeton reçu, ou demandez un nouveau lien.'
+            ? t('ui.votreAdresseEstVerifiee')
+            : t('ui.collezLeJetonRecuOuDemandez')
         }
       />
       <Section bare contentStyle={styles.section}>
         <Card tone="white">
           {verifie ? (
             <View style={styles.success}>
-              <Text preset="h3" color={COLORS.success} style={styles.mb}>
-                ✓ Adresse vérifiée
-              </Text>
-              <Text preset="bodySm" color={COLORS.slateGray} style={styles.mb}>
-                Connectez-vous pour accéder à votre espace.
-              </Text>
-              <Button label="Se connecter" variant="primary" onPress={() => router.push('/auth/login')} />
+              <Text preset="h3" color={COLORS.success} style={styles.mb}>{t('ui.adresseVerifiee')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray} style={styles.mb}>{t('ui.connectezVousPourAccederAVotre')}</Text>
+              <Button label={t('ui.seConnecter')} variant="primary" onPress={() => router.push('/auth/login')} />
             </View>
           ) : (
             <View style={styles.form}>
               <Text preset="bodySm" color={COLORS.slateGray}>
                 {jetonUrl
-                  ? 'Le jeton de votre lien est prérempli. Vérifiez-le, ou collez-en un autre.'
-                  : 'Le jeton figure dans l’email de vérification.'}
+                  ? t('ui.leJetonDeVotreLienEst')
+                  : t('ui.leJetonFigureDansLEmail')}
               </Text>
 
               {/*
@@ -99,7 +97,7 @@ export default function AuthVerifyEmail() {
                 casserait silencieusement.
               */}
               <Input
-                label="Adresse e-mail à vérifier"
+                label={t('ui.adresseEMailAVerifier')}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="vous@exemple.com"
@@ -111,10 +109,10 @@ export default function AuthVerifyEmail() {
               />
 
               <Input
-                label="Jeton de vérification"
+                label={t('ui.jetonDeVerification')}
                 value={tokenHash}
                 onChangeText={setTokenHash}
-                placeholder="Collez le jeton reçu par email"
+                placeholder={t('ui.collezLeJetonRecuParEmail_91532')}
                 icon="key-outline"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -125,7 +123,7 @@ export default function AuthVerifyEmail() {
               {verifier.isError ? <ErrorState error={verifier.error} /> : null}
 
               <Button
-                label="Vérifier mon adresse"
+                label={t('ui.verifierMonAdresse')}
                 variant="primary"
                 fullWidth
                 loading={verifier.isPending}
@@ -137,12 +135,12 @@ export default function AuthVerifyEmail() {
 
               <Text preset="caption" color={COLORS.slateGray}>
                 {renvoye
-                  ? 'Nouveau lien envoyé. Vérifiez votre boîte de réception, et le dossier indésirables.'
-                  : 'Lien expiré ou introuvable ?'}
+                  ? t('ui.nouveauLienEnvoyeVerifiezVotreBoite')
+                  : t('ui.lienExpireOuIntrouvable')}
               </Text>
               {renvoyer.isError ? <ErrorState error={renvoyer.error} /> : null}
               <Button
-                label={renvoye ? 'Renvoyer un lien' : 'Renvoyer le lien'}
+                label={renvoye ? t('ui.renvoyerUnLien') : t('ui.renvoyerLeLien')}
                 variant="outline"
                 loading={renvoyer.isPending}
                 disabled={!peutRenvoyer}

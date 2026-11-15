@@ -8,24 +8,25 @@ import { useI18n } from '@/i18n';
 
 /** ADMIN — file de vérification. */
 export default function AdminVerifications() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Verification>
-      title="Vérifications"
-      subtitle="Demandes de vérification, tous statuts."
+      title={t('ui.verifications')}
+      subtitle={t('ui.demandesDeVerificationTousStatuts')}
       icon="🛡️"
       queryKey={queryKeys.verifications.queue({ limit: 100 })}
       fetch={() => verificationApi.adminQueue({ limit: 100 }).then((result) => result.data.items)}
       rowKey={(verification) => verification.id}
       columns={[
-        { key: 'subjectType', label: 'Sujet', render: (verification) => `${verification.subjectType} · niveau ${verification.level}` },
-        { key: 'organizationId', label: 'Organisation', render: (verification) => verification.organizationId },
-        { key: 'status', label: 'Statut', render: (verification) => <StatusChip value={verification.status} /> },
-        { key: 'createdAt', label: 'Demandée le', render: (verification) => formatDate(verification.createdAt, locale) },
+        { key: 'subjectType', label: t('ui.sujet'), render: (verification) => t('ui.niveau', { subjectType: verification.subjectType, level: verification.level }) },
+        { key: 'organizationId', label: t('ui.organisation_6e99c'), render: (verification) => verification.organizationId },
+        { key: 'status', label: t('ui.statut'), render: (verification) => <StatusChip value={verification.status} /> },
+        { key: 'createdAt', label: t('ui.demandeeLe'), render: (verification) => formatDate(verification.createdAt, locale) },
       ]}
-      emptyTitle="File vide"
-      emptyDescription="Aucune demande de vérification."
-      notice="Chaque décision est tracée avec son auteur et son motif. Aucune validation automatique."
+      emptyTitle={t('ui.fileVide')}
+      emptyDescription={t('ui.aucuneDemandeDeVerification')}
+      notice={t('ui.chaqueDecisionEstTraceeAvecSon')}
     />
   );
 }

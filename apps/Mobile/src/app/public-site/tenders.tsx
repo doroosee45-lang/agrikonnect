@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function PublicSiteTenders() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,10 +25,10 @@ export default function PublicSiteTenders() {
   const items = query.data ?? [];
   return (
     <PublicShell active="tenders">
-      <PageHeader index="11" eyebrow="Appels d'offres" title="Appels d'offres" subtitle="Consultations lancées par des acheteurs, avec date limite." />
+      <PageHeader index="11" eyebrow={t('ui.appelsDOffres_907ea')} title={t('ui.appelsDOffres_907ea')} subtitle={t('ui.consultationsLanceesParDesAcheteursAvec')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Appels d'offres" icon="megaphone-outline" description="Les appels d'offres sont réservés aux comptes connectés.">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun appel d'offres" description="Aucune consultation ouverte." icon="megaphone-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.appelsDOffres_907ea')} icon="megaphone-outline" description={t('ui.lesAppelsDOffresSontReserves')}>
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunAppelDOffres')} description={t('ui.aucuneConsultationOuverte')} icon="megaphone-outline" /> : (
             <View style={styles.list}>
               {items.map((tender, index) => (
                 <Reveal key={tender.id} index={index} variant="up">
@@ -35,9 +36,7 @@ export default function PublicSiteTenders() {
                     <View style={styles.row}>
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium">{tender.title}</Text>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          {tender.quantity} {tender.unit} · {tender.destinationCountry} · limite {formatDate(tender.deadline, locale)}
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.limite', { quantity: tender.quantity, unit: tender.unit, destinationCountry: tender.destinationCountry, deadline: formatDate(tender.deadline, locale) })}</Text>
                       </View>
                       <Chip label={tender.status} tone={tender.status === 'OPEN' ? 'success' : 'neutral'} size="sm" />
                     </View>

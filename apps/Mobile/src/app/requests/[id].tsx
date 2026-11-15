@@ -33,6 +33,7 @@ import { SPACING } from '@/theme/space';
 
 /** Détail d'une demande : correspondances réelles et dépôt d'offre. */
 export default function RequestDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -90,13 +91,13 @@ export default function RequestDetail() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={data?.title ?? 'Demande d’achat'} subtitle="Correspondances, offres reçues et décision." />
+      <AppHeader title={data?.title ?? t('ui.demandeDAchat_41b5e')} subtitle={t('ui.correspondancesOffresRecuesEtDecision')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Connexion requise"
-          description="Connectez-vous pour consulter cette demande et déposer une offre."
+          title={t('ui.connexionRequise_37a92')}
+          description={t('ui.connectezVousPourConsulterCetteDemande')}
           icon="cart-outline"
         >
           {request.isLoading ? (
@@ -121,33 +122,25 @@ export default function RequestDetail() {
 
                 <View style={styles.facts}>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Volume recherché
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.volumeRecherche')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {formatNumber(data.quantity, locale, 1)} {data.unit}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Budget
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.budget')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                      {data.budgetPrice !== null ? formatCurrency(data.budgetPrice, data.currency, locale) : 'non communiqué'}
+                      {data.budgetPrice !== null ? formatCurrency(data.budgetPrice, data.currency, locale) : t('ui.nonCommunique_ff312')}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Qualité
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.qualite')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                      {data.quality ?? 'non précisée'}
+                      {data.quality ?? t('ui.nonPrecisee')}
                     </Text>
                   </View>
                   <View style={styles.fact}>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Échéance
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.echeance')}</Text>
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {data.neededBy ? formatDate(data.neededBy, locale) : '—'}
                     </Text>
@@ -155,23 +148,19 @@ export default function RequestDetail() {
                 </View>
 
                 {data.conditions ? (
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    Conditions : {data.conditions}
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.conditions_eb4b0', { conditions: data.conditions })}</Text>
                 ) : null}
               </Card>
 
-              <Text preset="overline" color={COLORS.forestGreen}>
-                Correspondances
-              </Text>
+              <Text preset="overline" color={COLORS.forestGreen}>{t('ui.correspondances')}</Text>
               {matches.isLoading ? (
                 <LoadingState count={1} height={90} />
               ) : matches.isError ? (
                 <ErrorState error={matches.error} onRetry={() => void matches.refetch()} />
               ) : (matches.data ?? []).length === 0 ? (
                 <EmptyState
-                  title="Aucune correspondance"
-                  description="Aucune annonce publiée ne correspond à ce besoin pour l'instant."
+                  title={t('ui.aucuneCorrespondance')}
+                  description={t('ui.aucuneAnnoncePublieeNeCorrespondA')}
                   icon="search-outline"
                 />
               ) : (
@@ -196,11 +185,9 @@ export default function RequestDetail() {
               )}
 
               <View style={styles.offersHeader}>
-                <Text preset="overline" color={COLORS.forestGreen}>
-                  Offres
-                </Text>
+                <Text preset="overline" color={COLORS.forestGreen}>{t('ui.offres')}</Text>
                 <Button
-                  label={offering ? 'Fermer' : 'Déposer une offre'}
+                  label={offering ? t('common.close') : t('ui.deposerUneOffre')}
                   onPress={() => setOffering((value) => !value)}
                   variant={offering ? 'ghost' : 'primary'}
                   size="sm"
@@ -212,13 +199,13 @@ export default function RequestDetail() {
                 <Animated.View entering={FadeInDown.duration(DURATION.slow)} exiting={FadeOutUp.duration(DURATION.fast)}>
                   <Card tone="white" style={styles.form}>
                     <View style={styles.row}>
-                      <Input label="Prix" value={price} onChangeText={setPrice} placeholder="640 000" icon="cash-outline" keyboardType="decimal-pad" />
-                      <Input label="Quantité proposée" value={quantity} onChangeText={setQuantity} placeholder={String(data.quantity)} icon="scale-outline" keyboardType="decimal-pad" />
+                      <Input label={t('ui.prix')} value={price} onChangeText={setPrice} placeholder="640 000" icon="cash-outline" keyboardType="decimal-pad" />
+                      <Input label={t('ui.quantiteProposee')} value={quantity} onChangeText={setQuantity} placeholder={String(data.quantity)} icon="scale-outline" keyboardType="decimal-pad" />
                     </View>
-                    <TextArea label="Conditions" value={conditions} onChangeText={setConditions} placeholder="Délai, lieu de livraison, modalité de paiement…" minHeight={84} optionalLabel="facultatif" />
+                    <TextArea label={t('ui.conditions')} value={conditions} onChangeText={setConditions} placeholder={t('ui.delaiLieuDeLivraisonModaliteDe')} minHeight={84} optionalLabel={t('common.optional')} />
                     {error ? <ErrorState error={error} showRequestId /> : null}
                     <Button
-                      label="Envoyer l’offre"
+                      label={t('ui.envoyerLOffre')}
                       onPress={() => submit.mutate()}
                       variant="primary"
                       fullWidth
@@ -234,7 +221,7 @@ export default function RequestDetail() {
               ) : offers.isError ? (
                 <ErrorState error={offers.error} onRetry={() => void offers.refetch()} />
               ) : (offers.data ?? []).length === 0 ? (
-                <EmptyState title="Aucune offre" description="Les offres reçues apparaissent ici avec leur statut." icon="document-text-outline" />
+                <EmptyState title={t('ui.aucuneOffre')} description={t('ui.lesOffresRecuesApparaissentIciAvec')} icon="document-text-outline" />
               ) : (
                 <View style={styles.list}>
                   {(offers.data ?? []).map((offer, index) => (
@@ -245,9 +232,7 @@ export default function RequestDetail() {
                             <Text preset="bodyMedium" color={COLORS.textPrimary}>
                               {formatCurrency(offer.price, offer.currency, locale)} · {formatNumber(offer.quantity, locale, 1)} {offer.unit}
                             </Text>
-                            <Text preset="caption" color={COLORS.slateGray}>
-                              déposée le {formatDate(offer.createdAt, locale)}
-                              {offer.validUntil ? ` · valable jusqu’au ${formatDate(offer.validUntil, locale)}` : ''}
+                            <Text preset="caption" color={COLORS.slateGray}>{t('ui.deposeeLe_5edbf', { createdAt: formatDate(offer.createdAt, locale) })}{offer.validUntil ? t('ui.valableJusquAu', { validUntil: formatDate(offer.validUntil, locale) }) : ''}
                             </Text>
                           </View>
                           <Chip label={offer.status} tone={offer.status === 'ACCEPTED' ? 'success' : offer.status === 'REJECTED' ? 'error' : 'neutral'} size="sm" />
@@ -261,8 +246,8 @@ export default function RequestDetail() {
 
                         {offer.status === 'PENDING' ? (
                           <View style={styles.actions}>
-                            <Button label="Accepter" onPress={() => decide.mutate({ offerId: offer.id, status: 'ACCEPTED' })} variant="primary" size="sm" icon="checkmark-outline" />
-                            <Button label="Refuser" onPress={() => decide.mutate({ offerId: offer.id, status: 'REJECTED' })} variant="outline" size="sm" icon="close-outline" />
+                            <Button label={t('ui.accepter')} onPress={() => decide.mutate({ offerId: offer.id, status: 'ACCEPTED' })} variant="primary" size="sm" icon="checkmark-outline" />
+                            <Button label={t('ui.refuser')} onPress={() => decide.mutate({ offerId: offer.id, status: 'REJECTED' })} variant="outline" size="sm" icon="close-outline" />
                           </View>
                         ) : null}
                       </Card>

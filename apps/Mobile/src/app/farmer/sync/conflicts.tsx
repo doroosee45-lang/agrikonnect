@@ -19,6 +19,7 @@ import { SPACING } from '@/theme/space';
  * quel plutôt que reformulé.
  */
 export default function FarmerSyncConflicts() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -30,10 +31,10 @@ export default function FarmerSyncConflicts() {
   const items = query.data?.conflicts ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Conflits" subtitle="Conflits de synchronisation à arbitrer." />
+      <FarmerHeader title={t('ui.conflits')} subtitle={t('ui.conflitsDeSynchronisationAArbitrer')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Conflits" icon="git-merge-outline">
-          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun conflit" description="Tous vos enregistrements sont synchronisés." icon="checkmark-circle-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.conflits')} icon="git-merge-outline">
+          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunConflit')} description={t('ui.tousVosEnregistrementsSontSynchronises')} icon="checkmark-circle-outline" /> : (
             <>
               <Card tone="pale">
                 <Text preset="caption" color={COLORS.slateGray}>{query.data?.policy}</Text>
@@ -45,7 +46,7 @@ export default function FarmerSyncConflicts() {
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium">{conflict.collection}</Text>
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {conflict.operation} · {conflict.appliedAt ? formatDate(conflict.appliedAt, locale) : 'date inconnue'}
+                          {conflict.operation} · {conflict.appliedAt ? formatDate(conflict.appliedAt, locale) : t('ui.dateInconnue')}
                         </Text>
                       </View>
                       <Chip label={conflict.result} tone="warning" size="sm" />

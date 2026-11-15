@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function InternationalDocuments() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,10 +25,10 @@ export default function InternationalDocuments() {
   const items = query.data?.items ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Documents d'export" subtitle="Vos dossiers d'exportation." />
+      <AppHeader title={t('ui.documentsDExport')} subtitle={t('ui.vosDossiersDExportation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Documents d'export" icon="document-text-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun dossier" description="Vos dossiers d'exportation apparaîtront ici." icon="document-text-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.documentsDExport')} icon="document-text-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunDossier')} description={t('ui.vosDossiersDExportationApparaitrontIci')} icon="document-text-outline" /> : (
             <View style={styles.list}>
               {items.map((item, index) => (
                 <Reveal key={item.id} index={index} variant="up">
@@ -35,7 +36,7 @@ export default function InternationalDocuments() {
                     <View style={styles.row}>
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium" style={{ fontFamily: 'monospace' }}>{item.reference}</Text>
-                        <Text preset="caption" color={COLORS.slateGray}>{item.destinationCountry} · {formatDate(item.createdAt, locale)} · {item._count?.documents ?? 0} document(s)</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.documentS', { destinationCountry: item.destinationCountry, createdAt: formatDate(item.createdAt, locale), value: item._count?.documents ?? 0 })}</Text>
                       </View>
                       <Chip label={item.status} tone="neutral" size="sm" />
                     </View>

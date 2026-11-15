@@ -14,6 +14,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function PublicSiteAnnonceDetail() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -37,10 +38,10 @@ export default function PublicSiteAnnonceDetail() {
   const listing = query.data;
   return (
     <PublicShell active="annonces">
-      <PageHeader index="09" eyebrow="Annonce" title={listing?.title ?? 'Détail de l\u2019annonce'} subtitle="Coordonnées du vendeur masquées : la mise en relation est tracée." />
+      <PageHeader index="09" eyebrow={t('ui.annonce')} title={listing?.title ?? t('ui.detailDeLAnnonce')} subtitle={t('ui.coordonneesDuVendeurMasqueesLaMise')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Annonce" icon="megaphone-outline">
-          {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !listing ? <Text preset="body">Annonce introuvable.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.annonce')} icon="megaphone-outline">
+          {query.isLoading ? <LoadingState count={1} height={150} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !listing ? <Text preset="body">{t('ui.annonceIntrouvable')}</Text> : (
             <>
               <Card tone="white" style={styles.card}>
                 <View style={styles.chips}>
@@ -48,14 +49,11 @@ export default function PublicSiteAnnonceDetail() {
                   <Chip label={listing.status} tone="neutral" size="sm" />
                 </View>
                 {listing.description ? <Text preset="bodySm">{listing.description}</Text> : null}
-                <Text preset="bodySm" color={COLORS.slateGray}>Quantité : {listing.quantity} {listing.unit}</Text>
-                <Text preset="bodySm" color={COLORS.slateGray}>Qualité : {listing.quality ?? 'non renseignée'}</Text>
-                <Text preset="bodySm" color={COLORS.slateGray}>
-                  Prix indicatif : {listing.indicativePrice !== null ? `${formatCurrency(listing.indicativePrice, listing.currency, locale)} / ${listing.unit}` : 'sur demande'}
+                <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.quantite_07cfb', { quantity: listing.quantity, unit: listing.unit })}</Text>
+                <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.qualite_4b0c0')}{' '}{listing.quality ?? t('ui.nonRenseignee')}</Text>
+                <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.prixIndicatif_02717')}{' '}{listing.indicativePrice !== null ? `${formatCurrency(listing.indicativePrice, listing.currency, locale)} / ${listing.unit}` : t('ui.surDemande')}
                 </Text>
-                <Text preset="bodySm" color={COLORS.slateGray}>
-                  Localisation : {listing.countryCode}{listing.province ? ` · ${listing.province}` : ''}
-                </Text>
+                <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.localisation', { countryCode: listing.countryCode, value: listing.province ? ` · ${listing.province}` : '' })}</Text>
                 {listing.certifications.length > 0 ? (
                   <View style={styles.chips}>
                     {listing.certifications.map((cert) => (
@@ -63,15 +61,15 @@ export default function PublicSiteAnnonceDetail() {
                     ))}
                   </View>
                 ) : null}
-                {listing.expiresAt ? <Text preset="caption" color={COLORS.slateGray}>Expire le {formatDate(listing.expiresAt, locale)}</Text> : null}
+                {listing.expiresAt ? <Text preset="caption" color={COLORS.slateGray}>{t('ui.expireLe_75f5d', { expiresAt: formatDate(listing.expiresAt, locale) })}</Text> : null}
               </Card>
               <Card tone="white">
                 <View style={styles.form}>
-                  <Text preset="h3">Demander un contact</Text>
-                  <Input label="Message" value={message} onChangeText={setMessage} multiline placeholder="Précisez votre besoin…" />
+                  <Text preset="h3">{t('ui.demanderUnContact')}</Text>
+                  <Input label={t('ui.message')} value={message} onChangeText={setMessage} multiline placeholder={t('ui.precisezVotreBesoin')} />
                   {error ? <ErrorState error={error} /> : null}
-                  {sent ? <Text preset="bodySm" color={COLORS.success}>Demande envoyée. Le vendeur vous répondra via la messagerie.</Text> : null}
-                  <Button label="Envoyer la demande" variant="primary" onPress={() => contact.mutate()} loading={contact.isPending} disabled={sent} />
+                  {sent ? <Text preset="bodySm" color={COLORS.success}>{t('ui.demandeEnvoyeeLeVendeurVousRepondra')}</Text> : null}
+                  <Button label={t('ui.envoyerLaDemande')} variant="primary" onPress={() => contact.mutate()} loading={contact.isPending} disabled={sent} />
                 </View>
               </Card>
             </>

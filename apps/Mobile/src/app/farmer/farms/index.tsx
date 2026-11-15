@@ -13,6 +13,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerFarms() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,11 +25,11 @@ export default function FarmerFarms() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Mes exploitations" subtitle="Exploitations rattachées à votre organisation." />
+      <FarmerHeader title={t('ui.mesExploitations')} subtitle={t('ui.exploitationsRattacheesAVotreOrganisation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Exploitations" icon="home-outline">
-          <Button label="Nouvelle exploitation" icon="add-outline" onPress={() => router.push('/farmer/farms/create')} style={styles.mb} />
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune exploitation" description="Créez votre première exploitation." icon="home-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.exploitations')} icon="home-outline">
+          <Button label={t('ui.nouvelleExploitation')} icon="add-outline" onPress={() => router.push('/farmer/farms/create')} style={styles.mb} />
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneExploitation')} description={t('ui.creezVotrePremiereExploitation')} icon="home-outline" /> : (
             <View style={styles.list}>
               {items.map((farm, index) => (
                 <Reveal key={farm.id} index={index} variant="up">
@@ -38,7 +39,7 @@ export default function FarmerFarms() {
                         <Text preset="bodyMedium">{farm.name}</Text>
                         <Text preset="caption" color={COLORS.slateGray}>{farm.countryCode}{farm.province ? ` · ${farm.province}` : ''} · {formatDate(farm.updatedAt, locale)}</Text>
                       </View>
-                      <Chip label={farm.isPublic ? 'publique' : 'privée'} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" />
+                      <Chip label={farm.isPublic ? t('ui.publique_9eb2b') : t('ui.privee')} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" />
                     </View>
                   </PressableCard>
                 </Reveal>

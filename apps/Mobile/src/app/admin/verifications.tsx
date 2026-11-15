@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminVerifications() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function AdminVerifications() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Vérifications" subtitle="File de vérification." />
+      <AppHeader title={t('ui.verifications')} subtitle={t('ui.fileDeVerification_b0bbc')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Vérifications" icon="checkmark-circle-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="File vide" description="Aucune demande de vérification." icon="checkmark-circle-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.verifications')} icon="checkmark-circle-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.fileVide')} description={t('ui.aucuneDemandeDeVerification')} icon="checkmark-circle-outline" /> : (
             <View style={styles.list}>
               {items.map((verification, index) => (
                 <Reveal key={verification.id} index={index} variant="up">

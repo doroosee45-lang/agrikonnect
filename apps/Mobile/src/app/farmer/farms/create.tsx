@@ -9,8 +9,10 @@ import { farmApi } from '@/services/api/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function FarmerFarmCreate() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [name, setName] = useState('');
   const [countryCode, setCountryCode] = useState('CD');
@@ -25,18 +27,18 @@ export default function FarmerFarmCreate() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Nouvelle exploitation" subtitle="Les informations saisies sont marquées « déclarées »." />
+      <FarmerHeader title={t('ui.nouvelleExploitation')} subtitle={t('ui.lesInformationsSaisiesSontMarqueesDeclarees')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Nouvelle exploitation" icon="add-circle-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.nouvelleExploitation')} icon="add-circle-outline">
           <Card tone="white">
             <View style={styles.form}>
-              <Input label="Nom" value={name} onChangeText={setName} />
+              <Input label={t('ui.nom')} value={name} onChangeText={setName} />
               <View style={styles.row2}>
-                <Input label="Code pays" value={countryCode} onChangeText={(v) => setCountryCode(v.toUpperCase().slice(0, 2))} maxLength={2} />
-                <Input label="Province" value={province} onChangeText={setProvince} />
+                <Input label={t('ui.codePays')} value={countryCode} onChangeText={(v) => setCountryCode(v.toUpperCase().slice(0, 2))} maxLength={2} />
+                <Input label={t('ui.province')} value={province} onChangeText={setProvince} />
               </View>
               {error ? <ErrorState error={error} /> : null}
-              <Button label="Créer" onPress={() => create.mutate()} loading={create.isPending} disabled={!name.trim()} />
+              <Button label={t('ui.creer')} onPress={() => create.mutate()} loading={create.isPending} disabled={!name.trim()} />
             </View>
           </Card>
         </AuthGate>

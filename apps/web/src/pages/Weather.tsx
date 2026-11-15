@@ -11,6 +11,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** Météo par parcelle (WTH-01 → WTH-05), fraîcheur et confiance affichées. */
 export default function Weather() {
+  const { t } = useI18n();
   const { plotId } = useParams<{ plotId: string }>();
   const { locale } = useI18n();
 
@@ -25,27 +26,22 @@ export default function Weather() {
 
   return (
     <Section>
-      <Text preset="h1" style={{ marginBottom: 8 }}>
-        Météo
-      </Text>
-      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-        Prévisions météorologiques pour vos parcelles. La fraîcheur des données est affichée explicitement.
-      </Text>
+      <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.meteo')}</Text>
+      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.previsionsMeteorologiquesPourVosParcellesLa')}</Text>
 
       {!plotId ? (
-        <EmptyState title="Aucune parcelle" description="Sélectionnez une parcelle pour voir sa météo." icon="🌤️" />
+        <EmptyState title={t('ui.aucuneParcelle')} description={t('ui.selectionnezUneParcellePourVoirSa')} icon="🌤️" />
       ) : query.isLoading ? (
         <LoadingState count={2} height={110} />
       ) : query.isError ? (
         <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
       ) : !weather || !weather.available ? (
-        <EmptyState title="Aucune donnée" description={weather?.message ?? 'Aucune donnée météo n\'est disponible.'} icon="🌤️" />
+        <EmptyState title={t('ui.aucuneDonnee')} description={weather?.message ?? t('ui.aucuneDonneeMeteoNEstDisponible')} icon="🌤️" />
       ) : (
         <>
           {weather.freshness ? (
             <Card tone={weather.freshness.stale ? 'pale' : 'white'} style={{ marginBottom: 24 }}>
-              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-                Fraîcheur : {weather.freshness.ageHours.toFixed(1)} heure(s){weather.freshness.stale ? ' · données périmées' : ''}
+              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.fraicheurHeureS', { value: weather.freshness.ageHours.toFixed(1) })}{weather.freshness.stale ? t('ui.donneesPerimees') : ''}
                 {weather.freshness.warning ? ` · ${weather.freshness.warning}` : ''}
               </Text>
             </Card>
@@ -54,13 +50,11 @@ export default function Weather() {
           {weather.latest ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.slow / 1000, ease: EASE.out }}>
               <Card tone="white" style={{ marginBottom: 24 }}>
-                <Text preset="h3" style={{ marginBottom: 12 }}>
-                  Dernière observation
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.derniereObservation')}</Text>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <Text preset="bodySm">Observée le : {formatDate(weather.latest.observedAt, locale)}</Text>
-                  <Text preset="bodySm">Source : {weather.latest.source}</Text>
-                  {weather.latest.confidence ? <Chip label={`Confiance ${weather.latest.confidence}`} tone="neutral" size="sm" /> : null}
+                  <Text preset="bodySm">{t('ui.observeeLe', { observedAt: formatDate(weather.latest.observedAt, locale) })}</Text>
+                  <Text preset="bodySm">{t('ui.source', { source: weather.latest.source })}</Text>
+                  {weather.latest.confidence ? <Chip label={t('ui.confiance', { confidence: weather.latest.confidence })} tone="neutral" size="sm" /> : null}
                 </div>
               </Card>
             </motion.div>
@@ -68,17 +62,13 @@ export default function Weather() {
 
           {weather.actionSuggestion ? (
             <Card tone="pale" style={{ marginBottom: 24 }}>
-              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-                Suggestion : {weather.actionSuggestion}
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.suggestion', { actionSuggestion: weather.actionSuggestion })}</Text>
             </Card>
           ) : null}
 
           {weather.records && weather.records.length > 0 ? (
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Historique
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.historique')}</Text>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {weather.records.map((record, index) => (
                   <motion.div

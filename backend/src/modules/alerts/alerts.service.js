@@ -33,6 +33,7 @@ import { prisma } from '../../config/prisma.js';
 import { env } from '../../config/env.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 import { audit } from '../../shared/audit.js';
+import { emitToOrganization } from '../../realtime/bus.js';
 import { notify } from '../../shared/events.js';
 import { truncateForSms } from '../../integrations/twilio.js';
 import { logger } from '../../shared/http/logger.js';
@@ -554,6 +555,10 @@ export const raiseAlert = async ({
       message: messageText,
     },
   });
+
+  if (!simulated) {
+    emitToOrganization(organizationId, 'alert:new', { id: alert.id });
+  }
 
   if (!maySend) {
     logger.warn(

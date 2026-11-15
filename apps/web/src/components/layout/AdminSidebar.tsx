@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 
 import { useAuthStore } from '@/store/auth';
+import { useI18n, tr } from '@/i18n';
 
 type AdminNavItem = {
   label: string;
@@ -17,33 +18,34 @@ type AdminNavGroup = {
 
 const NAV_GROUPS: AdminNavGroup[] = [
   {
-    label: 'Pilotage',
+    get label() { return tr('ui.pilotage'); },
     items: [
-      { label: 'Vue generale', to: '/admin/dashboard', icon: 'grid', permissions: ['admin.dashboard'] },
+      { get label() { return tr('ui.vueGenerale'); }, to: '/admin/dashboard', icon: 'grid', permissions: ['admin.dashboard'] },
     ],
   },
   {
-    label: 'Gouvernance',
+    get label() { return tr('ui.gouvernance'); },
     items: [
-      { label: 'Utilisateurs', to: '/admin/users', icon: 'users', permissions: ['admin.users'] },
-      { label: 'Matrice des roles', to: '/admin/roles', icon: 'roles', permissions: ['admin.users', 'admin.roles'] },
-      { label: 'Journal d audit', to: '/admin/audit', icon: 'audit', permissions: ['admin.audit'] },
+      { get label() { return tr('ui.utilisateurs'); }, to: '/admin/users', icon: 'users', permissions: ['admin.users'] },
+      { get label() { return tr('ui.matriceDesRoles'); }, to: '/admin/roles', icon: 'roles', permissions: ['admin.users', 'admin.roles'] },
+      { get label() { return tr('ui.journalDAudit'); }, to: '/admin/audit', icon: 'audit', permissions: ['admin.audit'] },
     ],
   },
   {
-    label: 'Operations',
+    get label() { return tr('ui.operations'); },
     items: [
-      { label: 'Operations', to: '/admin/operations', icon: 'operations', permissions: ['admin.users'] },
-      { label: 'Notifications', to: '/admin/notifications', icon: 'bell', permissions: ['admin.users'] },
+      { get label() { return tr('ui.operations'); }, to: '/admin/operations', icon: 'operations', permissions: ['admin.users'] },
+      { get label() { return tr('ui.notifications'); }, to: '/admin/notifications', icon: 'bell', permissions: ['admin.users'] },
+      { get label() { return tr('ui.blogPosts'); }, to: '/admin/blog-posts', icon: 'audit', permissions: ['admin.content'] },
     ],
   },
   {
-    label: 'Systeme',
+    get label() { return tr('ui.systeme'); },
     items: [
-      { label: 'Parametres', to: '/admin/settings', icon: 'settings', permissions: ['admin.settings'] },
-      { label: 'Taches planifiees', to: '/admin/jobs', icon: 'jobs', permissions: ['admin.jobs'] },
-      { label: 'Surveillance', to: '/admin/monitoring', icon: 'pulse', permissions: ['admin.jobs'] },
-      { label: 'Securite', to: '/admin/security', icon: 'shield', permissions: ['admin.audit', 'admin.security'] },
+      { get label() { return tr('ui.parametres'); }, to: '/admin/settings', icon: 'settings', permissions: ['admin.settings'] },
+      { get label() { return tr('ui.tachesPlanifiees'); }, to: '/admin/jobs', icon: 'jobs', permissions: ['admin.jobs'] },
+      { get label() { return tr('ui.surveillance'); }, to: '/admin/monitoring', icon: 'pulse', permissions: ['admin.jobs'] },
+      { get label() { return tr('ui.securite'); }, to: '/admin/security', icon: 'shield', permissions: ['admin.audit', 'admin.security'] },
     ],
   },
 ];
@@ -74,6 +76,7 @@ function MenuIcon({ name }: { name: AdminNavItem['icon'] }) {
 }
 
 export function AdminSidebar() {
+  const { t } = useI18n();
   const can = useAuthStore((state) => state.can);
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -90,11 +93,11 @@ export function AdminSidebar() {
     .filter((group) => group.items.length > 0);
 
   return (
-    <aside className="admin-sidebar" aria-label="Navigation administration">
+    <aside className="admin-sidebar" aria-label={t('ui.navigationAdministration')}>
       <div className="admin-sidebar__heading">
         <div>
-          <p className="admin-sidebar__eyebrow">AGRIKONNECT AFRICA</p>
-          <h2 className="admin-sidebar__title">Espace d administration</h2>
+          <p className="admin-sidebar__eyebrow">{t('common.appName')}</p>
+          <h2 className="admin-sidebar__title">{t('ui.espaceDAdministration')}</h2>
         </div>
         <button
           className="admin-sidebar__toggle"
@@ -103,17 +106,17 @@ export function AdminSidebar() {
           aria-controls="admin-sidebar-navigation"
           onClick={() => setMobileOpen((value) => !value)}
         >
-          {mobileOpen ? 'Fermer' : 'Menu'}
+          {mobileOpen ? t('common.close') : t('ui.menu')}
         </button>
       </div>
 
       <nav
         id="admin-sidebar-navigation"
         className={`admin-sidebar__navigation${mobileOpen ? ' admin-sidebar__navigation--open' : ''}`}
-        aria-label="Sections administratives"
+        aria-label={t('ui.sectionsAdministratives')}
       >
         {groups.length === 0 ? (
-          <p className="admin-sidebar__empty">Aucun raccourci disponible pour les permissions actuelles.</p>
+          <p className="admin-sidebar__empty">{t('ui.aucunRaccourciDisponiblePourLesPermissions')}</p>
         ) : groups.map((group) => (
           <section className="admin-sidebar__group" key={group.label} aria-label={group.label}>
             <h3 className="admin-sidebar__group-title">{group.label}</h3>
@@ -135,9 +138,7 @@ export function AdminSidebar() {
         ))}
       </nav>
 
-      <p className="admin-sidebar__note">
-        Les raccourcis suivent les permissions deja fournies par la session. Le serveur reste seul responsable de l autorisation.
-      </p>
+      <p className="admin-sidebar__note">{t('ui.lesRaccourcisSuiventLesPermissionsDeja')}</p>
     </aside>
   );
 }

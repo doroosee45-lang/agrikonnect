@@ -17,7 +17,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatNumber, formatRelative } from '@/lib/format';
 import { messagingApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
@@ -26,11 +26,11 @@ import { COLORS, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
 
 const SUBJECT_LABELS: Record<string, string> = {
-  LISTING: 'Annonce',
-  ORDER: 'Commande',
-  TRANSPORT: 'Transport',
-  DISPUTE: 'Litige',
-  PROJECT: 'Projet',
+  get LISTING() { return tr('ui.annonce'); },
+  get ORDER() { return tr('ui.commande'); },
+  get TRANSPORT() { return tr('ui.transport'); },
+  get DISPUTE() { return tr('ui.litige'); },
+  get PROJECT() { return tr('ui.projet'); },
 };
 
 /** Messagerie (MSG-01) : conversations rattachées à un objet métier. */
@@ -48,13 +48,13 @@ export default function Messages() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title={t('nav.messages')} subtitle="Échanges liés à une annonce, une commande, un transport ou un projet." />
+      <AppHeader title={t('nav.messages')} subtitle={t('ui.echangesLiesAUneAnnonceUne')} />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Messagerie réservée aux comptes actifs"
-          description="Connectez-vous pour échanger avec un acheteur ou un vendeur. Les coordonnées personnelles ne sont jamais demandées : tout passe par la conversation."
+          title={t('ui.messagerieReserveeAuxComptesActifs')}
+          description={t('ui.connectezVousPourEchangerAvecUn')}
           icon="chatbubbles-outline"
         >
           {conversations.isLoading ? (
@@ -64,21 +64,16 @@ export default function Messages() {
           ) : (
             <>
               <Card tone="white" style={styles.summary}>
-                <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                  {formatNumber(items.length, locale)} conversation(s) · {formatNumber(conversations.data?.totalUnread ?? 0, locale)} message(s) non lu(s)
-                </Text>
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Une conversation est toujours rattachée à un objet métier : annonce, commande, transport, litige
-                  ou projet. Aucune discussion libre n’est créée.
-                </Text>
+                <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.conversationSMessageSNonLu', { length: formatNumber(items.length, locale), value: formatNumber(conversations.data?.totalUnread ?? 0, locale) })}</Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.uneConversationEstToujoursRattacheeA')}</Text>
               </Card>
 
               {items.length === 0 ? (
                 <EmptyState
-                  title="Aucune conversation"
-                  description="Contactez un vendeur depuis une annonce ou un acheteur depuis une demande d’achat : la conversation s’ouvre automatiquement."
+                  title={t('ui.aucuneConversation')}
+                  description={t('ui.contactezUnVendeurDepuisUneAnnonce_ac1ee')}
                   icon="chatbubbles-outline"
-                  action={{ label: 'Voir les annonces', onPress: () => router.push('/annonces') }}
+                  action={{ label: t('ui.voirLesAnnonces'), onPress: () => router.push('/annonces') }}
                 />
               ) : (
                 <View style={styles.list}>
@@ -96,16 +91,16 @@ export default function Messages() {
                             <Text preset="bodyMedium" color={COLORS.textPrimary} numberOfLines={1}>
                               {conversation.subjectType
                                 ? `${SUBJECT_LABELS[conversation.subjectType] ?? conversation.subjectType} · ${conversation.subjectId}`
-                                : 'Conversation'}
+                                : t('ui.conversation')}
                             </Text>
                             <Chip label={conversation.status} tone={conversation.status === 'BLOCKED' ? 'error' : 'neutral'} size="sm" />
                           </View>
                           <Text preset="caption" color={COLORS.slateGray} numberOfLines={2} style={styles.lineHeight}>
-                            {conversation.lastMessage?.body ?? 'Aucun message pour le moment.'}
+                            {conversation.lastMessage?.body ?? t('ui.aucunMessagePourLeMoment')}
                           </Text>
                           <Text preset="caption" color={COLORS.slateGray}>
                             {formatRelative(conversation.updatedAt, locale)}
-                            {conversation.unread > 0 ? ` · ${formatNumber(conversation.unread, locale)} non lu(s)` : ''}
+                            {conversation.unread > 0 ? t('ui.nonLuS_4c803', { unread: formatNumber(conversation.unread, locale) }) : ''}
                           </Text>
                         </View>
                       </PressableCard>

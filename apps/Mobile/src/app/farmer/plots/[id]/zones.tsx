@@ -18,7 +18,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatDate } from '@/lib/format';
 import { plotApi, precisionApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
@@ -26,8 +26,8 @@ import { COLORS, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
 
 const SOURCE_LABELS: Record<string, string> = {
-  satellite: 'imagerie satellite',
-  soil_assessment: 'analyse de sol',
+  get satellite() { return tr('ui.imagerieSatellite'); },
+  get soil_assessment() { return tr('ui.analyseDeSol'); },
   sensor: 'capteurs',
 };
 
@@ -39,6 +39,7 @@ const SOURCE_LABELS: Record<string, string> = {
  * contour reste à fournir, et chaque calcul crée une version horodatée.
  */
 export default function PlotZones() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -68,34 +69,26 @@ export default function PlotZones() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <PlotScreenHeader title="Zones de gestion" plotName={plot.data?.name} plotId={id} />
+      <PlotScreenHeader title={t('ui.zonesDeGestion')} plotName={plot.data?.name} plotId={id} />
 
       <Section bare contentStyle={styles.section}>
         <Card tone="pale" style={styles.disclaimer}>
           <Ionicons name="grid-outline" size={16} color={COLORS.info} />
-          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-            Les zones ne sont délimitées que sur des sources disponibles. Aucune interpolation non documentée
-            n’est produite et le découpage doit être validé sur le terrain.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.lesZonesNeSontDelimiteesQue')}</Text>
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Calculer
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.calculer')}</Text>
           {error ? <ErrorState error={error} showRequestId /> : null}
           <Button
-            label="Calculer les zones"
+            label={t('ui.calculerLesZones')}
             onPress={() => compute.mutate()}
             variant="primary"
             fullWidth
             loading={compute.isPending}
             icon="grid-outline"
           />
-          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-            Sans source (satellite, analyse de sol ou capteur), le serveur refuse le calcul : aucune zone n’est
-            inventée. {zones.data?.versioning ?? ''}
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.sansSourceSatelliteAnalyseDeSol', { value: zones.data?.versioning ?? '' })}</Text>
         </Card>
 
         {zones.isLoading ? (
@@ -104,8 +97,8 @@ export default function PlotZones() {
           <ErrorState error={zones.error} onRetry={() => void zones.refetch()} />
         ) : versions.length === 0 ? (
           <EmptyState
-            title="Aucune zone calculée"
-            description="Rattachez des capteurs, enregistrez une analyse de sol ou lancez un diagnostic satellite, puis relancez le calcul."
+            title={t('ui.aucuneZoneCalculee')}
+            description={t('ui.rattachezDesCapteursEnregistrezUneAnalyse')}
             icon="grid-outline"
           />
         ) : (
@@ -115,12 +108,8 @@ export default function PlotZones() {
                 <Card tone="white" style={styles.card}>
                   <View style={styles.head}>
                     <View style={styles.headText}>
-                      <Text preset="h3" color={COLORS.textPrimary}>
-                        {version.zones?.length ?? 0} zone(s)
-                      </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        méthode {version.methodVersion} · calculée le {formatDate(version.computedAt, locale)}
-                      </Text>
+                      <Text preset="h3" color={COLORS.textPrimary}>{t('ui.zoneS_9a02e', { value: version.zones?.length ?? 0 })}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.methodeCalculeeLe', { methodVersion: version.methodVersion, computedAt: formatDate(version.computedAt, locale) })}</Text>
                     </View>
                     <Chip label={version.methodVersion} tone="neutral" size="sm" />
                   </View>
@@ -139,9 +128,7 @@ export default function PlotZones() {
                               <Chip key={basis} label={SOURCE_LABELS[basis] ?? basis} tone="success" size="sm" />
                             ))}
                           </ChipRow>
-                          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                            Contour : {zone.geometry ? 'fourni' : 'à tracer sur le terrain'} · recommandation :{' '}
-                            {zone.recommendation ?? 'aucune (validation terrain requise)'}
+                          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.contour')}{' '}{zone.geometry ? 'fourni' : t('ui.aTracerSurLeTerrain')}{' '}{t('ui.recommandation')}{' '}{zone.recommendation ?? t('ui.aucuneValidationTerrainRequise')}
                           </Text>
                         </View>
                       </View>
@@ -149,9 +136,7 @@ export default function PlotZones() {
                   </View>
 
                   <View style={styles.block}>
-                    <Text preset="caption" color={COLORS.textPrimary}>
-                      Sources disponibles
-                    </Text>
+                    <Text preset="caption" color={COLORS.textPrimary}>{t('ui.sourcesDisponibles')}</Text>
                     <ChipRow>
                       {(version.sources?.available ?? []).map((source, sourceIndex) => (
                         <Chip
@@ -165,9 +150,7 @@ export default function PlotZones() {
                   </View>
 
                   {(version.sources?.missing ?? []).length > 0 ? (
-                    <Text preset="caption" color={COLORS.warning}>
-                      Manquant : {(version.sources?.missing ?? []).join(', ')}
-                    </Text>
+                    <Text preset="caption" color={COLORS.warning}>{t('ui.manquant_45da8', { value: (version.sources?.missing ?? []).join(', ') })}</Text>
                   ) : null}
                 </Card>
               </Reveal>

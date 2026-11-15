@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminMarketplace() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function AdminMarketplace() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Marketplace" subtitle="Annonces publiées." />
+      <AppHeader title={t('ui.marketplace')} subtitle={t('ui.annoncesPubliees_fb873')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Marketplace" icon="storefront-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune annonce" description="Aucune annonce publiée." icon="storefront-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.marketplace')} icon="storefront-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneAnnonce')} description={t('ui.aucuneAnnoncePubliee')} icon="storefront-outline" /> : (
             <View style={styles.list}>
               {items.map((listing, index) => (
                 <Reveal key={listing.id} index={index} variant="up">

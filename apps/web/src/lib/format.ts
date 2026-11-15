@@ -1,10 +1,19 @@
 import { COLORS } from '@/theme/colors';
+import { useI18nStore } from '@/i18n';
 
 export type Locale = 'fr' | 'en';
 
 const BCP: Record<Locale, string> = { fr: 'fr-FR', en: 'en-GB' };
 
-/** Devise par défaut du réseau (zone UEMOA/CEMAC) ; l'API renvoie la devise du pays. */
+/**
+ * Étiquette BCP 47 de la langue d'interface, pour `Intl` et `toLocale*String`.
+ * Sans argument : langue courante (store i18n). Aucune locale ne doit être
+ * écrite en dur dans un écran : passer par ici.
+ */
+export function bcpLocale(locale?: Locale): string {
+  return BCP[locale ?? useI18nStore.getState().locale] ?? BCP.fr;
+}
+
 export const DEFAULT_CURRENCY = 'XOF';
 
 export function formatNumber(value: number | null | undefined, locale: Locale = 'fr', digits = 0): string {
@@ -21,23 +30,48 @@ export function formatCompact(value: number | null | undefined, locale: Locale =
 }
 
 export function formatCurrency(
-  value: number | null | undefined,
+  value: number | { amount?: number | null; currency?: string | null } | null | undefined,
   currency = DEFAULT_CURRENCY,
   locale: Locale = 'fr',
   compact = false,
 ): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  let num: number | null | undefined;
+  let cur = currency;
+  if (value && typeof value === 'object') {
+    num = typeof value.amount === 'number' ? value.amount : null;
+    if (typeof value.currency === 'string' && value.currency.length === 3) {
+      cur = value.currency;
+    }
+  } else {
+    num = value;
+  }
+  if (num === null || num === undefined || Number.isNaN(num)) return '—';
   try {
     return new Intl.NumberFormat(BCP[locale], {
       style: 'currency',
-      currency,
+      currency: cur,
       notation: compact ? 'compact' : 'standard',
-      maximumFractionDigits: compact ? 1 : 0,
-    }).format(value);
+      // Décimales : celles de la devise (Intl) — 0 pour XOF, 2 pour USD/EUR (I18N-07).
+      ...(compact ? { maximumFractionDigits: 1 } : {}),
+    }).format(num);
   } catch {
-    // Devise inconnue du moteur Intl : on retombe sur un affichage lisible.
-    return `${formatNumber(value, locale)} ${currency}`;
+    return `${formatNumber(num, locale)} ${cur}`;
   }
+}
+
+export const formatMoney = formatCurrency;
+
+export function formatAreaHa(value: number | null | undefined, locale: Locale = 'fr'): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  return `${formatNumber(value, locale, value % 1 === 0 ? 0 : 1)} ha`;
+}
+
+export function formatWeightKg(value: number | null | undefined, locale: Locale = 'fr'): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  if (Math.abs(value) >= 1000) {
+    return `${formatNumber(value / 1000, locale, 1)} t`;
+  }
+  return `${formatNumber(value, locale, 0)} kg`;
 }
 
 export function formatDate(
@@ -97,11 +131,6 @@ export function initials(value: string | null | undefined, max = 2): string {
     .join('');
 }
 
-/**
- * Provenance : le contrat CDC impose de distinguer une mesure d'une estimation
- * (✔ / ≈) et une donnée déclarée d'une donnée vérifiée. Aucun écran ne peut
- * afficher une valeur sans ce marqueur.
- */
 export type ProvenanceKind =
   | 'measured'
   | 'estimated'
@@ -132,7 +161,6 @@ export function provenanceOf(kind: ProvenanceKind | null | undefined) {
   return PROVENANCE[kind ?? 'declared'];
 }
 
-/** Poids d'une source dans une fusion : fiabilité × qualité × fraîcheur (demi-vie 365 j). */
 export function fusionWeight(
   reliability: number,
   quality: number,

@@ -6,8 +6,9 @@ import axios, {
 } from 'axios';
 
 import { API_BASE_URL, APP, IS_WEB, TIMEOUTS } from '@/lib/config';
+import { getActiveOrganizationId } from '@/lib/redirects';
 import { ulid } from '@/lib/ulid';
-import { useI18nStore } from '@/i18n';
+import { tr, useI18nStore } from '@/i18n';
 
 import { sessionStore } from './session';
 import { RequestError, type ApiEnvelope, type ApiMeta } from './types';
@@ -57,6 +58,10 @@ http.interceptors.request.use((raw) => {
   if (!config.anonymous) {
     const token = sessionStore.accessToken;
     if (token) config.headers.set('Authorization', `Bearer ${token}`);
+    const activeOrgId = getActiveOrganizationId();
+    if (activeOrgId && !config.headers.get('X-Organization-Id')) {
+      config.headers.set('X-Organization-Id', activeOrgId);
+    }
   }
 
   const locale = useI18nStore.getState().locale;
@@ -74,7 +79,8 @@ function toRequestError(error: AxiosError): RequestError {
   const response = error.response;
   if (!response) {
     // Timeout, DNS coupé, mode avion : statut 0 = famille `network`.
-    return new RequestError(0, error.message || 'Réseau indisponible');
+    // Message traduit (langue courante) : le texte technique d'axios (« Network Error ») n'est pas destiné à l'utilisateur.
+    return new RequestError(0, tr('errors.network'));
   }
   const body = (response.data ?? {}) as Record<string, unknown>;
   return new RequestError(response.status, String(body.message ?? error.message), {

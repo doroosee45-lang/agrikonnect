@@ -9,8 +9,10 @@ import { listingApi } from '@/services/api/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function PublicSiteAnnonceCreer() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [type, setType] = useState('OFFER');
   const [title, setTitle] = useState('');
@@ -43,34 +45,34 @@ export default function PublicSiteAnnonceCreer() {
 
   return (
     <PublicShell active="annonces" footer={false}>
-      <PageHeader index="09" eyebrow="Marketplace" title="Publier une annonce" subtitle="Le prix reste indicatif : il ne constitue pas une offre ferme." />
+      <PageHeader index="09" eyebrow={t('ui.marketplace')} title={t('ui.publierUneAnnonce')} subtitle={t('ui.lePrixResteIndicatifIlNe')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Publier une annonce" icon="add-circle-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.publierUneAnnonce')} icon="add-circle-outline">
           <Card tone="white">
             <View style={styles.form}>
               <View style={styles.typeRow}>
-                <Button label="Offre" variant={type === 'OFFER' ? 'primary' : 'outline'} size="sm" onPress={() => setType('OFFER')} />
-                <Button label="Demande" variant={type === 'DEMAND' ? 'primary' : 'outline'} size="sm" onPress={() => setType('DEMAND')} />
+                <Button label={t('ui.offre')} variant={type === 'OFFER' ? 'primary' : 'outline'} size="sm" onPress={() => setType('OFFER')} />
+                <Button label={t('ui.demande')} variant={type === 'DEMAND' ? 'primary' : 'outline'} size="sm" onPress={() => setType('DEMAND')} />
               </View>
-              <Input label="Titre *" value={title} onChangeText={setTitle} />
-              <Input label="Culture (identifiant) *" value={cropId} onChangeText={setCropId} />
+              <Input label={t('ui.titre_dbeb7')} value={title} onChangeText={setTitle} />
+              <Input label={t('ui.cultureIdentifiant')} value={cropId} onChangeText={setCropId} />
               <View style={styles.row2}>
-                <Input label="Quantité *" value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
-                <Input label="Unité *" value={unit} onChangeText={setUnit} />
+                <Input label={t('ui.quantite_d8a4d')} value={quantity} onChangeText={setQuantity} keyboardType="numeric" />
+                <Input label={t('ui.unite_99101')} value={unit} onChangeText={setUnit} />
               </View>
-              <Input label="Qualité" value={quality} onChangeText={setQuality} />
+              <Input label={t('ui.qualite')} value={quality} onChangeText={setQuality} />
               <View style={styles.row2}>
-                <Input label="Prix indicatif" value={price} onChangeText={setPrice} keyboardType="numeric" />
-                <Input label="Devise" value={currency} onChangeText={setCurrency} />
+                <Input label={t('ui.prixIndicatif')} value={price} onChangeText={setPrice} keyboardType="numeric" />
+                <Input label={t('ui.devise')} value={currency} onChangeText={setCurrency} />
               </View>
               <View style={styles.row2}>
-                <Input label="Pays *" value={countryCode} onChangeText={setCountryCode} />
-                <Input label="Province" value={province} onChangeText={setProvince} />
+                <Input label={t('ui.pays_219ad')} value={countryCode} onChangeText={setCountryCode} />
+                <Input label={t('ui.province')} value={province} onChangeText={setProvince} />
               </View>
               {error ? <ErrorState error={error} /> : null}
-              <Text preset="caption" color={COLORS.slateGray}>{"Les champs marqués d'un astérisque sont obligatoires."}</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.lesChampsMarquesDUnAsterisque')}</Text>
               <Button
-                label="Publier"
+                label={t('ui.publier')}
                 onPress={() => create.mutate()}
                 loading={create.isPending}
                 disabled={title.trim().length === 0 || cropId.trim().length === 0 || quantity.trim().length === 0 || countryCode.trim().length === 0}

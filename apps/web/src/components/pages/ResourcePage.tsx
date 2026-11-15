@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { AuthGate, Button, Card, Chip, EmptyState, ErrorState, LoadingState, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { formatDate } from '@/lib/format';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 /**
@@ -53,13 +53,14 @@ export function ResourcePage<T>({
   columns,
   rowKey,
   rowHref,
-  emptyTitle = 'Aucune donnée',
-  emptyDescription = "L'API n'a renvoyé aucun enregistrement pour cet écran.",
+  emptyTitle = tr('ui.aucuneDonnee'),
+  emptyDescription = tr('ui.lApiNARenvoyeAucun'),
   notice,
   action,
   public: isPublic = false,
   toolbar,
 }: ResourcePageProps<T>) {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -69,7 +70,12 @@ export function ResourcePage<T>({
     enabled: isPublic || isAuthenticated,
   });
 
- const rows = Array.isArray(query.data) ? query.data : [];
+  const rawData = query.data as unknown as { items?: T[] } | T[] | undefined;
+  const rows = Array.isArray(rawData)
+    ? rawData
+    : Array.isArray(rawData?.items)
+      ? rawData.items
+      : [];
 
   const body = (
     <>
@@ -139,7 +145,7 @@ export function ResourcePage<T>({
                 </div>
                 {rowHref ? (
                   <Link to={rowHref(row)}>
-                    <Button label="Ouvrir" variant="outline" size="sm" />
+                    <Button label={t('ui.ouvrir')} variant="outline" size="sm" />
                   </Link>
                 ) : null}
               </Card>
@@ -149,7 +155,7 @@ export function ResourcePage<T>({
       )}
 
       <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 24 }}>
-        {query.isSuccess ? `${rows.length} enregistrement(s) renvoyé(s) par l'API · ${formatDate(new Date().toISOString(), locale)}` : ''}
+        {query.isSuccess ? t('ui.enregistrementSRenvoyeSParL', { length: rows.length, toISOString: formatDate(new Date().toISOString(), locale) }) : ''}
       </Text>
     </>
   );

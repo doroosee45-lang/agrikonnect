@@ -11,31 +11,33 @@ import { COLORS, DARK, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
 import { usePublicFarms, usePublicMap, useSoilStats } from '@/hooks/usePublicData';
 import { useMemo } from 'react';
+import { useI18n, tr } from '@/i18n';
 
 const PRINCIPLES = [
   {
     icon: 'finger-print-outline' as const,
-    title: 'Une donnée, une origine',
-    body: 'Mesure, capteur, satellite ou déclaration : la provenance est affichée avec la valeur. Une donnée absente reste absente.',
+    get title() { return tr('ui.uneDonneeUneOrigine'); },
+    get body() { return tr('ui.mesureCapteurSatelliteOuDeclarationLa_72d2f'); },
   },
   {
     icon: 'shield-checkmark-outline' as const,
-    title: 'Déclaré n’est pas vérifié',
-    body: 'Les deux statuts sont distincts et visibles partout, y compris sur les fiches publiques et dans les exports.',
+    get title() { return tr('ui.declareNEstPasVerifie'); },
+    get body() { return tr('ui.lesDeuxStatutsSontDistinctsEt'); },
   },
   {
     icon: 'eye-off-outline' as const,
-    title: 'La confidentialité par défaut',
-    body: 'Coordonnées masquées, positions arrondies, statistiques soumises au k-anonymat, contacts transmis sans révélation.',
+    get title() { return tr('ui.laConfidentialiteParDefaut'); },
+    get body() { return tr('ui.coordonneesMasqueesPositionsArrondiesStatistique'); },
   },
   {
     icon: 'information-circle-outline' as const,
-    title: 'L’aide à la décision reste une aide',
-    body: 'Les sorties du moteur géospatial affichent leurs sources, leurs avertissements et ne déclenchent aucune action automatique.',
+    get title() { return tr('ui.lAideALaDecisionReste'); },
+    get body() { return tr('ui.lesSortiesDuMoteurGeospatialAffichent'); },
   },
 ];
 
 export default function APropos() {
+  const { t } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
 
@@ -60,26 +62,17 @@ export default function APropos() {
     <PublicShell active="a-propos">
       <PageHeader
         index={1}
-        eyebrow="À propos"
-        title="Une infrastructure de confiance"
-        subtitle="AGRIKONNECT AFRICA relie producteurs, coopératives, acheteurs et investisseurs autour de données agricoles vérifiables — et assume publiquement les limites de ce qu’elle publie."
+        eyebrow={t('ui.aPropos')}
+        title={t('ui.uneInfrastructureDeConfiance')}
+        subtitle={t('ui.agrikonnectAfricaRelieProducteursCooperativesAch')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <Reveal variant="up">
           <Card tone="white" style={styles.mission}>
-            <Text preset="overline" color={COLORS.livingGreen}>
-              Notre conviction
-            </Text>
-            <Text preset="display" color={COLORS.textPrimary} style={styles.missionTitle}>
-              La valeur d’une filière se prouve, elle ne se déclare pas.
-            </Text>
-            <Text preset="lead" color={COLORS.slateGray} style={styles.lineHeight}>
-              Sur les marchés agricoles africains, l’information circule mal : surfaces approximatives, prix
-              sans source, origines invérifiables. Chaque acteur paie cette opacité. Notre réponse n’est pas
-              d’ajouter des promesses, mais de rendre chaque information traçable jusqu’à son origine — et
-              de dire clairement quand elle manque.
-            </Text>
+            <Text preset="overline" color={COLORS.livingGreen}>{t('ui.notreConviction_16469')}</Text>
+            <Text preset="display" color={COLORS.textPrimary} style={styles.missionTitle}>{t('ui.laValeurDUneFiliereSe')}</Text>
+            <Text preset="lead" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.surLesMarchesAgricolesAfricainsL')}</Text>
           </Card>
         </Reveal>
 
@@ -106,9 +99,9 @@ export default function APropos() {
 
       <Section
         index={2}
-        eyebrow="Périmètre"
-        title="Ce que la plateforme couvre"
-        subtitle="Cinq versions fonctionnelles livrées, de la parcelle à l’appel d’offres international."
+        eyebrow={t('ui.perimetre_b5d08')}
+        title={t('ui.ceQueLaPlateformeCouvre')}
+        subtitle={t('ui.cinqVersionsFonctionnellesLivreesDeLa')}
         background={COLORS.pureWhite}
       >
         <View style={styles.track}>
@@ -134,22 +127,17 @@ export default function APropos() {
 
       <Section
         index={3}
-        eyebrow="Gouvernance"
-        title="Qui peut faire quoi"
-        subtitle="Les rôles opérationnels s’obtiennent en libre-service. Les rôles de contrôle sont attribués — jamais auto-déclarés."
+        eyebrow={t('ui.gouvernance')}
+        title={t('ui.quiPeutFaireQuoi')}
+        subtitle={t('ui.lesRolesOperationnelsSObtiennentEn')}
         background={COLORS.naturalWhite}
       >
         <View style={[styles.roles, wide ? styles.rolesWide : null]}>
           <Card tone="ink" style={styles.roleCard}>
-            <Text preset="overline" color={COLORS.gold}>
-              Libre-service
-            </Text>
-            <Text preset="bodySm" color={DARK.textMuted} style={styles.lineHeight}>
-              Producteur, coopérative, société agricole, acheteur, fournisseur, transporteur, agronome,
-              investisseur, agent d’appui.
-            </Text>
+            <Text preset="overline" color={COLORS.gold}>{t('ui.libreService_c6f0e')}</Text>
+            <Text preset="bodySm" color={DARK.textMuted} style={styles.lineHeight}>{t('ui.producteurCooperativeSocieteAgricoleAcheteurFour_c7950')}</Text>
             <Button
-              label="Créer un compte"
+              label={t('ui.creerUnCompte')}
               onPress={() => router.push('/auth/register')}
               variant="gold"
               size="sm"
@@ -157,13 +145,8 @@ export default function APropos() {
           </Card>
 
           <Card tone="white" style={styles.roleCard}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Attribués par un administrateur
-            </Text>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-              Administrateur, modérateur, vérificateur, partenaire laboratoire, client API. Ces rôles
-              donnent accès à des données sensibles : ils ne sont jamais accordés à l’inscription.
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.attribuesParUnAdministrateur_1517b')}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.administrateurModerateurVerificateurPartenaireLa')}</Text>
             <View style={styles.chipRow}>
               <Chip label="ADMIN" tone="neutral" size="sm" />
               <Chip label="MODERATOR" tone="neutral" size="sm" />

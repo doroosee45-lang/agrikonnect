@@ -5,6 +5,7 @@
  * exécutable correspondante est référencée dans `tests/` (voir docs/TRACEABILITY.md).
  */
 import { ApiError } from '../shared/errors/ApiError.js';
+import { zodIssuesToFieldErrors } from '../shared/i18n/index.js';
 
 /**
  * Valide une partie de la requête avec un schéma Zod (SEC-02).
@@ -18,10 +19,8 @@ export const validate = (schema, source = 'body') => (req, _res, next) => {
   const result = schema.safeParse(req[source]);
 
   if (!result.success) {
-    const errors = result.error.issues.map((issue) => ({
-      field: issue.path.join('.') || source,
-      code: issue.message,
-    }));
+    // `field` et `code` inchangés ; `message` ajouté dans la langue de la requête (I18N-01).
+    const errors = zodIssuesToFieldErrors(result.error.issues, source, req.locale);
     return next(ApiError.badRequest('Validation error', errors));
   }
 

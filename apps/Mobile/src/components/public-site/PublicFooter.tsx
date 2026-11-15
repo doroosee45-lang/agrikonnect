@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { APP } from '@/lib/config';
 import { COLORS, DARK } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
@@ -69,9 +69,7 @@ export function PublicFooter() {
               <Text preset="h3" color={DARK.text}>
                 {t('home.newsletterTitle')}
               </Text>
-              <Text preset="bodySm" color={DARK.textMuted}>
-                Les relevés de prix sont réservés aux comptes vérifiés : chaque prix publié porte sa source et sa date.
-              </Text>
+              <Text preset="bodySm" color={DARK.textMuted}>{t('ui.lesRelevesDePrixSontReserves')}</Text>
             </View>
             <NewsletterForm />
           </View>
@@ -126,6 +124,7 @@ function FooterLink({ label, onPress, small = false }: { label: string; onPress:
 
 /** Pastille d'état branchée sur `GET /health` (aucun statut inventé). */
 function PlatformStatus() {
+  const { t } = useI18n();
   const { data, isError, isLoading } = useQuery({
     queryKey: queryKeys.health,
     queryFn: () => publicApi.health().then((result) => result.data),
@@ -137,10 +136,10 @@ function PlatformStatus() {
   const color = state === 'up' ? COLORS.livingGreen : state === 'down' ? COLORS.error : COLORS.gold;
   const label =
     state === 'up'
-      ? `API opérationnelle · v${data?.version ?? '?'}`
+      ? t('ui.apiOperationnelleV', { value: data?.version ?? '?' })
       : state === 'down'
-        ? 'API injoignable'
-        : 'Vérification…';
+        ? t('ui.apiInjoignable')
+        : t('ui.verification');
 
   return (
     <View style={styles.status}>
@@ -198,7 +197,7 @@ type Translator = (key: never) => string;
 function useColumns(t: Translator): FooterColumn[] {
   return [
     {
-      title: 'Plateforme',
+      title: tr('ui.plateforme'),
       links: [
         { label: t('nav.services' as never), href: '/services' },
         { label: t('nav.markets' as never), href: '/marches' },
@@ -208,17 +207,17 @@ function useColumns(t: Translator): FooterColumn[] {
       ],
     },
     {
-      title: 'Données',
+      title: tr('ui.donnees'),
       links: [
         { label: t('nav.prices' as never), href: '/prices' },
         { label: t('nav.weather' as never), href: '/weather' },
-        { label: 'Statistiques de sol', href: '/public-site/sols' },
-        { label: 'Traçabilité d’un lot', href: '/public-site/lot' },
-        { label: 'Carte agricole', href: '/explore' },
+        { label: tr('ui.statistiquesDeSol'), href: '/public-site/sols' },
+        { label: tr('ui.tracabiliteDUnLot'), href: '/public-site/lot' },
+        { label: tr('ui.carteAgricole'), href: '/explore' },
       ],
     },
     {
-      title: 'Réseau',
+      title: tr('ui.reseau'),
       links: [
         { label: t('nav.farmers' as never), href: '/farmers' },
         { label: t('nav.about' as never), href: '/a-propos' },
@@ -228,13 +227,13 @@ function useColumns(t: Translator): FooterColumn[] {
       ],
     },
     {
-      title: 'Espaces',
+      title: tr('ui.espaces'),
       links: [
-        { label: 'Espace producteur', href: '/farmer' },
-        { label: 'Connexion', href: '/auth/login' },
-        { label: 'Créer un compte', href: '/auth/register' },
-        { label: 'API développeurs', href: '/developers' },
-        { label: 'Mon profil', href: '/profil' },
+        { label: tr('ui.espaceProducteur'), href: '/farmer' },
+        { label: tr('ui.connexion'), href: '/auth/login' },
+        { label: tr('ui.creerUnCompte'), href: '/auth/register' },
+        { label: tr('ui.apiDeveloppeurs'), href: '/developers' },
+        { label: tr('ui.monProfil'), href: '/profil' },
       ],
     },
   ];

@@ -11,6 +11,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function Ai() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -44,25 +45,18 @@ export default function Ai() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Assistance IA"
-        description="Connectez-vous pour poser vos questions agronomiques et générer des documents."
+        title={t('ui.assistanceIa')}
+        description={t('ui.connectezVousPourPoserVosQuestions')}
         icon="✨"
       >
         <div style={{ marginBottom: 32 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Assistance IA
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray}>
-            Analyses de cultures, documents et copilote — avec avertissement systématique et escalade humaine.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.assistanceIa')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray}>{t('ui.analysesDeCulturesDocumentsEtCopilote_101b9')}</Text>
         </div>
 
         <Card tone="pale" style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <span style={{ fontSize: 20 }}>⚠️</span>
-          <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-            Les réponses de l'IA sont des estimations, pas des conseils agronomiques validés. Elles ne remplacent
-            jamais l'avis d'un agronome identifié. Toute analyse peut être escaladée vers un humain.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.lesReponsesDeLIaSont')}</Text>
         </Card>
 
         <Card tone="white" style={{ marginBottom: 32 }}>
@@ -74,20 +68,16 @@ export default function Ai() {
               style={{ marginTop: 3, width: 18, height: 18, accentColor: COLORS.forestGreen }}
             />
             <span>
-              <Text preset="bodySm" color={COLORS.textPrimary} style={{ fontWeight: 600 }}>
-                J'accepte que mes questions soient traitées par un modèle d'IA
-              </Text>
-              <Text preset="caption" color={COLORS.slateGray}>
-                Consentement requis (AI-01). Réversible à tout moment depuis votre profil.
-              </Text>
+              <Text preset="bodySm" color={COLORS.textPrimary} style={{ fontWeight: 600 }}>{t('ui.jAccepteQueMesQuestionsSoient')}</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.consentementRequisAi01ReversibleA')}</Text>
             </span>
           </label>
 
           <TextArea
-            label="Votre question"
+            label={t('ui.votreQuestion')}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ex. : quelles pratiques de conservation des sols pour une parcelle argileuse en zone soudanienne ?"
+            placeholder={t('ui.exQuellesPratiquesDeConservationDes')}
             minHeight={110}
             maxLength={1000}
             disabled={!consent}
@@ -101,26 +91,22 @@ export default function Ai() {
 
           <div style={{ marginTop: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
             <Button
-              label="Poser la question"
+              label={t('ui.poserLaQuestion')}
               onClick={() => copilot.mutate()}
               disabled={!consent || question.trim().length < 3}
               loading={copilot.isPending}
             />
-            <Text preset="caption" color={COLORS.slateGray}>
-              {question.length}/1000 caractères
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.n1000Caracteres', { length: question.length })}</Text>
           </div>
         </Card>
 
-        <Text preset="h3" style={{ marginBottom: 16 }}>
-          Historique des analyses
-        </Text>
+        <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.historiqueDesAnalyses')}</Text>
         {analyses.isLoading ? (
           <LoadingState count={2} height={90} />
         ) : analyses.isError ? (
           <ErrorState error={analyses.error} onRetry={() => void analyses.refetch()} />
         ) : (analyses.data ?? []).length === 0 ? (
-          <EmptyState title="Aucune analyse" description="Vos questions et analyses apparaîtront ici." icon="✨" />
+          <EmptyState title={t('ui.aucuneAnalyse')} description={t('ui.vosQuestionsEtAnalysesApparaitrontIci')} icon="✨" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {(analyses.data ?? []).map((item, index) => (
@@ -134,7 +120,7 @@ export default function Ai() {
                 <Card tone="white">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 8 }}>
                     <Text preset="bodyMd" color={COLORS.textPrimary} style={{ fontWeight: 600, flex: 1 }}>
-                      {item.prompt ?? `Analyse ${item.type}`}
+                      {item.prompt ?? t('ui.analyse_211fa', { type: item.type })}
                     </Text>
                     <Chip label={item.status} tone={item.status === 'ESCALATED' ? 'warning' : 'info'} size="sm" />
                   </div>
@@ -148,7 +134,7 @@ export default function Ai() {
                   ) : null}
                   {item.status !== 'ESCALATED' ? (
                     <Button
-                      label="Escalader vers un agronome"
+                      label={t('ui.escaladerVersUnAgronome')}
                       onClick={() => escalate.mutate(item.id)}
                       variant="ghost"
                       size="sm"

@@ -7,9 +7,11 @@ import { AuthGate, Button, Card, ErrorState, Input, Section, Text } from '@/comp
 import { requestApi } from '@/services/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** MARKET — création d'une demande d'achat. */
 export default function MarketNewRequest() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [cropSlug, setCropSlug] = useState('');
@@ -33,20 +35,14 @@ export default function MarketNewRequest() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Nouvelle demande" icon="📋">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.nouvelleDemande')} icon="📋">
         <div style={{ marginBottom: 24 }}>
-          <Link to="/market/requests" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour aux demandes
-          </Link>
+          <Link to="/market/requests" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourAuxDemandes')}</Link>
         </div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.slow / 1000, ease: EASE.out }} style={{ maxWidth: 560 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Nouvelle demande d'achat
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-            Publiez une demande d'achat pour que les producteurs puissent y répondre.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.nouvelleDemandeDAchat')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.publiezUneDemandeDAchatPour')}</Text>
 
           <Card tone="white">
             <form
@@ -56,13 +52,13 @@ export default function MarketNewRequest() {
               }}
               style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
             >
-              <Input label="Culture (slug)" value={cropSlug} onChange={(event) => setCropSlug(event.target.value)} required />
-              <Input label="Quantité (kg)" type="number" step="1" value={quantityKg} onChange={(event) => setQuantityKg(event.target.value)} optionalLabel="optionnel" />
-              <Input label="Code pays" value={countryCode} onChange={(event) => setCountryCode(event.target.value.toUpperCase().slice(0, 2))} required maxLength={2} />
+              <Input label={t('ui.cultureSlug')} value={cropSlug} onChange={(event) => setCropSlug(event.target.value)} required />
+              <Input label={t('ui.quantiteKg')} type="number" step="1" value={quantityKg} onChange={(event) => setQuantityKg(event.target.value)} optionalLabel={t('ui.optionnel')} />
+              <Input label={t('ui.codePays')} value={countryCode} onChange={(event) => setCountryCode(event.target.value.toUpperCase().slice(0, 2))} required maxLength={2} />
 
               {error ? <ErrorState error={error} showRequestId /> : null}
 
-              <Button label="Publier la demande" type="submit" loading={create.isPending} disabled={!cropSlug.trim()} />
+              <Button label={t('ui.publierLaDemande')} type="submit" loading={create.isPending} disabled={!cropSlug.trim()} />
             </form>
           </Card>
         </motion.div>

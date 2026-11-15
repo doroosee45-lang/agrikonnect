@@ -6,8 +6,10 @@ import { Button, Card, Input, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
 import { getUserInitialRoute } from '@/lib/redirects';
+import { useI18n } from '@/i18n';
 
 export default function Login() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
   const pendingMfa = useAuthStore((state) => state.pendingMfa);
@@ -42,7 +44,7 @@ export default function Login() {
       const etat = useAuthStore.getState();
       navigate(getUserInitialRoute({ user: etat.user, permissions: etat.permissions }).route);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Identifiants incorrects');
+      setError(err instanceof Error ? err.message : t('ui.identifiantsIncorrects'));
     }
   };
 
@@ -55,16 +57,12 @@ export default function Login() {
         style={{ width: '100%', maxWidth: 420 }}
       >
         <Card tone="white" style={{ padding: 32 }}>
-          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>
-            Connexion
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>
-            Accédez à votre espace producteur, acheteur ou investisseur.
-          </Text>
+          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>{t('ui.connexion')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, textAlign: 'center' }}>{t('ui.accedezAVotreEspaceProducteurAcheteur')}</Text>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <Input
-              label="Email ou téléphone"
+              label={t('ui.emailOuTelephone')}
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
@@ -72,7 +70,7 @@ export default function Login() {
               autoComplete="username"
             />
             <Input
-              label="Mot de passe"
+              label={t('ui.motDePasse')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -81,14 +79,14 @@ export default function Login() {
             />
             {showMfa ? (
               <Input
-                label="Code MFA"
+                label={t('ui.codeMfa')}
                 type="text"
                 value={mfaCode}
                 onChange={(e) => setMfaCode(e.target.value)}
-                placeholder="Code à 6 chiffres"
+                placeholder={t('ui.codeA6Chiffres')}
                 required
                 autoComplete="one-time-code"
-                hint="Second facteur requis pour ce compte"
+                hint={t('ui.secondFacteurRequisPourCeCompte')}
               />
             ) : null}
 
@@ -96,20 +94,14 @@ export default function Login() {
               <div style={{ fontSize: 13, color: COLORS.error, textAlign: 'center' }}>{error}</div>
             ) : null}
 
-            <Button label="Se connecter" type="submit" loading={busy} fullWidth />
+            <Button label={t('ui.seConnecter')} type="submit" loading={busy} fullWidth />
           </form>
 
-          <div style={{ marginTop: 24, textAlign: 'center', fontSize: 14, color: COLORS.slateGray }}>
-            Pas encore de compte ?{' '}
-            <Link to="/auth/register" style={{ color: COLORS.forestGreen, fontWeight: 600, textDecoration: 'none' }}>
-              Créer un compte
-            </Link>
+          <div style={{ marginTop: 24, textAlign: 'center', fontSize: 14, color: COLORS.slateGray }}>{t('ui.pasEncoreDeCompte')}{' '}<Link to="/auth/register" style={{ color: COLORS.forestGreen, fontWeight: 600, textDecoration: 'none' }}>{t('ui.creerUnCompte')}</Link>
           </div>
 
           <div style={{ marginTop: 16, textAlign: 'center' }}>
-            <Link to="/auth/forgot" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-              Mot de passe oublié ?
-            </Link>
+            <Link to="/auth/forgot" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.motDePasseOublie_d95cb')}</Link>
           </div>
         </Card>
       </motion.div>

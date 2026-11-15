@@ -7,6 +7,7 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n, tr } from '@/i18n';
 
 /**
  * ADMIN M2 — comptes utilisateurs (SPEC-SUPER-ADMIN U-M2-1).
@@ -17,9 +18,9 @@ import { COLORS, DURATION, EASE } from '@/theme';
  */
 
 const STATUTS = [
-  { valeur: '', label: 'Tous les statuts' },
-  { valeur: 'ACTIVE', label: 'Actifs' },
-  { valeur: 'SUSPENDED', label: 'Suspendus' },
+  { valeur: '', get label() { return tr('ui.tousLesStatuts'); } },
+  { valeur: 'ACTIVE', get label() { return tr('ui.actifs'); } },
+  { valeur: 'SUSPENDED', get label() { return tr('ui.suspendus'); } },
 ] as const;
 
 const ROLES_FILTRE = [
@@ -29,6 +30,7 @@ const ROLES_FILTRE = [
 ] as const;
 
 export default function AdminUsers() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<string>('');
@@ -50,13 +52,13 @@ export default function AdminUsers() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Comptes"
-        description="Gestion des utilisateurs, administrateurs et rôles."
+        title={t('ui.comptes')}
+        description={t('ui.gestionDesUtilisateursAdministrateursEtRoles')}
         icon="👥"
       >
         <ResourcePage<Row>
-          title="Comptes"
-          subtitle="Tous les comptes de la plateforme : recherche, statut, rôles, MFA."
+          title={t('ui.comptes')}
+          subtitle={t('ui.tousLesComptesDeLaPlateforme')}
           icon="👥"
           queryKey={queryKeys.admin.users(filtres)}
           fetch={() => adminApi.users(filtres).then((result) => result.data)}
@@ -70,8 +72,8 @@ export default function AdminUsers() {
               style={{ display: 'grid', gap: 12, marginBottom: 16 }}
             >
               <Input
-                label="Recherche"
-                placeholder="E-mail, nom, téléphone…"
+                label={t('ui.recherche')}
+                placeholder={t('ui.eMailNomTelephone')}
                 value={q}
                 onChange={(event) => setQ(event.target.value)}
               />
@@ -85,15 +87,13 @@ export default function AdminUsers() {
                   />
                 ))}
                 <FilterChip
-                  label="MFA active"
+                  label={t('ui.mfaActive')}
                   active={mfa === 'true'}
                   onPress={() => setMfa(mfa === 'true' ? '' : 'true')}
                 />
               </ChipRow>
               <label style={{ display: 'grid', gap: 6 }}>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Rôle
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.role')}</Text>
                 <select
                   value={role}
                   onChange={(event) => setRole(event.target.value)}
@@ -108,7 +108,7 @@ export default function AdminUsers() {
                 >
                   {ROLES_FILTRE.map((r) => (
                     <option key={r || 'tous'} value={r}>
-                      {r || 'Tous les rôles'}
+                      {r || t('ui.tousLesRoles')}
                     </option>
                   ))}
                 </select>
@@ -116,16 +116,16 @@ export default function AdminUsers() {
             </motion.div>
           }
           columns={[
-            { key: 'email', label: 'Email', render: render('email') },
+            { key: 'email', label: t('ui.email'), render: render('email') },
             {
               key: 'name',
-              label: 'Nom',
+              label: t('ui.nom'),
               render: (row) =>
                 `${String(row.firstName ?? '')} ${String(row.lastName ?? '')}`.trim() || '—',
             },
             {
               key: 'roles',
-              label: 'Rôles',
+              label: t('ui.roles'),
               render: (row) => {
                 const roles = Array.isArray(row.memberships)
                   ? [...new Set(row.memberships.flatMap((m: { roles?: string[] }) => m.roles ?? []))]
@@ -133,17 +133,17 @@ export default function AdminUsers() {
                 return roles.length ? roles.join(', ') : '—';
               },
             },
-            { key: 'countryCode', label: 'Pays', render: render('countryCode') },
-            { key: 'status', label: 'Statut', render: (row) => <StatusChip value={row.status} /> },
+            { key: 'countryCode', label: t('ui.pays'), render: render('countryCode') },
+            { key: 'status', label: t('ui.statut'), render: (row) => <StatusChip value={row.status} /> },
             {
               key: 'mfaEnabled',
               label: 'MFA',
               render: (row) => (row.mfaEnabled ? '✅' : '—'),
             },
-            { key: 'createdAt', label: 'Créé le', render: (row) => <DateCell value={row.createdAt} /> },
+            { key: 'createdAt', label: t('ui.creeLe'), render: (row) => <DateCell value={row.createdAt} /> },
           ]}
-          emptyTitle="Aucun compte"
-          emptyDescription="L'API d'administration n'a renvoyé aucun compte pour ces filtres."
+          emptyTitle={t('ui.aucunCompte')}
+          emptyDescription={t('ui.lApiDAdministrationNA')}
         />
       </AuthGate>
     </Section>

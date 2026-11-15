@@ -13,6 +13,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 /**
  * ADMIN M2 — comptes utilisateurs (SPEC-SUPER-ADMIN U-M2-1), miroir de
@@ -23,12 +24,13 @@ import { SPACING } from '@/theme/space';
  */
 
 const FILTRES_STATUT = [
-  { valeur: '', label: 'Tous' },
-  { valeur: 'ACTIVE', label: 'Actifs' },
-  { valeur: 'SUSPENDED', label: 'Suspendus' },
+  { valeur: '', get label() { return tr('ui.tous'); } },
+  { valeur: 'ACTIVE', get label() { return tr('ui.actifs'); } },
+  { valeur: 'SUSPENDED', get label() { return tr('ui.suspendus'); } },
 ] as const;
 
 export default function AdminUsers() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<string>('');
@@ -54,12 +56,12 @@ export default function AdminUsers() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Comptes" subtitle="Utilisateurs, administrateurs et rôles." />
+      <AppHeader title={t('ui.comptes')} subtitle={t('ui.utilisateursAdministrateursEtRoles')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Comptes" icon="people-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.comptes')} icon="people-outline">
           <Input
-            label="Recherche"
-            placeholder="E-mail, nom, téléphone…"
+            label={t('ui.recherche')}
+            placeholder={t('ui.eMailNomTelephone')}
             value={q}
             onChangeText={setQ}
             icon="search-outline"
@@ -81,17 +83,13 @@ export default function AdminUsers() {
               color={mfa === 'true' ? COLORS.forestGreen : COLORS.slateGray}
               onPress={() => setMfa(mfa === 'true' ? '' : 'true')}
               style={styles.lienFiltre}
-            >
-              MFA active
-            </Text>
+            >{t('ui.mfaActive')}</Text>
             <Text
               preset="caption"
               color={COLORS.forestGreen}
               onPress={() => router.push('/admin/roles')}
               style={styles.lienFiltre}
-            >
-              Rôles et permissions →
-            </Text>
+            >{t('ui.rolesEtPermissions_20e45')}</Text>
           </View>
 
           {query.isLoading ? (
@@ -100,8 +98,8 @@ export default function AdminUsers() {
             <ErrorState error={query.error} onRetry={() => void query.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucun compte"
-              description="L'API d'administration n'a renvoyé aucun compte pour ces filtres."
+              title={t('ui.aucunCompte')}
+              description={t('ui.lApiDAdministrationNA')}
               icon="people-outline"
             />
           ) : (

@@ -3,16 +3,14 @@ import { ZodError } from 'zod';
 import { ApiError } from '../errors/ApiError.js';
 import { logger } from './logger.js';
 import { env } from '../../config/env.js';
+import { translateMessage, zodIssuesToFieldErrors } from '../i18n/index.js';
 
 /** Traduit les erreurs connues (Prisma, Zod, JSON…) en ApiError lisibles. */
-const normalize = (err) => {
+const normalize = (err, locale) => {
   if (err instanceof ApiError) return err;
 
   if (err instanceof ZodError) {
-    return ApiError.badRequest(
-      'Validation error',
-      err.issues.map((i) => ({ field: i.path.join('.') || 'body', code: i.message })),
-    );
+    return ApiError.badRequest('Validation error', zodIssuesToFieldErrors(err.issues, 'body', locale));
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -59,7 +57,9 @@ const normalize = (err) => {
 /** Middleware d'erreur final — doit être déclaré en dernier. */
 // eslint-disable-next-line no-unused-vars
 export const errorHandler = (err, req, res, _next) => {
-  const apiError = normalize(err);
+  // I18N-01 — langue posée par localeMiddleware ; repli sur le français.
+  const locale = req.locale ?? 'fr';
+  const apiError = normalize(err, locale);
   const requestId = req.id ?? null;
 
   if (apiError.status >= 500) {
@@ -86,11 +86,25 @@ export const errorHandler = (err, req, res, _next) => {
      * une clé toujours présente est plus simple à consommer.
      */
     code: apiError.code ?? null,
-    message: apiError.message,
+    // Message lisible dans la langue de la requête (le texte source reste
+    // français dans le code ; voir shared/i18n).
+    message: translateMessage(apiError.message, locale),
     requestId,
   };
 
-  if (apiError.errors) body.errors = apiError.errors;
+  /*
+   * Erreurs par champ : `field` et `code` inchangés ; `message` ajouté (langue
+   * de la requête) quand l'émetteur ne l'a pas déjà fourni.
+   */
+  if (apiError.errors) {
+    body.errors = Array.isArray(apiError.errors)
+      ? apiError.errors.map((e) =>
+          e && typeof e === 'object' && e.message === undefined && typeof e.code === 'string'
+            ? { ...e, message: translateMessage(e.code, locale) }
+            : e,
+        )
+      : apiError.errors;
+  }
   if (apiError.details) body.details = apiError.details;
   if (env.isDev && apiError.status >= 500) body.stack = err?.stack;
 

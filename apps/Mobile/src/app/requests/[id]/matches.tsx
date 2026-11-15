@@ -20,6 +20,7 @@ import { SPACING } from '@/theme/space';
  * affiché — seule la donnée réellement renvoyée l'est.
  */
 export default function RequestMatches() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -32,10 +33,10 @@ export default function RequestMatches() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Correspondances" subtitle="Annonces correspondant à votre demande." />
+      <AppHeader title={t('ui.correspondances')} subtitle={t('ui.annoncesCorrespondantAVotreDemande')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Correspondances" icon="git-compare-outline">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune correspondance" description="Aucune annonce ne correspond actuellement à votre demande." icon="search-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.correspondances')} icon="git-compare-outline">
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneCorrespondance')} description={t('ui.aucuneAnnonceNeCorrespondActuellementA_5856a')} icon="search-outline" /> : (
             <View style={styles.list}>
               {items.map((listing, index) => (
                 <Reveal key={listing.id} index={index} variant="up">
@@ -43,7 +44,7 @@ export default function RequestMatches() {
                     <View style={styles.rowBody}>
                       <Text preset="bodyMedium">{listing.title}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {listing.organization?.name ?? 'organisation non renseignée'} · {listing.countryCode}
+                        {listing.organization?.name ?? t('ui.organisationNonRenseignee')} · {listing.countryCode}
                         {listing.province ? ` · ${listing.province}` : ''} · {listing.quantity} {listing.unit}
                       </Text>
                     </View>
@@ -51,7 +52,7 @@ export default function RequestMatches() {
                       {listing.indicativePrice !== null ? (
                         <Text preset="bodySm">{formatCurrency(listing.indicativePrice, listing.currency, locale)}</Text>
                       ) : (
-                        <Text preset="caption" color={COLORS.slateGray}>prix sur demande</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.prixSurDemande')}</Text>
                       )}
                       <Chip label={listing.status} tone="neutral" size="sm" />
                     </View>

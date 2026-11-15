@@ -12,6 +12,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** FARMER — aperçu de la fiche publique et contrôle de publication. */
 export default function FarmerPublicProfile() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
 
@@ -22,13 +23,9 @@ export default function FarmerPublicProfile() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Ma fiche publique" icon="🌍">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Ma fiche publique
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Ce que les visiteurs voient. Les contacts restent masqués tant que vous ne les rendez pas publics.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.maFichePublique')} icon="🌍">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.maFichePublique')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.ceQueLesVisiteursVoientLes')}</Text>
 
         {me.isLoading || farms.isLoading ? (
           <LoadingState count={2} height={110} />
@@ -43,14 +40,10 @@ export default function FarmerPublicProfile() {
               </div>
             </Card>
 
-            <Text preset="h3" style={{ marginBottom: 12 }}>
-              Exploitations publiées
-            </Text>
+            <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.exploitationsPubliees')}</Text>
             {published.length === 0 ? (
               <Card tone="pale">
-                <Text preset="bodySm" color={COLORS.slateGray}>
-                  Aucune exploitation n'est publiée. Publiez une exploitation pour apparaître dans l'annuaire.
-                </Text>
+                <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneExploitationNEstPublieePubliez')}</Text>
               </Card>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
@@ -66,12 +59,10 @@ export default function FarmerPublicProfile() {
                       <Text preset="h4" style={{ marginBottom: 4 }}>
                         {farm.name}
                       </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        {farm.countryCode} · mise à jour {formatDate(farm.updatedAt, locale)}
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.miseAJour_8b606', { countryCode: farm.countryCode, updatedAt: formatDate(farm.updatedAt, locale) })}</Text>
                       <div style={{ marginTop: 12 }}>
                         <Link to={`/public/farms/${farm.slug}`}>
-                          <Button label="Voir la fiche" variant="outline" size="sm" />
+                          <Button label={t('ui.voirLaFiche')} variant="outline" size="sm" />
                         </Link>
                       </div>
                     </Card>

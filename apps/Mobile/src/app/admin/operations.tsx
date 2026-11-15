@@ -10,6 +10,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n, tr } from '@/i18n';
 
 type Dict = Record<string, unknown>;
 
@@ -22,20 +23,20 @@ const asText = (value: unknown, repli = '—'): string => {
 };
 
 const ENTITES: Record<string, string> = {
-  listing: 'Annonces (marché)',
-  review: 'Avis clients',
-  verification: 'Demandes de vérification',
+  get listing() { return tr('ui.annoncesMarche'); },
+  get review() { return tr('ui.avisClients'); },
+  get verification() { return tr('ui.demandesDeVerification'); },
 };
 
 const DECISIONS: Array<{ cle: 'approve' | 'reject' | 'suspend'; libelle: string; variante: 'primary' | 'outline' | 'danger' }> = [
-  { cle: 'approve', libelle: 'Approuver', variante: 'primary' },
-  { cle: 'reject', libelle: 'Refuser', variante: 'danger' },
-  { cle: 'suspend', libelle: 'Suspendre', variante: 'outline' },
+  { cle: 'approve', get libelle() { return tr('ui.approuver'); }, variante: 'primary' },
+  { cle: 'reject', get libelle() { return tr('ui.refuser'); }, variante: 'danger' },
+  { cle: 'suspend', get libelle() { return tr('ui.suspendre'); }, variante: 'outline' },
 ];
 
 const messageErreur = (error: unknown): string => {
   const dict = asDict(error);
-  return typeof dict.message === 'string' && dict.message ? dict.message : 'Erreur inattendue';
+  return typeof dict.message === 'string' && dict.message ? dict.message : tr('ui.erreurInattendue');
 };
 
 /**
@@ -44,6 +45,7 @@ const messageErreur = (error: unknown): string => {
  * (RG-M4-1), notification de l'acteur concerné (RG-M4-2).
  */
 export default function AdminOperations() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const queryClient = useQueryClient();
   const [entite, setEntite] = useState('listing');
@@ -69,7 +71,7 @@ export default function AdminOperations() {
       const sortie = asDict(result.data);
       const apres = asDict(sortie.after);
       setAvis(
-        `Décision « ${variables.decision} » enregistrée — statut : ${asText(apres.status)} · acteur notifié : ${sortie.notified === true ? 'oui' : 'non (propriétaire inconnu)'}.`,
+        t('ui.decisionRecorded', { decision: variables.decision, status: asText(apres.status), notified: sortie.notified === true ? t('ui.notifiedYes') : t('ui.notifiedNoUnknownOwner') }),
       );
       setMotifs((actuels) => {
         const copie = { ...actuels };
@@ -85,22 +87,18 @@ export default function AdminOperations() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Opérations" subtitle="Modération unifiée des flux métier : listes, décisions motivées, notifications (U-M4-2)." />
+      <AppHeader title={t('ui.operations_8d02b')} subtitle={t('ui.moderationUnifieeDesFluxMetierListes')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Opérations" icon="folder-open-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.operations_8d02b')} icon="folder-open-outline">
           {file.isLoading ? (
             <LoadingState count={3} height={110} />
           ) : file.isError ? (
             <ErrorState error={file.error} onRetry={() => void file.refetch()} />
           ) : (
             <View style={styles.list}>
-              <Text preset="caption" color={COLORS.slateGray}>
-                Chaque décision est motivée puis déléguée au service métier concerné (RG-M4-1 : aucune
-                écriture directe) ; l'acteur concerné reçoit une notification et l'action est auditée (RG-M4-2).
-                La suspension n'est pas applicable aux demandes de vérification.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.operationsIntroPlain')}</Text>
 
-              <Text preset="caption" color={COLORS.slateGray}>Flux à modérer</Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.fluxAModerer')}</Text>
               <View style={styles.chips}>
                 {Object.entries(ENTITES).map(([cle, libelle]) => (
                   <FilterChip
@@ -117,13 +115,13 @@ export default function AdminOperations() {
                 ))}
               </View>
               <Input
-                label="Filtre statut"
-                placeholder="Ex. : DRAFT, PENDING, PUBLISHED…"
+                label={t('ui.filtreStatut')}
+                placeholder={t('ui.exDraftPendingPublished')}
                 value={statut}
                 onChangeText={setStatut}
                 icon="filter-outline"
               />
-              <Button label="Actualiser" variant="outline" size="sm" icon="refresh-outline" onPress={() => void file.refetch()} />
+              <Button label={t('ui.actualiser')} variant="outline" size="sm" icon="refresh-outline" onPress={() => void file.refetch()} />
 
               {avis ? (
                 <Card tone="white">
@@ -137,7 +135,7 @@ export default function AdminOperations() {
               ) : null}
 
               {lignes.length === 0 ? (
-                <EmptyState title="Aucun élément" description="Aucun élément à modérer pour ce flux." icon="folder-open-outline" />
+                <EmptyState title={t('ui.aucunElement')} description={t('ui.aucunElementAModererPourCe')} icon="folder-open-outline" />
               ) : (
                 lignes.map((item) => {
                   const id = asText(item.id, '');
@@ -151,8 +149,8 @@ export default function AdminOperations() {
                         {asText(item.entity)} · {formatDate(String(item.createdAt ?? ''))} · id {id}
                       </Text>
                       <Input
-                        label="Motif de la décision (obligatoire)"
-                        placeholder="Motif écrit — indispensable pour toute décision"
+                        label={t('ui.motifDeLaDecisionObligatoire')}
+                        placeholder={t('ui.motifEcritIndispensablePourTouteDecision')}
                         value={motifs[id] ?? ''}
                         onChangeText={(texte) => setMotifs({ ...motifs, [id]: texte })}
                         icon="pencil-outline"

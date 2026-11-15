@@ -19,6 +19,7 @@ import { SPACING } from '@/theme/space';
  * compte, et les champs sont renvoyés sous forme libre par le backend.
  */
 export default function PublicSiteProjects() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -30,10 +31,10 @@ export default function PublicSiteProjects() {
   const items = query.data ?? [];
   return (
     <PublicShell active="projets">
-      <PageHeader index="15" eyebrow="Investissement" title="Projets" subtitle="Projets publiés par des producteurs en recherche de financement." />
+      <PageHeader index="15" eyebrow={t('ui.investissement')} title={t('ui.projets')} subtitle={t('ui.projetsPubliesParDesProducteursEn')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Projets" icon="layers-outline" description="Les projets d\u2019investissement sont réservés aux comptes connectés.">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun projet" description="Aucun projet publié pour le moment." icon="layers-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.projets')} icon="layers-outline" description={t('ui.lesProjetsDInvestissementSontReserves')}>
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunProjet')} description={t('ui.aucunProjetPubliePourLeMoment')} icon="layers-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const project = row as Record<string, unknown>;
@@ -44,7 +45,7 @@ export default function PublicSiteProjects() {
                     <PressableCard onPress={() => router.push(`/public-site/projects/${projectId}` as never)}>
                       <View style={styles.row}>
                         <View style={styles.rowBody}>
-                          <Text preset="bodyMedium">{String(project.title ?? 'Projet sans titre')}</Text>
+                          <Text preset="bodyMedium">{String(project.title ?? t('ui.projetSansTitre'))}</Text>
                           <Text preset="caption" color={COLORS.slateGray}>
                             {String(project.countryCode ?? '—')}{createdAt ? ` · ${formatDate(createdAt, locale)}` : ''}
                           </Text>

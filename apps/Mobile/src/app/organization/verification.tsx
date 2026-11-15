@@ -13,6 +13,7 @@ import { SPACING } from '@/theme/space';
 
 /** Vérifications de l'organisation : une donnée déclarée n'est jamais présentée comme vérifiée. */
 export default function OrganizationVerification() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -24,31 +25,31 @@ export default function OrganizationVerification() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Vérification" subtitle="Niveau de preuve de votre organisation." />
+      <AppHeader title={t('ui.verification_bb27a')} subtitle={t('ui.niveauDePreuveDeVotreOrganisation')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Vérification" icon="shield-checkmark-outline">
-          {query.isLoading ? <LoadingState count={2} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune vérification" description="Aucune demande de vérification enregistrée." icon="shield-checkmark-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.verification_bb27a')} icon="shield-checkmark-outline">
+          {query.isLoading ? <LoadingState count={2} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneVerification')} description={t('ui.aucuneDemandeDeVerificationEnregistree')} icon="shield-checkmark-outline" /> : (
             <View style={styles.list}>
               {items.map((verification, index) => (
                 <Reveal key={verification.id} index={index} variant="up">
                   <Card tone="white" style={styles.card}>
                     <View style={styles.field}>
-                      <Text preset="caption" color={COLORS.slateGray}>Objet</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.objet')}</Text>
                       <Text preset="bodyMedium">{verification.subjectType}</Text>
                     </View>
                     <View style={styles.field}>
-                      <Text preset="caption" color={COLORS.slateGray}>Niveau</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.niveau_05881')}</Text>
                       <Text preset="bodySm">{verification.level}</Text>
                     </View>
                     <View style={styles.field}>
-                      <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                       <Chip label={verification.status} tone={verification.status === 'APPROVED' ? 'success' : verification.status === 'REJECTED' ? 'error' : 'neutral'} size="sm" />
                     </View>
                     <View style={styles.field}>
-                      <Text preset="caption" color={COLORS.slateGray}>Examiné le</Text>
-                      <Text preset="bodySm">{verification.reviewedAt ? formatDate(verification.reviewedAt, locale) : 'en attente'}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.examineLe')}</Text>
+                      <Text preset="bodySm">{verification.reviewedAt ? formatDate(verification.reviewedAt, locale) : t('ui.enAttente_5fba9')}</Text>
                     </View>
-                    {verification.reason ? <Text preset="caption" color={COLORS.slateGray}>Motif : {verification.reason}</Text> : null}
+                    {verification.reason ? <Text preset="caption" color={COLORS.slateGray}>{t('ui.motif_9f241', { reason: verification.reason })}</Text> : null}
                   </Card>
                 </Reveal>
               ))}

@@ -7,9 +7,11 @@ import { AuthGate, Button, Card, ErrorState, Input, Section, Text } from '@/comp
 import { plotApi } from '@/services/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** FARMER — création d'une parcelle. */
 export default function FarmerPlotCreate() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [farmId, setFarmId] = useState('');
@@ -37,20 +39,14 @@ export default function FarmerPlotCreate() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Nouvelle parcelle" icon="🗺️">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.nouvelleParcelle')} icon="🗺️">
         <div style={{ marginBottom: 24 }}>
-          <Link to="/farmer/plots" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour aux parcelles
-          </Link>
+          <Link to="/farmer/plots" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourAuxParcelles')}</Link>
         </div>
 
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.slow / 1000, ease: EASE.out }} style={{ maxWidth: 640 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Nouvelle parcelle
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-            La localisation saisie est approximative : elle protège la position exacte de la parcelle.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.nouvelleParcelle')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.laLocalisationSaisieEstApproximativeElle')}</Text>
 
           <Card tone="white">
             <form
@@ -60,17 +56,17 @@ export default function FarmerPlotCreate() {
               }}
               style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
             >
-              <Input label="Exploitation (identifiant)" value={farmId} onChange={(event) => setFarmId(event.target.value)} required />
-              <Input label="Nom" value={name} onChange={(event) => setName(event.target.value)} required />
-              <Input label="Surface (ha)" type="number" step="0.01" value={areaHa} onChange={(event) => setAreaHa(event.target.value)} optionalLabel="optionnel" />
+              <Input label={t('ui.exploitationIdentifiant')} value={farmId} onChange={(event) => setFarmId(event.target.value)} required />
+              <Input label={t('ui.nom')} value={name} onChange={(event) => setName(event.target.value)} required />
+              <Input label={t('ui.surfaceHa')} type="number" step="0.01" value={areaHa} onChange={(event) => setAreaHa(event.target.value)} optionalLabel={t('ui.optionnel')} />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <Input label="Latitude" type="number" step="0.000001" value={latitude} onChange={(event) => setLatitude(event.target.value)} optionalLabel="optionnel" />
-                <Input label="Longitude" type="number" step="0.000001" value={longitude} onChange={(event) => setLongitude(event.target.value)} optionalLabel="optionnel" />
+                <Input label={t('ui.latitude')} type="number" step="0.000001" value={latitude} onChange={(event) => setLatitude(event.target.value)} optionalLabel={t('ui.optionnel')} />
+                <Input label={t('ui.longitude')} type="number" step="0.000001" value={longitude} onChange={(event) => setLongitude(event.target.value)} optionalLabel={t('ui.optionnel')} />
               </div>
 
               {error ? <ErrorState error={error} showRequestId /> : null}
 
-              <Button label="Créer la parcelle" type="submit" loading={create.isPending} disabled={!name.trim() || !farmId.trim()} />
+              <Button label={t('ui.creerLaParcelle')} type="submit" loading={create.isPending} disabled={!name.trim() || !farmId.trim()} />
             </form>
           </Card>
         </motion.div>

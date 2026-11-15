@@ -24,6 +24,8 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { ENCRE, VERT } from '@/theme/agrikonnect';
 import type { SeasonFeedback } from '@/services/types';
+import { useI18n } from '@/i18n';
+import { bcpLocale } from '@/lib/format';
 
 /** Année en cours : la saison déclarée est presque toujours celle-ci ou la suivante. */
 const CURRENT_YEAR = new Date().getFullYear();
@@ -34,13 +36,9 @@ const CURRENT_YEAR = new Date().getFullYear();
  * Le backend renvoie le même texte dans `scoreNote`. Il est répété ici pour que
  * l'écran reste honnête même si la réponse ne le porte pas.
  */
-const SCORE_NOTE =
-  'Le score d’une recommandation mesure l’adéquation d’un sol à une culture, pas un '
-  + 'rendement attendu. Un rendement faible sur une culture bien classée peut venir du '
-  + 'climat, des ravageurs ou de la récolte, qui ne sont pas mesurés ici.';
 
 const formatKg = (value: number) =>
-  new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value);
+  new Intl.NumberFormat(bcpLocale(), { maximumFractionDigits: 0 }).format(value);
 
 const emptyForm = () => ({
   plotId: '',
@@ -68,6 +66,7 @@ const emptyForm = () => ({
  *   donnée saisie, et il disparaît quand la surface est inconnue.
  */
 export default function SeasonFeedbackPage() {
+  const { t } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [form, setForm] = useState(emptyForm);
@@ -118,8 +117,7 @@ export default function SeasonFeedbackPage() {
       }),
     onSuccess: (response) => {
       setSaved(
-        `Rendement enregistré : ${formatKg(response.data.seasonFeedback.actualYieldKg)} kg.`
-        + ' Merci — c’est cette donnée qui permet d’améliorer les recommandations.',
+        t('ui.yieldSavedThanks', { kg: formatKg(response.data.seasonFeedback.actualYieldKg) }),
       );
       setForm(emptyForm);
       invalidate();
@@ -140,8 +138,8 @@ export default function SeasonFeedbackPage() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Rendements réels"
-        description="Connectez-vous pour déclarer ce que vous avez réellement récolté."
+        title={t('ui.rendementsReels')}
+        description={t('ui.connectezVousPourDeclarerCeQue')}
         icon="🌾"
       >
         {/* ====== En-tête : un seul h1 (A1, I6) ====== */}
@@ -149,11 +147,9 @@ export default function SeasonFeedbackPage() {
           <Reveal>
             <TitreSection
               niveau={1}
-              surtitre="Retour de saison"
-              titre="Rendements réels"
-              intro="Déclarez ce que vous avez récolté. C'est la seule donnée que la plateforme ne
-                     peut pas mesurer elle-même, et c'est elle qui permet d'améliorer les
-                     recommandations."
+              surtitre={t('ui.seasonReviewEyebrow')}
+              titre={t('ui.rendementsReels')}
+              intro={t('ui.declarezCeQueVousAvezRecolte')}
             />
           </Reveal>
         </div>
@@ -169,13 +165,8 @@ export default function SeasonFeedbackPage() {
                   fontWeight: 600,
                   color: VERT[900],
                 }}
-              >
-                Déclarer un rendement
-              </h2>
-              <p style={{ marginTop: 6, fontSize: 'var(--texte-dense)', color: ENCRE[500] }}>
-                Toutes les valeurs sont déclaratives. Rien n'est estimé à votre place&nbsp;: un
-                champ laissé vide reste vide.
-              </p>
+              >{t('ui.declarerUnRendement')}</h2>
+              <p style={{ marginTop: 6, fontSize: 'var(--texte-dense)', color: ENCRE[500] }}>{t('ui.toutesLesValeursSontDeclarativesRien')}</p>
 
               <div
                 style={{
@@ -186,8 +177,7 @@ export default function SeasonFeedbackPage() {
                 }}
               >
                 <div>
-                  <label htmlFor="saison-parcelle" className="etiquette-champ">
-                    Parcelle <span aria-hidden="true" style={{ color: 'var(--terre-600)' }}>*</span>
+                  <label htmlFor="saison-parcelle" className="etiquette-champ">{t('ui.parcelle')}{' '}<span aria-hidden="true" style={{ color: 'var(--terre-600)' }}>*</span>
                   </label>
                   <select
                     id="saison-parcelle"
@@ -196,7 +186,7 @@ export default function SeasonFeedbackPage() {
                     aria-required="true"
                     onChange={(event) => set('plotId')(event.target.value)}
                   >
-                    <option value="">Choisir une parcelle</option>
+                    <option value="">{t('ui.choisirUneParcelle')}</option>
                     {(plots.data ?? []).map((plot) => (
                       <option key={plot.id} value={plot.id}>
                         {plot.name}
@@ -206,8 +196,7 @@ export default function SeasonFeedbackPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="saison-culture" className="etiquette-champ">
-                    Culture <span aria-hidden="true" style={{ color: 'var(--terre-600)' }}>*</span>
+                  <label htmlFor="saison-culture" className="etiquette-champ">{t('ui.culture')}{' '}<span aria-hidden="true" style={{ color: 'var(--terre-600)' }}>*</span>
                   </label>
                   <select
                     id="saison-culture"
@@ -216,7 +205,7 @@ export default function SeasonFeedbackPage() {
                     aria-required="true"
                     onChange={(event) => set('cropId')(event.target.value)}
                   >
-                    <option value="">Choisir une culture</option>
+                    <option value="">{t('ui.choisirUneCulture')}</option>
                     {(crops.data ?? []).map((crop) => (
                       <option key={crop.id} value={crop.slug ?? crop.id}>
                         {crop.slug ?? crop.id}
@@ -227,15 +216,15 @@ export default function SeasonFeedbackPage() {
 
                 <Champ
                   id="saison-nom"
-                  label="Saison"
+                  label={t('ui.saison')}
                   valeur={form.season}
                   onChange={set('season')}
-                  placeholder="Saison A"
+                  placeholder={t('ui.saisonA')}
                   obligatoire
                 />
                 <Champ
                   id="saison-annee"
-                  label="Année"
+                  label={t('ui.annee')}
                   valeur={form.year}
                   onChange={set('year')}
                   type="number"
@@ -244,7 +233,7 @@ export default function SeasonFeedbackPage() {
                 />
                 <Champ
                   id="saison-debut"
-                  label="Début de période"
+                  label={t('ui.debutDePeriode')}
                   valeur={form.periodStart}
                   onChange={set('periodStart')}
                   type="date"
@@ -252,7 +241,7 @@ export default function SeasonFeedbackPage() {
                 />
                 <Champ
                   id="saison-fin"
-                  label="Fin de période"
+                  label={t('ui.finDePeriode')}
                   valeur={form.periodEnd}
                   onChange={set('periodEnd')}
                   type="date"
@@ -260,22 +249,22 @@ export default function SeasonFeedbackPage() {
                 />
                 <Champ
                   id="saison-rendement"
-                  label="Rendement total récolté (kg)"
+                  label={t('ui.rendementTotalRecolteKg')}
                   valeur={form.actualYieldKg}
                   onChange={set('actualYieldKg')}
                   type="number"
                   inputMode="decimal"
                   obligatoire
-                  aide="Le total de la récolte, pas un rendement à l'hectare."
+                  aide={t('ui.leTotalDeLaRecoltePas')}
                 />
                 <Champ
                   id="saison-surface"
-                  label="Surface récoltée (ha)"
+                  label={t('ui.surfaceRecolteeHa')}
                   valeur={form.areaHa}
                   onChange={set('areaHa')}
                   type="number"
                   inputMode="decimal"
-                  aide="Sans surface, aucun rendement à l'hectare ne sera calculé."
+                  aide={t('ui.sansSurfaceAucunRendementAL')}
                 />
               </div>
 
@@ -286,8 +275,8 @@ export default function SeasonFeedbackPage() {
               */}
               <p style={{ marginTop: 16, fontSize: 'var(--texte-dense)', color: ENCRE[500] }}>
                 {previewPerHa !== null
-                  ? `Soit ${previewPerHa.toLocaleString('fr-FR')} kg/ha (calculé à partir de vos deux valeurs).`
-                  : 'Rendement par hectare : non calculé — la surface n’est pas renseignée.'}
+                  ? t('ui.soitKgHaCalculeAPartir', { value: previewPerHa.toLocaleString(bcpLocale()) })
+                  : t('ui.rendementParHectareNonCalculeLa')}
               </p>
 
               <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -298,9 +287,7 @@ export default function SeasonFeedbackPage() {
                   charge={create.isPending}
                   labelleCharge="Enregistrement…"
                   disabled={!form.plotId || !form.cropId || !form.season || !form.actualYieldKg}
-                >
-                  Enregistrer le rendement
-                </Bouton>
+                >{t('ui.enregistrerLeRendement')}</Bouton>
               </div>
 
               {create.isError ? (
@@ -328,9 +315,7 @@ export default function SeasonFeedbackPage() {
                     fontWeight: 600,
                     color: VERT[900],
                   }}
-                >
-                  Rendements déclarés
-                </h2>
+                >{t('ui.rendementsDeclares')}</h2>
 
                 <div style={{ marginTop: 16 }}>
                   {feedbacks.isLoading ? (
@@ -339,9 +324,7 @@ export default function SeasonFeedbackPage() {
                     <ErrorState error={feedbacks.error} onRetry={() => void feedbacks.refetch()} />
                   ) : items.length === 0 ? (
                     /* Un état vide est toujours un texte explicite, jamais un blanc. */
-                    <Encadre ton="info" titre="Aucun rendement déclaré">
-                      Les rendements apparaîtront ici après votre première récolte.
-                    </Encadre>
+                    <Encadre ton="info" titre={t('ui.aucunRendementDeclare')}>{t('ui.lesRendementsApparaitrontIciApresVotre')}</Encadre>
                   ) : (
                     /*
                       Recette obligatoire pour un tableau large (§5.5) : conteneur
@@ -352,7 +335,7 @@ export default function SeasonFeedbackPage() {
                     <div
                       className="relative overflow-x-auto"
                       role="region"
-                      aria-label="Rendements déclarés (défilement horizontal si nécessaire)"
+                      aria-label={t('ui.rendementsDeclaresDefilementHorizontalSiNecessai')}
                       tabIndex={0}
                       style={{ overflowX: 'auto' }}
                     >
@@ -364,10 +347,7 @@ export default function SeasonFeedbackPage() {
                           fontSize: 'var(--texte-dense)',
                         }}
                       >
-                        <caption className="visually-hidden">
-                          Rendements déclarés, avec la parcelle, la culture, la saison, la
-                          récolte, la surface et le rendement à l'hectare
-                        </caption>
+                        <caption className="visually-hidden">{t('ui.rendementsDeclaresAvecLaParcelleLa')}</caption>
                         <thead>
                           <tr style={{ background: VERT[800], color: 'var(--creme-100)' }}>
                             {['Parcelle', 'Culture', 'Saison', 'Récolte', 'Surface', 'kg/ha', 'Source', ''].map(
@@ -405,7 +385,7 @@ export default function SeasonFeedbackPage() {
                                   color: VERT[900],
                                 }}
                               >
-                                {item.plot?.name ?? 'Parcelle'}
+                                {item.plot?.name ?? t('ui.parcelle')}
                               </th>
                               <td style={{ padding: '10px 14px' }}>{item.crop?.slug ?? item.cropId}</td>
                               <td style={{ padding: '10px 14px' }}>
@@ -419,12 +399,12 @@ export default function SeasonFeedbackPage() {
                               </td>
                               <td style={{ padding: '10px 14px', fontVariantNumeric: 'tabular-nums' }}>
                                 {item.yieldPerHa !== null
-                                  ? item.yieldPerHa.toLocaleString('fr-FR')
-                                  : 'surface inconnue'}
+                                  ? item.yieldPerHa.toLocaleString(bcpLocale())
+                                  : t('ui.surfaceInconnue')}
                               </td>
                               <td style={{ padding: '10px 14px' }}>
                                 <Etiquette ton={item.source === 'declared' ? 'vert' : 'terre'}>
-                                  {item.source === 'declared' ? 'Déclaré' : item.source}
+                                  {item.source === 'declared' ? t('common.declared') : item.source}
                                 </Etiquette>
                                 {item.version > 1 ? (
                                   <span style={{ marginLeft: 6 }}>
@@ -437,7 +417,7 @@ export default function SeasonFeedbackPage() {
                                   variante="fantome"
                                   onClick={() => setCompareId(compareId === item.id ? null : item.id)}
                                 >
-                                  {compareId === item.id ? 'Masquer' : 'Comparer'}
+                                  {compareId === item.id ? t('ui.masquer') : t('ui.comparer')}
                                 </Bouton>
                               </td>
                             </tr>
@@ -475,9 +455,7 @@ export default function SeasonFeedbackPage() {
                       >
                         <span aria-hidden="true" style={{ fontSize: 18 }}>
                           <IconeGraphique />
-                        </span>
-                        Comparaison avec la recommandation
-                      </h2>
+                        </span>{t('ui.comparaisonAvecLaRecommandation')}</h2>
 
                       <div style={{ marginTop: 12 }}>
                         {comparison.data?.comparable && comparison.data.recommendation ? (
@@ -491,22 +469,19 @@ export default function SeasonFeedbackPage() {
                                 */}
                                 <BadgeFiabilite
                                   niveau={Math.max(1, Math.min(5, Math.round((comparison.data.recommendation.cultureRank.score ?? 0) * 5)))}
-                                  source={`classée ${comparison.data.recommendation.cultureRank.rank}ᵉ sur ${comparison.data.recommendation.culturesClassified}`}
+                                  source={t('ui.rankedOutOf', { rank: comparison.data.recommendation.cultureRank.rank, total: comparison.data.recommendation.culturesClassified })}
                                 />
                                 <span style={{ fontSize: 'var(--texte-dense)', color: ENCRE[500] }}>
                                   score {comparison.data.recommendation.cultureRank.score ?? '—'}
                                 </span>
                               </>
                             ) : (
-                              <p style={{ fontSize: 'var(--texte-dense)', color: ENCRE[500] }}>
-                                Cette culture ne figurait pas dans le classement de la
-                                recommandation.
-                              </p>
+                              <p style={{ fontSize: 'var(--texte-dense)', color: ENCRE[500] }}>{t('ui.cetteCultureNeFiguraitPasDans')}</p>
                             )}
                           </div>
                         ) : (
                           <p style={{ fontSize: 'var(--texte-dense)', color: ENCRE[500] }}>
-                            {comparison.data?.reason ?? 'Rapprochement indisponible.'}
+                            {comparison.data?.reason ?? t('ui.rapprochementIndisponible')}
                           </p>
                         )}
                       </div>
@@ -517,8 +492,8 @@ export default function SeasonFeedbackPage() {
                         désaveu de la recommandation.
                       */}
                       <div style={{ marginTop: 16 }}>
-                        <Encadre ton="attention" titre="Adéquation, pas rendement">
-                          {comparison.data?.scoreNote ?? SCORE_NOTE}
+                        <Encadre ton="attention" titre={t('ui.adequationPasRendement')}>
+                          {t('ui.scoreNote')}
                         </Encadre>
                       </div>
                     </>
@@ -531,15 +506,11 @@ export default function SeasonFeedbackPage() {
           {/* ====== Rappel de ce que cet écran ne fait pas ====== */}
           <Reveal delai={70}>
             <div style={{ marginTop: 16 }}>
-              <Encadre ton="info" titre="Ce que cet écran ne calcule pas">
+              <Encadre ton="info" titre={t('ui.ceQueCetEcranNeCalcule')}>
                 <span style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
                   <span aria-hidden="true" style={{ flexShrink: 0, marginTop: 2, fontSize: 16 }}>
                     <IconePlant />
-                  </span>
-                  Aucune estimation de rendement n'est produite ici, ni ailleurs dans
-                  l'application. Un rendement manquant reste manquant&nbsp;: il n'est jamais
-                  complété par une moyenne.
-                </span>
+                  </span>{t('ui.aucuneEstimationDeRendementNEst')}</span>
               </Encadre>
             </div>
           </Reveal>

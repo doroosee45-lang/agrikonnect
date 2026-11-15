@@ -6,7 +6,7 @@ import { queryKeys } from '@/services/query';
 import type { ExportDocument } from '@/services/types';
 import { Chip } from '@/components/ui';
 import { formatDate } from '@/lib/format';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 
 /**
  * FARMER — pièces rattachées à un dossier d'exportation (accès tracé).
@@ -18,43 +18,44 @@ import { useI18n } from '@/i18n';
  */
 
 const TYPE_LABEL: Record<string, string> = {
-  INVOICE: 'Facture commerciale',
-  CERTIFICATE_OF_ORIGIN: "Certificat d'origine",
-  PHYTOSANITARY: 'Certificat phytosanitaire',
-  BILL_OF_LADING: 'Connaissement / LTA',
+  get INVOICE() { return tr('ui.factureCommerciale'); },
+  get CERTIFICATE_OF_ORIGIN() { return tr('ui.certificatDOrigine'); },
+  get PHYTOSANITARY() { return tr('ui.certificatPhytosanitaire'); },
+  get BILL_OF_LADING() { return tr('ui.connaissementLta'); },
 };
 
 export default function FarmerExportDocuments() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
 
   return (
     <ResourcePage<ExportDocument>
-      title="Documents du dossier"
-      subtitle="Pièces rattachées à ce dossier d'exportation. Chaque consultation est journalisée."
+      title={t('ui.documentsDuDossier')}
+      subtitle={t('ui.piecesRattacheesACeDossierD')}
       icon="📎"
       queryKey={queryKeys.exports.one(id ?? '')}
       fetch={() => exportApi.get(id ?? '').then((result) => result.data.exportOrder.documents)}
       rowKey={(document) => document.id}
       columns={[
-        { key: 'name', label: 'Fichier', render: (document) => document.name },
+        { key: 'name', label: t('ui.fichier'), render: (document) => document.name },
         {
           key: 'type',
-          label: 'Type',
+          label: t('ui.type'),
           render: (document) => (
             <Chip label={TYPE_LABEL[document.type] ?? document.type} tone="neutral" size="sm" />
           ),
         },
         {
           key: 'storageKey',
-          label: 'Stockage',
-          render: (document) => (document.storageKey ? 'déposé' : 'référence seule'),
+          label: t('ui.stockage'),
+          render: (document) => (document.storageKey ? t('ui.depose') : t('ui.referenceSeule')),
         },
-        { key: 'issuedAt', label: 'Émis le', render: (document) => formatDate(document.issuedAt, locale) },
+        { key: 'issuedAt', label: t('ui.emisLe'), render: (document) => formatDate(document.issuedAt, locale) },
       ]}
-      emptyTitle="Aucun document"
-      emptyDescription="Aucune pièce n'est rattachée à ce dossier. La certification est refusée tant que les quatre pièces obligatoires ne sont pas toutes présentes."
-      notice="Les quatre pièces obligatoires : facture commerciale, certificat d'origine, certificat phytosanitaire, connaissement / LTA."
+      emptyTitle={t('ui.aucunDocument')}
+      emptyDescription={t('ui.aucunePieceNEstRattacheeA')}
+      notice={t('ui.lesQuatrePiecesObligatoiresFactureCommerciale')}
     />
   );
 }

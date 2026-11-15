@@ -41,7 +41,7 @@ export function ServicesSection() {
   return (
     <Section
       index={2}
-      eyebrow="Services"
+      eyebrow={t('ui.services')}
       title={t('home.servicesTitle')}
       subtitle={t('home.servicesSubtitle')}
       background={COLORS.naturalWhite}
@@ -63,6 +63,7 @@ export function ServicesSection() {
 }
 
 function ServiceCard({ service }: { service: PlatformService }) {
+  const { t } = useI18n();
   const hover = useSharedValue(0);
   const tone = TONES[service.tone];
 
@@ -100,7 +101,7 @@ function ServiceCard({ service }: { service: PlatformService }) {
 
           <View style={styles.cardFooter}>
             <Chip
-              label={service.requiresAuth ? 'Compte requis' : 'Accès libre'}
+              label={service.requiresAuth ? t('ui.compteRequis_19726') : t('ui.accesLibre')}
               tone={service.requiresAuth ? 'neutral' : 'success'}
               icon={service.requiresAuth ? 'lock-closed-outline' : 'checkmark-circle-outline'}
               size="sm"
@@ -114,6 +115,7 @@ function ServiceCard({ service }: { service: PlatformService }) {
 
 /** Section 5 — ce que chaque rôle vient chercher sur la plateforme. */
 export function RolesSection() {
+  const { t } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 820;
 
@@ -121,43 +123,43 @@ export function RolesSection() {
     {
       icon: 'leaf-outline' as const,
       role: 'Producteur',
-      body: 'Déclarer ses parcelles, suivre ses productions, obtenir un diagnostic de sol et publier un profil vérifiable.',
+      body: t('ui.declarerSesParcellesSuivreSesProductions'),
       href: '/auth/register',
     },
     {
       icon: 'people-outline' as const,
       role: 'Coopérative',
-      body: 'Consolider les volumes de ses membres, préparer les lots et répondre aux appels d’offres.',
+      body: t('ui.consoliderLesVolumesDeSesMembres'),
       href: '/cooperatives',
     },
     {
       icon: 'cart-outline' as const,
       role: 'Acheteur & transformateur',
-      body: 'Sourcer par filière et par saison, vérifier l’origine d’un lot avant d’acheter, suivre la commande.',
+      body: t('ui.sourcerParFiliereEtParSaison'),
       href: '/marches',
     },
     {
       icon: 'briefcase-outline' as const,
       role: 'Investisseur',
-      body: 'Consulter des dossiers de projet, accéder à une dataroom à durée limitée, suivre le reporting d’impact.',
+      body: t('ui.consulterDesDossiersDeProjetAcceder'),
       href: '/projets',
     },
     {
       icon: 'shield-checkmark-outline' as const,
       role: 'Vérificateur',
-      body: 'Instruire les demandes de vérification terrain et horodater chaque contrôle.',
+      body: t('ui.instruireLesDemandesDeVerificationTerrain'),
       href: '/reviewer',
     },
     {
       icon: 'walk-outline' as const,
       role: 'Agent de terrain',
-      body: 'Saisir des observations hors ligne, relever des prix de marché, accompagner les inscriptions.',
+      body: t('ui.saisirDesObservationsHorsLigneRelever'),
       href: '/agent',
     },
   ];
 
   return (
-    <Section index={3} eyebrow="Réseau" title="Un outil par métier" subtitle="La même donnée, des usages différents selon le rôle." background={COLORS.pureWhite}>
+    <Section index={3} eyebrow={t('ui.reseau')} title={t('ui.unOutilParMetier')} subtitle={t('ui.laMemeDonneeDesUsagesDifferents')} background={COLORS.pureWhite}>
       <View style={[styles.rolesGrid, wide ? styles.rolesGridWide : null]}>
         {roles.map((role, index) => (
           <Reveal key={role.role} index={index % 3} variant="up" style={styles.roleItem}>

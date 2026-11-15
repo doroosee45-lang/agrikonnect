@@ -7,24 +7,25 @@ type Transporter = Record<string, unknown>;
 
 /** MARKET — transporteurs référencés. */
 export default function MarketTransporters() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Transporter>
-      title="Transporteurs"
-      subtitle="Transporteurs référencés sur la plateforme."
+      title={t('ui.transporteurs')}
+      subtitle={t('ui.transporteursReferencesSurLaPlateforme')}
       icon="🚚"
       public
       queryKey={['transport', 'carriers'] as unknown[]}
       fetch={async () => [] as Transporter[]}
       rowKey={(transporter) => String(transporter.id)}
       columns={[
-        { key: 'name', label: 'Nom', render: (transporter) => String(transporter.name ?? '—') },
-        { key: 'countryCode', label: 'Pays', render: (transporter) => <Chip label={String(transporter.countryCode ?? '—')} tone="neutral" size="sm" /> },
-        { key: 'status', label: 'Statut', render: (transporter) => <Chip label={String(transporter.status ?? '—')} tone="neutral" size="sm" /> },
-        { key: 'registeredAt', label: 'Inscrit le', render: (transporter) => (transporter.createdAt ? formatDate(String(transporter.createdAt), locale) : '—') },
+        { key: 'name', label: t('ui.nom'), render: (transporter) => String(transporter.name ?? '—') },
+        { key: 'countryCode', label: t('ui.pays'), render: (transporter) => <Chip label={String(transporter.countryCode ?? '—')} tone="neutral" size="sm" /> },
+        { key: 'status', label: t('ui.statut'), render: (transporter) => <Chip label={String(transporter.status ?? '—')} tone="neutral" size="sm" /> },
+        { key: 'registeredAt', label: t('ui.inscritLe'), render: (transporter) => (transporter.createdAt ? formatDate(String(transporter.createdAt), locale) : '—') },
       ]}
-      emptyTitle="Aucun transporteur"
-      emptyDescription="Aucun transporteur n'est actuellement référencé."
+      emptyTitle={t('ui.aucunTransporteur')}
+      emptyDescription={t('ui.aucunTransporteurNEstActuellementReference')}
     />
   );
 }

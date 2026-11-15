@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerNotifications() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function FarmerNotifications() {
   const items = query.data?.items ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Notifications" subtitle="Vos notifications." />
+      <FarmerHeader title={t('ui.notifications')} subtitle={t('ui.vosNotifications')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Notifications" icon="notifications-outline">
-          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune notification" description="Vos notifications apparaîtront ici." icon="notifications-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.notifications')} icon="notifications-outline">
+          {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneNotification')} description={t('ui.vosNotificationsApparaitrontIci')} icon="notifications-outline" /> : (
             <View style={styles.list}>
               {items.map((notification, index) => (
                 <Reveal key={notification.id} index={index} variant="up">
@@ -35,7 +36,7 @@ export default function FarmerNotifications() {
                       <Text preset="bodySm">{notification.title}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>{formatDate(notification.createdAt, locale)}</Text>
                     </View>
-                    {!notification.readAt ? <Chip label="nouveau" tone="warning" size="sm" /> : null}
+                    {!notification.readAt ? <Chip label={t('ui.nouveau_cafe5')} tone="warning" size="sm" /> : null}
                   </Card>
                 </Reveal>
               ))}

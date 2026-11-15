@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerInventory() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function FarmerInventory() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Stock" subtitle="Inventaire de vos produits." />
+      <FarmerHeader title={t('ui.stock')} subtitle={t('ui.inventaireDeVosProduits')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Stock" icon="cube-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Stock vide" description="Aucun produit en stock." icon="cube-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.stock')} icon="cube-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.stockVide')} description={t('ui.aucunProduitEnStock')} icon="cube-outline" /> : (
             <View style={styles.list}>
               {items.map((item, index) => {
                 const stock = item.stock ?? 0;
@@ -36,7 +37,7 @@ export default function FarmerInventory() {
                     <Card tone="white" style={styles.row}>
                       <View style={styles.rowBody}>
                         <Text preset="bodyMedium">{item.label}</Text>
-                        <Text preset="caption" color={COLORS.slateGray}>{item.cropId ?? 'culture non renseignée'} · seuil bas {item.lowStockThreshold ?? '—'}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{item.cropId ?? t('ui.cultureNonRenseignee')}{' '}{t('ui.seuilBas', { value: item.lowStockThreshold ?? '—' })}</Text>
                       </View>
                       <Chip label={`${formatNumber(stock, locale)} ${item.unit}`} tone={low ? 'warning' : 'neutral'} size="sm" />
                     </Card>

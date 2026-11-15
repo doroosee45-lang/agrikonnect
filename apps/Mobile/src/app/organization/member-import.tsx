@@ -9,6 +9,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Import de membres en masse.
@@ -18,6 +19,7 @@ import { SPACING } from '@/theme/space';
  * ignorées en silence.
  */
 export default function OrganizationMemberImport() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [raw, setRaw] = useState('');
   const [error, setError] = useState<unknown>(null);
@@ -49,30 +51,28 @@ export default function OrganizationMemberImport() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Import de membres" subtitle="Ajoutez plusieurs membres à la fois." />
+      <AppHeader title={t('ui.importDeMembres')} subtitle={t('ui.ajoutezPlusieursMembresALaFois')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Import de membres" icon="cloud-upload-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.importDeMembres')} icon="cloud-upload-outline">
           <Card tone="pale">
-            <Text preset="caption" color={COLORS.slateGray}>
-              Une ligne par membre, au format : email, prénom, nom. Les lignes invalides sont comptées comme ignorées.
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.uneLigneParMembreAuFormat')}</Text>
           </Card>
           <Card tone="white">
             <View style={styles.form}>
-              <Input label="Liste des membres" value={raw} onChangeText={setRaw} multiline helper="email, prénom, nom" />
+              <Input label={t('ui.listeDesMembres')} value={raw} onChangeText={setRaw} multiline helper={t('ui.emailPrenomNom')} />
               {error ? <ErrorState error={error} /> : null}
               {result ? (
                 <Card tone="pale">
-                  <Text preset="bodySm">{result.imported} membre(s) importé(s) · {result.skipped} ignoré(s)</Text>
+                  <Text preset="bodySm">{t('ui.membreSImporteSIgnoreS', { imported: result.imported, skipped: result.skipped })}</Text>
                 </Card>
               ) : null}
               <Button
-                label="Importer"
+                label={t('ui.importer')}
                 onPress={() => importMembers.mutate()}
                 loading={importMembers.isPending}
                 disabled={!cooperativeId || raw.trim().length === 0}
               />
-              {!cooperativeId ? <Text preset="caption" color={COLORS.slateGray}>Aucune coopérative rattachée à votre organisation.</Text> : null}
+              {!cooperativeId ? <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucuneCooperativeRattacheeAVotreOrganisation')}</Text> : null}
             </View>
           </Card>
         </AuthGate>

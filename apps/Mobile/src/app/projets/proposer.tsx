@@ -20,22 +20,22 @@ export default function ProjetsProposer() {
   const submit = () => {
     setPending(true);
     setError(null);
-    setError(new Error("La création de projet depuis l'application est en cours d'activation."));
+    setError(new Error(t('ui.laCreationDeProjetDepuisL_b06e1')));
     setPending(false);
   };
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Proposer un projet" subtitle="Soumettez un projet d'investissement." />
+      <AppHeader title={t('ui.proposerUnProjet')} subtitle={t('ui.soumettezUnProjetDInvestissement')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Proposer un projet" icon="add-circle-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.proposerUnProjet')} icon="add-circle-outline">
           <Card tone="white">
             <View style={styles.form}>
-              <Input label="Titre" value={title} onChangeText={setTitle} />
-              <Input label="Description" value={summary} onChangeText={setSummary} multiline />
+              <Input label={t('ui.titre')} value={title} onChangeText={setTitle} />
+              <Input label={t('ui.description')} value={summary} onChangeText={setSummary} multiline />
               {error ? <ErrorState error={error} /> : null}
-              <Text preset="caption" color={COLORS.slateGray}>{"Les champs marqués d'un astérisque sont obligatoires."}</Text>
-              <Button label="Envoyer la proposition" onPress={submit} loading={pending} disabled={title.trim().length === 0} />
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.lesChampsMarquesDUnAsterisque')}</Text>
+              <Button label={t('ui.envoyerLaProposition')} onPress={submit} loading={pending} disabled={title.trim().length === 0} />
             </View>
           </Card>
         </AuthGate>

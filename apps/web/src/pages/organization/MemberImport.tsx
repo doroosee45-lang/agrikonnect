@@ -54,6 +54,7 @@ interface ImportRow {
 }
 
 export default function OrganizationMemberImport() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -84,7 +85,7 @@ export default function OrganizationMemberImport() {
     },
     onError: (error) => {
       setReport(null);
-      setFailure(error instanceof Error ? error.message : 'Import impossible.');
+      setFailure(error instanceof Error ? error.message : t('ui.importImpossible'));
     },
   });
 
@@ -94,8 +95,8 @@ export default function OrganizationMemberImport() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Import de membres"
-        description="Importez une liste de membres depuis un fichier CSV."
+        title={t('ui.importDeMembres')}
+        description={t('ui.importezUneListeDeMembresDepuis')}
         icon="📥"
       >
         <motion.div
@@ -104,13 +105,8 @@ export default function OrganizationMemberImport() {
           transition={{ duration: DURATION.slow / 1000, ease: EASE.out }}
           style={{ maxWidth: 760 }}
         >
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Import de membres
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-            Chaque ligne émet une invitation. Le consentement de la personne concernée reste à donner :
-            importer une liste ne vaut pas accord.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.importDeMembres')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.chaqueLigneEmetUneInvitationLe')}</Text>
 
           {cooperative.isLoading ? (
             <LoadingState count={2} height={100} />
@@ -118,23 +114,15 @@ export default function OrganizationMemberImport() {
             <ErrorState error={cooperative.error} onRetry={() => void cooperative.refetch()} showRequestId />
           ) : !cooperativeId ? (
             <EmptyState
-              title="Aucune coopérative"
-              description="Votre organisation n'est rattachée à aucune coopérative : l'import de membres n'est pas disponible."
+              title={t('ui.aucuneCooperative')}
+              description={t('ui.votreOrganisationNEstRattacheeA')}
               icon="👥"
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <Card tone="white">
-                <Text preset="h3" style={{ marginBottom: 12 }}>
-                  Format attendu
-                </Text>
-                <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.7, marginBottom: 12 }}>
-                  Séparateur virgule ou point-virgule. La colonne <strong>email</strong> (ou{' '}
-                  <strong>phone</strong>) est obligatoire. La colonne <strong>consentscopes</strong> est
-                  facultative : portées séparées par <code>|</code>, parmi{' '}
-                  <code>profile</code>, <code>plots</code>, <code>productions</code>, <code>soil</code>. À
-                  défaut, seule la portée <code>profile</code> est proposée.
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.formatAttendu')}</Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.7, marginBottom: 12 }}>{t('ui.separateurVirguleOuPointVirguleLa')}{' '}<strong>email</strong>{' '}{t('ui.ou')}{' '}<strong>phone</strong>{t('ui.estObligatoireLaColonne')}{' '}<strong>consentscopes</strong>{' '}{t('ui.estFacultativePorteesSepareesPar')}{' '}<code>|</code>{t('ui.parmi')}{' '}<code>profile</code>, <code>plots</code>, <code>productions</code>, <code>soil</code>{t('ui.aDefautSeuleLaPortee')}{' '}<code>profile</code>{' '}{t('ui.estProposee')}</Text>
                 <pre
                   style={{
                     margin: 0,
@@ -153,11 +141,9 @@ export default function OrganizationMemberImport() {
               </Card>
 
               <Card tone="white">
-                <Text preset="h3" style={{ marginBottom: 12 }}>
-                  Contenu du fichier
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.contenuDuFichier')}</Text>
                 <TextArea
-                  label="Contenu CSV"
+                  label={t('ui.contenuCsv')}
                   value={csv}
                   onChange={(event) => setCsv(event.target.value)}
                   placeholder={EXAMPLE_CSV}
@@ -166,13 +152,13 @@ export default function OrganizationMemberImport() {
                 <div style={{ display: 'flex', gap: 12, marginTop: 16, flexWrap: 'wrap' }}>
                   <Button
                     variant="outline"
-                    label="Analyser sans écrire"
+                    label={t('ui.analyserSansEcrire')}
                     loading={run.isPending && run.variables === true}
                     onClick={() => run.mutate(true)}
                   />
                   <Button
                     variant="primary"
-                    label="Émettre les invitations"
+                    label={t('ui.emettreLesInvitations')}
                     loading={run.isPending && run.variables === false}
                     onClick={() => run.mutate(false)}
                   />
@@ -188,36 +174,30 @@ export default function OrganizationMemberImport() {
                 <Card tone={summary.dryRun ? 'pale' : 'white'}>
                   <ChipRow style={{ marginBottom: 16 }}>
                     <Chip
-                      label={summary.dryRun ? 'analyse — rien n’a été écrit' : 'invitations émises'}
+                      label={summary.dryRun ? t('ui.analyseRienNAEteEcrit') : t('ui.invitationsEmises')}
                       tone={summary.dryRun ? 'warning' : 'success'}
                       size="sm"
                     />
                   </ChipRow>
                   <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 16 }}>
                     <div>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Lignes
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.lignes')}</Text>
                       <Text preset="numeric">{formatNumber(summary.totalLines, locale)}</Text>
                     </div>
                     <div>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {summary.dryRun ? 'À créer' : 'Créées'}
+                        {summary.dryRun ? t('ui.aCreer') : t('ui.creees')}
                       </Text>
                       <Text preset="numeric" color={COLORS.forestGreen}>
                         {formatNumber(summary.created, locale)}
                       </Text>
                     </div>
                     <div>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Doublons
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.doublons')}</Text>
                       <Text preset="numeric">{formatNumber(summary.duplicates, locale)}</Text>
                     </div>
                     <div>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Erreurs
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.erreurs')}</Text>
                       <Text preset="numeric" color={summary.errors > 0 ? COLORS.error : COLORS.textPrimary}>
                         {formatNumber(summary.errors, locale)}
                       </Text>
@@ -226,9 +206,7 @@ export default function OrganizationMemberImport() {
 
                   {report && report.results.filter((row) => row.status !== 'created').length > 0 ? (
                     <div>
-                      <Text preset="h4" style={{ marginBottom: 12 }}>
-                        Lignes non créées
-                      </Text>
+                      <Text preset="h4" style={{ marginBottom: 12 }}>{t('ui.lignesNonCreees')}</Text>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {report.results
                           .filter((row) => row.status !== 'created')
@@ -238,10 +216,7 @@ export default function OrganizationMemberImport() {
                               key={`${row.line}-${row.email ?? ''}`}
                               style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}
                             >
-                              <Text preset="caption" color={COLORS.textPrimary}>
-                                Ligne {row.line}
-                                {row.email ? ` · ${row.email}` : ''}
-                              </Text>
+                              <Text preset="caption" color={COLORS.textPrimary}>{t('ui.ligne', { line: row.line, value: row.email ? ` · ${row.email}` : '' })}</Text>
                               <Chip
                                 label={row.reason ?? row.status}
                                 tone={row.status === 'duplicate' ? 'neutral' : 'error'}

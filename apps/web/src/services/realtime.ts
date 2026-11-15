@@ -38,6 +38,8 @@ export const REALTIME_EVENTS = [
   'order:new',
   'order:updated',
   'order:disputed',
+  'notification:new',
+  'alert:new',
 ] as const;
 
 export type RealtimeEventName = (typeof REALTIME_EVENTS)[number];
@@ -105,6 +107,16 @@ export const realtime = {
         emitLocal(event, payload);
       });
     }
+
+    socket.on('notification:new', (payload: RealtimeEvent) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all });
+      emitLocal('notification:new', payload);
+    });
+
+    socket.on('alert:new', (payload: RealtimeEvent) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.alerts.all });
+      emitLocal('alert:new', payload);
+    });
 
     socket.on('ready', (payload: RealtimeEvent) => emitLocal('ready', payload));
     socket.on('typing', (payload: RealtimeEvent) => emitLocal('typing', payload));

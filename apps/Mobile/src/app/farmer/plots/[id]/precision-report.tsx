@@ -34,6 +34,7 @@ import { RADIUS, SPACING } from '@/theme/space';
  * donnés en fourchette, avec leurs hypothèses.
  */
 export default function PlotPrecisionReport() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -90,34 +91,26 @@ export default function PlotPrecisionReport() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <PlotScreenHeader title="Rapport de précision" plotName={plot.data?.name} plotId={id} />
+      <PlotScreenHeader title={t('ui.rapportDePrecision')} plotName={plot.data?.name} plotId={id} />
 
       <Section bare contentStyle={styles.section}>
         <Card tone="pale" style={styles.disclaimer}>
           <Ionicons name="shield-checkmark-outline" size={16} color={COLORS.info} />
-          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-            Un rapport généré automatiquement ne vaut pas recommandation agronomique tant qu’un agronome identifié
-            ne l’a pas validé (PRE-03). Il ne constitue en aucun cas une certification.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.unRapportGenereAutomatiquementNeVaut')}</Text>
         </Card>
 
         <Card tone="white" style={styles.card}>
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Rapports
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('ui.rapports')}</Text>
           {error ? <ErrorState error={error} showRequestId /> : null}
           <Button
-            label="Générer un rapport"
+            label={t('ui.genererUnRapport')}
             onPress={() => createReport.mutate()}
             variant="primary"
             fullWidth
             loading={createReport.isPending}
             icon="document-text-outline"
           />
-          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-            Chaque génération porte sa version de méthode. La validation par un agronome est une opération
-            distincte, enregistrée avec l’identité de son auteur.
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.chaqueGenerationPorteSaVersionDe')}</Text>
         </Card>
 
         {reports.isLoading ? (
@@ -126,8 +119,8 @@ export default function PlotPrecisionReport() {
           <ErrorState error={reports.error} onRetry={() => void reports.refetch()} />
         ) : items.length === 0 ? (
           <EmptyState
-            title="Aucun rapport"
-            description="Générez un rapport pour consolider les données de la parcelle dans un document versionné."
+            title={t('ui.aucunRapport')}
+            description={t('ui.generezUnRapportPourConsoliderLes')}
             icon="document-text-outline"
           />
         ) : (
@@ -137,16 +130,12 @@ export default function PlotPrecisionReport() {
                 <Card tone="white" style={styles.card}>
                   <View style={styles.head}>
                     <View style={styles.headText}>
-                      <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                        Rapport du {formatDate(report.generatedAt, locale)}
-                      </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        méthode {report.methodVersion ?? '—'} · jeu de règles {report.ruleSetVersion ?? '—'}
-                        {report.validatedAt ? ` · validé le ${formatDate(report.validatedAt, locale)}` : ''}
+                      <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.rapportDu', { generatedAt: formatDate(report.generatedAt, locale) })}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.methodeJeuDeRegles', { value: report.methodVersion ?? '—', value2: report.ruleSetVersion ?? '—' })}{report.validatedAt ? t('ui.valideLe_07976', { validatedAt: formatDate(report.validatedAt, locale) }) : ''}
                       </Text>
                     </View>
                     <Chip
-                      label={report.validated ? 'Validé par un agronome' : 'Proposition non validée'}
+                      label={report.validated ? t('ui.valideParUnAgronome') : t('ui.propositionNonValidee')}
                       tone={report.validated ? 'success' : 'warning'}
                       size="sm"
                     />
@@ -154,7 +143,7 @@ export default function PlotPrecisionReport() {
 
                   {!report.validated ? (
                     <Button
-                      label="Enregistrer ma validation"
+                      label={t('ui.enregistrerMaValidation')}
                       onPress={() => validate.mutate(report.id)}
                       variant="outline"
                       size="sm"
@@ -163,18 +152,14 @@ export default function PlotPrecisionReport() {
                     />
                   ) : null}
 
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    Export PDF : {precisionApi.pdfUrl(report.id)} — l’ouverture nécessite une session authentifiée.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.exportPdfLOuvertureNecessiteUne', { id: precisionApi.pdfUrl(report.id) })}</Text>
                 </Card>
               </Reveal>
             ))}
           </View>
         )}
 
-        <Text preset="overline" color={COLORS.forestGreen}>
-          Rendement estimé (fourchette)
-        </Text>
+        <Text preset="overline" color={COLORS.forestGreen}>{t('ui.rendementEstimeFourchette')}</Text>
 
         <Card tone="white" style={styles.card}>
           {crops.isLoading ? (
@@ -197,7 +182,7 @@ export default function PlotPrecisionReport() {
           {yieldError ? <ErrorState error={yieldError} showRequestId /> : null}
 
           <Button
-            label="Estimer le rendement"
+            label={t('ui.estimerLeRendement')}
             onPress={() => selectedYieldCrop && estimate.mutate(selectedYieldCrop)}
             variant="outline"
             fullWidth
@@ -205,10 +190,7 @@ export default function PlotPrecisionReport() {
             disabled={!selectedYieldCrop}
             icon="trending-up-outline"
           />
-          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-            Aucune référence documentée pour la culture, ou superficie inconnue : le serveur refuse l’estimation
-            plutôt que d’inventer un chiffre.
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.aucuneReferenceDocumenteePourLaCulture')}</Text>
         </Card>
 
         {yields.isLoading ? (
@@ -217,8 +199,8 @@ export default function PlotPrecisionReport() {
           <ErrorState error={yields.error} onRetry={() => void yields.refetch()} />
         ) : (yields.data?.items ?? []).length === 0 ? (
           <EmptyState
-            title="Aucune estimation"
-            description="Les rendements sont toujours exprimés en fourchette, jamais en valeur unique."
+            title={t('ui.aucuneEstimation')}
+            description={t('ui.lesRendementsSontToujoursExprimesEn')}
             icon="trending-up-outline"
           />
         ) : (
@@ -228,55 +210,38 @@ export default function PlotPrecisionReport() {
                 <Card tone="white" style={styles.card}>
                   <View style={styles.head}>
                     <View style={styles.headText}>
-                      <Text preset="h3" color={COLORS.textPrimary}>
-                        {formatNumber(item.range.lowKg, locale, 0)} – {formatNumber(item.range.highKg, locale, 0)} kg
-                      </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        méthode {item.method} · jeu de règles {item.ruleSetVersion} · {formatDate(item.createdAt, locale)}
-                      </Text>
+                      <Text preset="h3" color={COLORS.textPrimary}>{t('ui.kg_40abf', { lowKg: formatNumber(item.range.lowKg, locale, 0), highKg: formatNumber(item.range.highKg, locale, 0) })}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.methodeJeuDeRegles_5789a', { method: item.method, ruleSetVersion: item.ruleSetVersion, createdAt: formatDate(item.createdAt, locale) })}</Text>
                     </View>
                     <Chip label={`± ${formatNumber(item.range.uncertaintyPct, locale, 1)} %`} tone="warning" size="sm" />
                   </View>
 
                   <View style={styles.facts}>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Valeur centrale
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.valeurCentrale')}</Text>
                       <Text preset="bodySm" color={COLORS.textPrimary}>
                         {formatNumber(item.range.pointKg, locale, 0)} kg
                       </Text>
                     </View>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Surface retenue
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.surfaceRetenue')}</Text>
                       <Text preset="bodySm" color={COLORS.textPrimary}>
                         {formatNumber(item.assumptions.areaHa, locale, 2)} ha
                       </Text>
                     </View>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Références
-                      </Text>
-                      <Text preset="bodySm" color={COLORS.textPrimary}>
-                        {formatNumber(item.assumptions.lowKgPerHa, locale, 0)} – {formatNumber(item.assumptions.highKgPerHa, locale, 0)} kg/ha
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.references')}</Text>
+                      <Text preset="bodySm" color={COLORS.textPrimary}>{t('ui.kgHa', { lowKgPerHa: formatNumber(item.assumptions.lowKgPerHa, locale, 0), highKgPerHa: formatNumber(item.assumptions.highKgPerHa, locale, 0) })}</Text>
                     </View>
                     <View style={styles.fact}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Analyses de sol
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.analysesDeSol')}</Text>
                       <Text preset="bodySm" color={COLORS.textPrimary}>
                         {formatNumber(item.sources.assessmentCount, locale)}
                       </Text>
                     </View>
                   </View>
 
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    {item.assumptions.note} Sources de sol :{' '}
-                    {item.sources.soilSources.length > 0 ? item.sources.soilSources.join(', ') : 'aucune'}.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.sourcesDeSol', { note: item.assumptions.note, value: item.sources.soilSources.length > 0 ? item.sources.soilSources.join(', ') : 'aucune' })}</Text>
                   <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
                     {item.disclaimer}
                   </Text>

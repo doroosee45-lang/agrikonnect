@@ -11,6 +11,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** PUBLIC — annuaire des exploitations publiées (PUB-01). */
 export default function PublicFarmers() {
+  const { t } = useI18n();
   const { locale } = useI18n();
 
   const farms = useQuery({
@@ -22,23 +23,16 @@ export default function PublicFarmers() {
 
   return (
     <Section>
-      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>
-        Annuaire
-      </Text>
-      <Text preset="h1" style={{ marginBottom: 8 }}>
-        Exploitations publiées
-      </Text>
-      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>
-        Seules les exploitations dont le producteur a choisi la publication apparaissent ici. Les coordonnées
-        restent masquées : le contact passe par la plateforme.
-      </Text>
+      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>{t('ui.annuaire')}</Text>
+      <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.exploitationsPubliees')}</Text>
+      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>{t('ui.seulesLesExploitationsDontLeProducteur')}</Text>
 
       {farms.isLoading ? (
         <LoadingState count={3} height={140} />
       ) : farms.isError ? (
         <ErrorState error={farms.error} onRetry={() => void farms.refetch()} showRequestId />
       ) : items.length === 0 ? (
-        <EmptyState title="Aucune exploitation publiée" description="Aucune exploitation n'a encore choisi d'être publique." icon="🏡" />
+        <EmptyState title={t('ui.aucuneExploitationPubliee')} description={t('ui.aucuneExploitationNAEncoreChoisi')} icon="🏡" />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
           {items.map((farm, index) => (
@@ -54,13 +48,13 @@ export default function PublicFarmers() {
                   <Text preset="h4" color={COLORS.textPrimary} style={{ flex: 1 }}>
                     {farm.name}
                   </Text>
-                  {farm.verificationStatus === 'VERIFIED' ? <Chip label="vérifiée" tone="success" size="sm" /> : <Chip label="déclarée" tone="warning" size="sm" />}
+                  {farm.verificationStatus === 'VERIFIED' ? <Chip label={t('ui.verifiee_1fb81')} tone="success" size="sm" /> : <Chip label={t('ui.declaree_57467')} tone="warning" size="sm" />}
                 </div>
 
                 <Text preset="caption" color={COLORS.slateGray}>
                   {farm.countryCode}
                   {farm.province ? ` · ${farm.province}` : ''}
-                  {farm.totalAreaHa !== null ? ` · ${formatNumber(farm.totalAreaHa, locale, 1)} ha` : ''}
+                  {farm.totalAreaHa !== null ? t('ui.ha', { totalAreaHa: formatNumber(farm.totalAreaHa, locale, 1) }) : ''}
                 </Text>
 
                 {farm.description ? (
@@ -78,11 +72,9 @@ export default function PublicFarmers() {
                 ) : null}
 
                 <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    mise à jour {formatDate(farm.updatedAt, locale)}
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.miseAJour_24b65', { updatedAt: formatDate(farm.updatedAt, locale) })}</Text>
                   <Link to={`/public/farms/${farm.slug}`}>
-                    <Button label="Voir la fiche" variant="outline" size="sm" />
+                    <Button label={t('ui.voirLaFiche')} variant="outline" size="sm" />
                   </Link>
                 </div>
               </Card>

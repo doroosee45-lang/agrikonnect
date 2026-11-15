@@ -5,37 +5,32 @@ import { Card, Chip, ChipRow, ErrorState, LoadingState, Section, Text } from '@/
 import { insightsApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** PUBLIC — catalogue des jeux de données et politique de divulgation. */
 export default function PublicDataCatalog() {
+  const { t } = useI18n();
   const policy = useQuery({
     queryKey: queryKeys.insights.disclosure,
     queryFn: () => insightsApi.disclosurePolicy().then((result) => result.data),
   });
 
   const datasets = [
-    { name: 'Référentiel des cultures', endpoint: 'GET /crops', auth: 'session' },
-    { name: 'Pays et devises', endpoint: 'GET /countries', auth: 'session' },
-    { name: 'Carte des exploitations publiées', endpoint: 'GET /public/map', auth: 'anonyme' },
-    { name: 'Annuaire des exploitations publiées', endpoint: 'GET /public/farms', auth: 'anonyme' },
-    { name: 'Statistiques de sol agrégées', endpoint: 'GET /public/soil-stats', auth: 'anonyme' },
-    { name: 'Fiche publique de lot', endpoint: 'GET /public/lots/:code', auth: 'anonyme' },
-    { name: 'Indicateurs agrégés par pays', endpoint: 'GET /insights/overview', auth: 'session' },
-    { name: 'Prix de marché', endpoint: 'GET /prices', auth: 'session' },
+    { name: t('ui.referentielDesCultures_2fb2a'), endpoint: t('ui.getCrops'), auth: 'session' },
+    { name: t('ui.paysEtDevises'), endpoint: t('ui.getCountries'), auth: 'session' },
+    { name: t('ui.carteDesExploitationsPubliees'), endpoint: t('ui.getPublicMap'), auth: 'anonyme' },
+    { name: t('ui.annuaireDesExploitationsPubliees'), endpoint: t('ui.getPublicFarms'), auth: 'anonyme' },
+    { name: t('ui.statistiquesDeSolAgregees'), endpoint: t('ui.getPublicSoilStats'), auth: 'anonyme' },
+    { name: t('ui.fichePubliqueDeLot'), endpoint: t('ui.getPublicLotsCode'), auth: 'anonyme' },
+    { name: t('ui.indicateursAgregesParPays'), endpoint: t('ui.getInsightsOverview'), auth: 'session' },
+    { name: t('ui.prixDeMarche'), endpoint: t('ui.getPrices'), auth: 'session' },
   ];
 
   return (
     <Section>
-      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>
-        Données
-      </Text>
-      <Text preset="h1" style={{ marginBottom: 8 }}>
-        Catalogue de données
-      </Text>
-      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>
-        Jeux de données exposés par la plateforme, avec leur périmètre d'accès. Chaque clé API porte une finalité
-        de traitement déclarée puis approuvée.
-      </Text>
+      <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 12 }}>{t('ui.donnees')}</Text>
+      <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.catalogueDeDonnees')}</Text>
+      <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32, maxWidth: 640 }}>{t('ui.jeuxDeDonneesExposesParLa')}</Text>
 
       {policy.isLoading ? (
         <LoadingState count={1} height={120} />
@@ -43,16 +38,11 @@ export default function PublicDataCatalog() {
         <ErrorState error={policy.error} onRetry={() => void policy.refetch()} showRequestId />
       ) : policy.data ? (
         <Card tone="ink" style={{ marginBottom: 24, padding: 32 }}>
-          <Text preset="overline" color={COLORS.gold} style={{ marginBottom: 12 }}>
-            Seuil de k-anonymat
-          </Text>
+          <Text preset="overline" color={COLORS.gold} style={{ marginBottom: 12 }}>{t('ui.seuilDeKAnonymat')}</Text>
           <Text preset="numeric" color={COLORS.pureWhite} style={{ marginBottom: 8 }}>
             {policy.data.minGroupSize}
           </Text>
-          <Text preset="caption" color="rgba(246, 247, 242, 0.75)" style={{ lineHeight: 1.7 }}>
-            Tout agrégat portant sur un groupe plus petit est masqué, avec son motif. Aucune donnée personnelle
-            n'est publiée.
-          </Text>
+          <Text preset="caption" color="rgba(246, 247, 242, 0.75)" style={{ lineHeight: 1.7 }}>{t('ui.toutAgregatPortantSurUnGroupe')}</Text>
         </Card>
       ) : null}
 

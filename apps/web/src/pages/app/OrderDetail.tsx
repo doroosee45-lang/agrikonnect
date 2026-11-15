@@ -17,6 +17,7 @@ const NEXT_STATUS: Record<string, string> = {
 
 /** APP — détail d'une commande : statut, paiement, litige, événements. */
 export default function AppOrderDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -48,11 +49,9 @@ export default function AppOrderDetail() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Commande" icon="📦">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.commande')} icon="📦">
         <div style={{ marginBottom: 24 }}>
-          <a href="/app/orders" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour aux commandes
-          </a>
+          <a href="/app/orders" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourAuxCommandes')}</a>
         </div>
 
         {order.isLoading ? (
@@ -60,7 +59,7 @@ export default function AppOrderDetail() {
         ) : order.isError ? (
           <ErrorState error={order.error} onRetry={() => void order.refetch()} showRequestId />
         ) : !data ? (
-          <Text preset="bodyMd">Commande introuvable.</Text>
+          <Text preset="bodyMd">{t('ui.commandeIntrouvable')}</Text>
         ) : (
           <>
             <Card tone="white" style={{ marginBottom: 24 }}>
@@ -75,18 +74,15 @@ export default function AppOrderDetail() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <Text preset="bodySm">
-                  Montant : {data.totalAmount !== null ? `${data.totalAmount} ${data.currency}` : '—'}
-                </Text>
-                <Text preset="bodySm">
-                  Paiement : <Chip label={data.paymentStatus} tone={data.paymentStatus === 'PAID' ? 'success' : 'neutral'} size="sm" />
+                <Text preset="bodySm">{t('ui.montant_1d628', { value: data.totalAmount !== null ? `${data.totalAmount} ${data.currency}` : '—' })}</Text>
+                <Text preset="bodySm">{t('ui.paiement_7154f')}{' '}<Chip label={data.paymentStatus} tone={data.paymentStatus === 'PAID' ? 'success' : 'neutral'} size="sm" />
                 </Text>
               </div>
 
               {nextStatus ? (
                 <div style={{ marginTop: 16 }}>
                   <Button
-                    label={`Passer à ${nextStatus}`}
+                    label={t('ui.passerA', { nextStatus })}
                     variant="outline"
                     size="sm"
                     loading={updateStatus.isPending}
@@ -97,17 +93,13 @@ export default function AppOrderDetail() {
             </Card>
 
             <Card tone="white">
-              <Text preset="h3" style={{ marginBottom: 16 }}>
-                Historique
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 16 }}>{t('ui.historique')}</Text>
               {events.isLoading ? (
                 <LoadingState count={1} height={60} />
               ) : events.isError ? (
                 <ErrorState error={events.error} showRequestId />
               ) : !events.data || events.data.length === 0 ? (
-                <Text preset="caption" color={COLORS.slateGray}>
-                  Aucun événement.
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunEvenement')}</Text>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {events.data.map((event) => (

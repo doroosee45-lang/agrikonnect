@@ -19,7 +19,7 @@ import { alertApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import type { AlertFilterOption, AlertSourceType, DescribedAlert } from '@/services/types';
 import { formatDate, type Locale } from '@/lib/format';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
 
@@ -63,8 +63,8 @@ type EtatFiltre = 'TOUS' | 'OUVERTS' | 'NEW' | 'READ' | 'HANDLED';
  */
 function etatOptions(statuts: AlertFilterOption[]): { value: EtatFiltre; label: string }[] {
   return [
-    { value: 'TOUS', label: 'Toutes' },
-    { value: 'OUVERTS', label: 'Non traitées' },
+    { value: 'TOUS', label: tr('ui.toutes') },
+    { value: 'OUVERTS', label: tr('ui.nonTraitees') },
     ...statuts
       .filter((s) => s.value === 'NEW' || s.value === 'READ' || s.value === 'HANDLED')
       .map((s) => ({ value: s.value as EtatFiltre, label: s.label })),
@@ -73,27 +73,23 @@ function etatOptions(statuts: AlertFilterOption[]): { value: EtatFiltre; label: 
 
 /** Valeur observée face à sa plage — le cœur de l'écran. */
 function ObservedVsRange({ alert }: { alert: DescribedAlert }) {
+  const { t } = useI18n();
   const plage = alert.range;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Text preset="bodySm" color={COLORS.textPrimary}>
         {alert.observedLabel
-          ? `Observé ${alert.observedLabel}`
+          ? t('ui.observe', { observedLabel: alert.observedLabel })
           : alert.predictive
-            ? 'Aucune valeur observée : franchissement anticipé'
-            : 'Aucune valeur observée transmise'}
-        {' · '}
-        seuil {alert.referenceLabel}
-      </Text>
+            ? t('ui.aucuneValeurObserveeFranchissementAnticipe')
+            : t('ui.aucuneValeurObserveeTransmise')}{' '}{t('ui.seuil_65678', { referenceLabel: alert.referenceLabel })}</Text>
 
       {plage?.label ? (
-        <Text preset="caption" color={COLORS.slateGray}>
-          Plage de référence {plage.label}
-          {plage.status === 'PROVISIONAL'
-            ? ' — provisoire : cette alerte ne repose pas sur un seuil validé'
+        <Text preset="caption" color={COLORS.slateGray}>{t('ui.plageDeReference', { label: plage.label })}{plage.status === 'PROVISIONAL'
+            ? t('ui.provisoireCetteAlerteNeReposePas')
             : plage.status
-              ? ' — validée'
+              ? t('ui.validee_a1416')
               : ''}
         </Text>
       ) : (
@@ -101,16 +97,11 @@ function ObservedVsRange({ alert }: { alert: DescribedAlert }) {
          * Absence de plage affichée comme telle : sans bornes, on peut dire
          * qu'un seuil a été franchi, pas situer la valeur observée.
          */
-        <Text preset="caption" color={COLORS.slateGray}>
-          Plage de référence non disponible pour cette grandeur
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray}>{t('ui.plageDeReferenceNonDisponiblePour')}</Text>
       )}
 
       {alert.deviation !== null ? (
-        <Text preset="caption" color={COLORS.slateGray}>
-          Écart au seuil {alert.deviation}
-          {alert.unit ? ` ${alert.unit}` : ''}
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray}>{t('ui.ecartAuSeuil', { deviation: alert.deviation, value: alert.unit ? ` ${alert.unit}` : '' })}</Text>
       ) : null}
     </div>
   );
@@ -130,6 +121,7 @@ function AlertCard({
   onHandled: () => void;
   busy: boolean;
 }) {
+  const { t } = useI18n();
   const reference = alert.observedAt ?? alert.predictedBreachAt ?? alert.createdAt;
 
   return (
@@ -149,7 +141,7 @@ function AlertCard({
           </Text>
           <Text preset="caption" color={COLORS.slateGray}>
             {alert.sourceTypeLabel} ·{' '}
-            {alert.predictive ? 'franchissement anticipé' : 'franchissement constaté'} ·{' '}
+            {alert.predictive ? t('ui.franchissementAnticipe') : t('ui.franchissementConstate')} ·{' '}
             {formatDate(reference, locale, 'datetime')}
           </Text>
         </div>
@@ -163,18 +155,18 @@ function AlertCard({
 
       {alert.channelsSent.length > 0 || alert.notificationCount > 1 ? (
         <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 8 }}>
-          {alert.channelsSent.length > 0 ? `Déjà transmise par ${alert.channelsSent.join(', ')}` : ''}
-          {alert.notificationCount > 1 ? ` · ${alert.notificationCount} notifications` : ''}
+          {alert.channelsSent.length > 0 ? t('ui.dejaTransmisePar', { value: alert.channelsSent.join(', ') }) : ''}
+          {alert.notificationCount > 1 ? t('ui.notifications_533d3', { notificationCount: alert.notificationCount }) : ''}
         </Text>
       ) : null}
 
       {alert.status !== 'HANDLED' ? (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
           {alert.status === 'NEW' ? (
-            <Button label="Marquer lue" variant="outline" size="sm" loading={busy} onClick={onRead} />
+            <Button label={t('ui.marquerLue')} variant="outline" size="sm" loading={busy} onClick={onRead} />
           ) : null}
           <Button
-            label="Marquer traitée"
+            label={t('ui.marquerTraitee')}
             variant="primary"
             size="sm"
             loading={busy}
@@ -182,15 +174,14 @@ function AlertCard({
           />
         </div>
       ) : (
-        <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>
-          Traitée : elle ne sera plus rappelée.
-        </Text>
+        <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>{t('ui.traiteeElleNeSeraPlusRappelee')}</Text>
       )}
     </Card>
   );
 }
 
 export default function FarmerAlerts() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -251,36 +242,26 @@ export default function FarmerAlerts() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Boîte d'alertes" icon="🔔">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.boiteDAlertes')} icon="🔔">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: DURATION.slow / 1000, ease: EASE.out }}
           style={{ maxWidth: 720 }}
         >
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Boîte d'alertes
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 16 }}>
-            Franchissements de seuil, prévisions et capteurs silencieux. Le canal principal reste le
-            SMS : cet écran sert au suivi et à la clôture.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.boiteDAlertes')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 16 }}>{t('ui.franchissementsDeSeuilPrevisionsEtCapteurs')}</Text>
 
           {meta && meta.openCount > 0 ? (
             <Card tone="gold" style={{ marginBottom: 16 }}>
-              <Text preset="bodySm">
-                {meta.openCount} alerte{meta.openCount > 1 ? 's' : ''} non traitée
-                {meta.openCount > 1 ? 's' : ''} dans votre organisation.
-              </Text>
+              <Text preset="bodySm">{t(meta.openCount > 1 ? 'ui.openAlertsInOrgOther' : 'ui.openAlertsInOrgOne', { openCount: meta.openCount })}</Text>
             </Card>
           ) : null}
 
           {options ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
               <div>
-                <Text preset="overline" color={COLORS.slateGray} style={{ marginBottom: 6 }}>
-                  État
-                </Text>
+                <Text preset="overline" color={COLORS.slateGray} style={{ marginBottom: 6 }}>{t('ui.etat')}</Text>
                 <ChipRow>
                   {etatOptions(options.statuses).map((o) => (
                     <FilterChip
@@ -296,12 +277,10 @@ export default function FarmerAlerts() {
                 </ChipRow>
               </div>
               <div>
-                <Text preset="overline" color={COLORS.slateGray} style={{ marginBottom: 6 }}>
-                  Source
-                </Text>
+                <Text preset="overline" color={COLORS.slateGray} style={{ marginBottom: 6 }}>{t('ui.source_6da13')}</Text>
                 <ChipRow>
                   <FilterChip
-                    label="Toutes"
+                    label={t('ui.toutes')}
                     active={source === undefined}
                     onPress={() => {
                       setSource(undefined);
@@ -330,12 +309,12 @@ export default function FarmerAlerts() {
           {!alertes.isPending && !alertes.isError && items.length === 0 ? (
             <EmptyState
               icon="🔔"
-              title="Aucune alerte pour ce filtre"
-              description="Soit aucune alerte n'a été déclenchée, soit le filtre sélectionné n'en retient aucune. Élargissez l'état ou la source pour vérifier."
+              title={t('ui.aucuneAlertePourCeFiltre')}
+              description={t('ui.soitAucuneAlerteNAEte')}
               action={
                 etat !== 'TOUS' || source !== undefined
                   ? {
-                      label: 'Voir toutes les alertes',
+                      label: t('ui.voirToutesLesAlertes'),
                       onPress: () => {
                         setEtat('TOUS');
                         setSource(undefined);
@@ -371,18 +350,15 @@ export default function FarmerAlerts() {
               }}
             >
               <Button
-                label="Précédent"
+                label={t('common.previous')}
                 variant="outline"
                 size="sm"
                 disabled={page <= 1}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
               />
-              <Text preset="caption" color={COLORS.slateGray}>
-                Page {meta.page} sur {meta.totalPages} · {meta.total} alerte
-                {meta.total > 1 ? 's' : ''}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t(meta.total > 1 ? 'ui.alertsPageOther' : 'ui.alertsPageOne', { page: meta.page, totalPages: meta.totalPages, total: meta.total })}</Text>
               <Button
-                label="Suivant"
+                label={t('common.next')}
                 variant="outline"
                 size="sm"
                 disabled={page >= meta.totalPages}

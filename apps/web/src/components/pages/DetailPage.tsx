@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { AuthGate, Button, Card, EmptyState, ErrorState, LoadingState, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n, tr } from '@/i18n';
 
 /**
  * Écran de détail générique : un objet, ses champs, ses sections.
@@ -49,9 +50,10 @@ export function DetailPage<T>({
   sections,
   actions,
   public: isPublic = false,
-  notFoundTitle = 'Introuvable',
-  notFoundDescription = "L'API a renvoyé une 404 : cet enregistrement n'existe pas ou n'est pas accessible.",
+  notFoundTitle = tr('ui.introuvable'),
+  notFoundDescription = tr('ui.lApiARenvoyeUne404'),
 }: DetailPageProps<T>) {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -133,7 +135,7 @@ export function DetailPage<T>({
       {isPublic ? (
         body
       ) : (
-        <AuthGate isAuthenticated={isAuthenticated} title={subtitle ?? 'Accès requis'} icon="🔒">
+        <AuthGate isAuthenticated={isAuthenticated} title={subtitle ?? t('ui.accesRequis')} icon="🔒">
           {body}
         </AuthGate>
       )}

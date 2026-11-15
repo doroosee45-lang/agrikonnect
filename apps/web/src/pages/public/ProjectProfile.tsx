@@ -10,46 +10,47 @@ import type { Row } from '@/components/pages';
 
 /** PUBLIC — fiche publique d'un projet. */
 export default function PublicProjectProfile() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const { locale } = useI18n();
 
   return (
     <DetailPage<Row>
       public
-      title={(project) => String(project.title ?? 'Projet')}
-      subtitle="Fiche publique du projet."
+      title={(project) => String(project.title ?? t('ui.projet'))}
+      subtitle={t('ui.fichePubliqueDuProjet')}
       backHref="/public/projects"
-      backLabel="Retour aux projets"
+      backLabel={t('ui.retourAuxProjets_14c74')}
       queryKey={queryKeys.projects.one(id ?? '')}
       fetch={() => projectApi.get(id ?? '').then((result) => result.data)}
       sections={(project) => [
         {
-          title: 'Identification',
+          title: t('ui.identification'),
           fields: [
-            { label: 'Secteur', value: <Chip label={String(project.sector ?? '—')} tone="neutral" size="sm" /> },
-            { label: 'Pays', value: String(project.countryCode ?? '—') },
-            { label: 'Province', value: String(project.province ?? '—') },
-            { label: 'Statut', value: <Chip label={String(project.status ?? '—')} tone="info" size="sm" /> },
+            { label: t('ui.secteur'), value: <Chip label={String(project.sector ?? '—')} tone="neutral" size="sm" /> },
+            { label: t('ui.pays'), value: String(project.countryCode ?? '—') },
+            { label: t('ui.province'), value: String(project.province ?? '—') },
+            { label: t('ui.statut'), value: <Chip label={String(project.status ?? '—')} tone="info" size="sm" /> },
           ],
         },
         {
-          title: 'Description',
-          fields: [{ label: 'Présentation', value: String(project.description ?? 'Aucune description publiée.') }],
+          title: t('ui.description'),
+          fields: [{ label: t('ui.presentation'), value: String(project.description ?? t('ui.aucuneDescriptionPubliee')) }],
         },
         {
-          title: 'Chiffres déclarés',
-          notice: 'Ces valeurs sont déclarées par le porteur de projet. Elles ne constituent pas une garantie de rendement.',
+          title: t('ui.chiffresDeclares'),
+          notice: t('ui.cesValeursSontDeclareesParLe'),
           fields: [
-            { label: 'Surface existante', value: project.existingAreaHa !== null && project.existingAreaHa !== undefined ? `${formatNumber(Number(project.existingAreaHa), locale, 1)} ha` : '—' },
-            { label: 'Surface cible', value: project.targetAreaHa !== null && project.targetAreaHa !== undefined ? `${formatNumber(Number(project.targetAreaHa), locale, 1)} ha` : '—' },
-            { label: 'Besoin de financement', value: project.fundingNeed !== null && project.fundingNeed !== undefined ? formatNumber(Number(project.fundingNeed), locale) : '—' },
-            { label: 'Contribution propre', value: project.ownContribution !== null && project.ownContribution !== undefined ? formatNumber(Number(project.ownContribution), locale) : '—' },
-            { label: 'Durée', value: project.durationMonths !== null && project.durationMonths !== undefined ? `${String(project.durationMonths)} mois` : '—' },
+            { label: t('ui.surfaceExistante'), value: project.existingAreaHa !== null && project.existingAreaHa !== undefined ? `${formatNumber(Number(project.existingAreaHa), locale, 1)} ha` : '—' },
+            { label: t('ui.surfaceCible'), value: project.targetAreaHa !== null && project.targetAreaHa !== undefined ? `${formatNumber(Number(project.targetAreaHa), locale, 1)} ha` : '—' },
+            { label: t('ui.besoinDeFinancement'), value: project.fundingNeed !== null && project.fundingNeed !== undefined ? formatNumber(Number(project.fundingNeed), locale) : '—' },
+            { label: t('ui.contributionPropre'), value: project.ownContribution !== null && project.ownContribution !== undefined ? formatNumber(Number(project.ownContribution), locale) : '—' },
+            { label: t('ui.duree'), value: project.durationMonths !== null && project.durationMonths !== undefined ? `${String(project.durationMonths)} mois` : '—' },
           ],
         },
       ]}
-      notFoundTitle="Projet introuvable"
-      notFoundDescription="Ce projet n'est pas publié ou n'existe pas."
+      notFoundTitle={t('ui.projetIntrouvable')}
+      notFoundDescription={t('ui.ceProjetNEstPasPublie')}
     />
   );
 }

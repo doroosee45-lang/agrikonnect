@@ -14,7 +14,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatDate } from '@/lib/format';
 import { projectApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
@@ -23,14 +23,15 @@ import { COLORS, DARK } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 const PROCESS = [
-  { title: 'Dépôt', body: 'Le porteur décrit le projet : périmètre, surfaces, production existante et projetée.' },
-  { title: 'Instruction', body: 'Le dossier est revu ; chaque décision de revue est enregistrée avec son auteur.' },
-  { title: 'Dataroom', body: 'Les pièces sont accessibles pour une durée limitée (30 jours par défaut, 90 au plus), avec journal des accès.' },
-  { title: 'Suivi', body: 'Rapports d’avancement et d’impact versionnés, consultables par les parties autorisées.' },
+  { get title() { return tr('ui.depot'); }, get body() { return tr('ui.lePorteurDecritLeProjetPerimetre'); } },
+  { get title() { return tr('ui.instruction'); }, get body() { return tr('ui.leDossierEstRevuChaqueDecision'); } },
+  { get title() { return tr('ui.dataroom'); }, get body() { return tr('ui.lesPiecesSontAccessiblesPourUne'); } },
+  { get title() { return tr('ui.suivi'); }, get body() { return tr('ui.rapportsDAvancementEtDImpact_07060'); } },
 ];
 
 /** Projets d’investissement (espace authentifié) + explication publique du cycle. */
 export default function Projets() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
@@ -48,16 +49,16 @@ export default function Projets() {
     <PublicShell active="projets">
       <PageHeader
         index={1}
-        eyebrow="Investissement"
-        title="Projets agricoles"
-        subtitle="Dossiers structurés, accès aux pièces limité dans le temps, reporting d’avancement et d’impact. Rien n’est rendu public sans décision explicite."
+        eyebrow={t('ui.investissement')}
+        title={t('ui.projetsAgricoles')}
+        subtitle={t('ui.dossiersStructuresAccesAuxPiecesLimite')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Les dossiers sont réservés aux comptes actifs"
-          description="Un dossier d’investissement contient des données sensibles : sa consultation suppose un compte et des droits explicites."
+          title={t('ui.lesDossiersSontReservesAuxComptes')}
+          description={t('ui.unDossierDInvestissementContientDes')}
           icon="briefcase-outline"
         >
           {projects.isLoading ? (
@@ -66,8 +67,8 @@ export default function Projets() {
             <ErrorState error={projects.error} onRetry={() => void projects.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucun dossier visible"
-              description="Les projets auxquels votre organisation a accès apparaîtront ici."
+              title={t('ui.aucunDossierVisible')}
+              description={t('ui.lesProjetsAuxquelsVotreOrganisationA')}
               icon="briefcase-outline"
             />
           ) : (
@@ -82,13 +83,11 @@ export default function Projets() {
                         size="sm"
                       />
                       {typeof project.updatedAt === 'string' ? (
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Mis à jour {formatDate(project.updatedAt, locale)}
-                        </Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.misAJour_ad4e7', { updatedAt: formatDate(project.updatedAt, locale) })}</Text>
                       ) : null}
                     </View>
                     <Text preset="h3" color={COLORS.textPrimary}>
-                      {String(project.title ?? 'Projet')}
+                      {String(project.title ?? t('ui.projet'))}
                     </Text>
                     {typeof project.province === 'string' ? (
                       <Text preset="caption" color={COLORS.slateGray}>
@@ -105,9 +104,9 @@ export default function Projets() {
 
       <Section
         index={2}
-        eyebrow="Cycle"
-        title="Du dépôt au reporting"
-        subtitle="Quatre étapes, toutes journalisées."
+        eyebrow={t('ui.cycle')}
+        title={t('ui.duDepotAuReporting')}
+        subtitle={t('ui.quatreEtapesToutesJournalisees')}
         background={COLORS.pureWhite}
       >
         <View style={[styles.process, wide ? styles.processWide : null]}>
@@ -129,12 +128,12 @@ export default function Projets() {
         </View>
       </Section>
 
-      <Section index={3} eyebrow="Garde-fous" title="Ce que la dataroom ne fait pas" background={COLORS.naturalWhite}>
+      <Section index={3} eyebrow={t('ui.gardeFous')} title={t('ui.ceQueLaDataroomNeFait')} background={COLORS.naturalWhite}>
         <View style={styles.guards}>
           {[
-            'Elle ne donne pas un accès permanent : l’expiration est fixée à l’ouverture.',
-            'Elle ne permet pas le téléchargement massif : chaque accès est journalisé.',
-            'Elle ne rend pas un dossier public : la publication reste une décision explicite.',
+            t('ui.elleNeDonnePasUnAcces'),
+            t('ui.elleNePermetPasLeTelechargement'),
+            t('ui.elleNeRendPasUnDossier'),
           ].map((item) => (
             <View key={item} style={styles.guardRow}>
               <Ionicons name="lock-closed-outline" size={15} color={COLORS.forestGreen} />

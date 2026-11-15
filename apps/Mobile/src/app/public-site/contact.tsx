@@ -5,6 +5,7 @@ import { PageHeader, PublicShell } from '@/components/public-site/PublicShell';
 import { Button, Card, ErrorState, Input, Section, Text } from '@/components/ui';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Contact plateforme.
@@ -15,25 +16,24 @@ import { SPACING } from '@/theme/space';
  * plutôt que de simuler un envoi.
  */
 export default function PublicSiteContact() {
+  const { t } = useI18n();
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [hint, setHint] = useState(false);
 
   return (
     <PublicShell active="contact" footer={false}>
-      <PageHeader index="06" eyebrow="Contact" title="Nous écrire" subtitle="Pour contacter un producteur, passez par sa fiche : la mise en relation est tracée et ses coordonnées restent masquées." />
+      <PageHeader index="06" eyebrow={t('ui.contact')} title={t('ui.nousEcrire')} subtitle={t('ui.pourContacterUnProducteurPassezPar')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <Card tone="white">
           <View style={styles.form}>
-            <Input label="Sujet" value={subject} onChangeText={setSubject} />
-            <Input label="Message" value={message} onChangeText={setMessage} multiline />
+            <Input label={t('ui.sujet')} value={subject} onChangeText={setSubject} />
+            <Input label={t('ui.message')} value={message} onChangeText={setMessage} multiline />
             {hint ? (
-              <ErrorState error={new Error('Le dépôt direct de message n\u2019est pas ouvert. Utilisez la demande de contact depuis la fiche du producteur.')} />
+              <ErrorState error={new Error(t('ui.leDepotDirectDeMessageN'))} />
             ) : null}
-            <Text preset="caption" color={COLORS.slateGray}>
-              Les demandes de mise en relation se font depuis la fiche d\u2019une exploitation (bouton « Demander un contact »).
-            </Text>
-            <Button label="Envoyer" variant="primary" onPress={() => setHint(true)} disabled={subject.trim().length === 0 || message.trim().length === 0} />
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.lesDemandesDeMiseEnRelation')}</Text>
+            <Button label={t('ui.envoyer')} variant="primary" onPress={() => setHint(true)} disabled={subject.trim().length === 0 || message.trim().length === 0} />
           </View>
         </Card>
       </Section>

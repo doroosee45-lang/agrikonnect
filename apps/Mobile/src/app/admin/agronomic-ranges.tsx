@@ -19,7 +19,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatDate } from '@/lib/format';
 import { agronomicRangeApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
@@ -44,11 +44,11 @@ import { SPACING } from '@/theme/space';
  */
 
 const PARAMETER_LABELS: Record<RangeParameterKey, string> = {
-  ph: 'pH du sol',
-  airTemperatureC: "Température de l'AIR",
-  moisture: 'Humidité du sol',
-  ec: 'Salinité (CE)',
-  depthCm: 'Profondeur racinaire',
+  get ph() { return tr('ui.phDuSol'); },
+  get airTemperatureC() { return tr('ui.temperatureDeLAir'); },
+  get moisture() { return tr('ui.humiditeDuSol'); },
+  get ec() { return tr('ui.saliniteCe'); },
+  get depthCm() { return tr('ui.profondeurRacinaire'); },
 };
 
 const PARAMETER_UNITS: Record<RangeParameterKey, string> = {
@@ -63,18 +63,19 @@ const PARAMETER_KEYS = Object.keys(PARAMETER_LABELS) as RangeParameterKey[];
 
 /** Libellés du menu « Type de source », identiques à ceux du tableau. */
 const SOURCE_TYPE_LABELS: Record<RangeSourceType, string> = {
-  AGRONOMIST: 'Agronome',
-  PUBLICATION: 'Publication',
-  PILOT: 'Pilote',
+  get AGRONOMIST() { return tr('ui.agronome'); },
+  get PUBLICATION() { return tr('ui.publication'); },
+  get PILOT() { return tr('ui.pilote'); },
 };
 const STATUS_FILTERS: Array<{ value: RangeStatus | ''; label: string }> = [
-  { value: '', label: 'Tous' },
-  { value: 'PROVISIONAL', label: 'Provisoires' },
-  { value: 'VALIDATED', label: 'Validées' },
-  { value: 'RETIRED', label: 'Retirées' },
+  { value: '', get label() { return tr('ui.tous'); } },
+  { value: 'PROVISIONAL', get label() { return tr('ui.provisoires'); } },
+  { value: 'VALIDATED', get label() { return tr('ui.validees'); } },
+  { value: 'RETIRED', get label() { return tr('ui.retirees'); } },
 ];
 
 export default function AdminAgronomicRanges() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -181,26 +182,20 @@ export default function AdminAgronomicRanges() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Plages agronomiques" subtitle="Référentiel des fourchettes culturales." />
+      <AppHeader title={t('ui.plagesAgronomiques')} subtitle={t('ui.referentielDesFourchettesCulturales')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Plages agronomiques" icon="leaf-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.plagesAgronomiques')} icon="leaf-outline">
           <Card tone="pale" style={styles.card}>
-            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Une plage provisoire rend les recommandations « indicatives ». La valider exige un
-              validateur nommé et une source citable. Aucune valeur ne peut être enregistrée sans
-              provenance, et modifier une plage validée annule sa validation.
-            </Text>
+            <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.unePlageProvisoireRendLesRecommandations_16022')}</Text>
           </Card>
 
           {error ? <ErrorState error={error} showRequestId /> : null}
 
           {/* ── Filtres ─────────────────────────────────────────── */}
           <Card tone="white" style={styles.card}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Filtres
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.filtres')}</Text>
             <Input
-              label="Culture (slug)"
+              label={t('ui.cultureSlug')}
               value={cropSlug}
               onChangeText={setCropSlug}
               placeholder="manioc"
@@ -220,11 +215,9 @@ export default function AdminAgronomicRanges() {
 
           {/* ── Création ────────────────────────────────────────── */}
           <Card tone="white" style={styles.card}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Créer une plage
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.creerUnePlage')}</Text>
             <Input
-              label="Culture (slug)"
+              label={t('ui.cultureSlug')}
               value={cropSlug}
               onChangeText={setCropSlug}
               autoCapitalize="none"
@@ -240,54 +233,54 @@ export default function AdminAgronomicRanges() {
               ))}
             </ChipRow>
             <Input
-              label={`Min (${PARAMETER_UNITS[parameterKey]})`}
+              label={t('ui.min', { value: PARAMETER_UNITS[parameterKey] })}
               value={minValue}
               onChangeText={setMinValue}
               keyboardType="numeric"
             />
             <Input
-              label={`Max (${PARAMETER_UNITS[parameterKey]})`}
+              label={t('ui.max', { value: PARAMETER_UNITS[parameterKey] })}
               value={maxValue}
               onChangeText={setMaxValue}
               keyboardType="numeric"
             />
             <Input
-              label={`Toléré min (${PARAMETER_UNITS[parameterKey]})`}
+              label={t('ui.tolereMin', { value: PARAMETER_UNITS[parameterKey] })}
               value={toleratedMin}
               onChangeText={setToleratedMin}
               keyboardType="numeric"
-              helper="Facultatif. Doit être ≤ à l'idéal min. Vide = aucune limite inventée."
+              helper={t('ui.facultatifDoitEtreALIdeal_86d75')}
             />
             <Input
-              label={`Toléré max (${PARAMETER_UNITS[parameterKey]})`}
+              label={t('ui.tolereMax', { value: PARAMETER_UNITS[parameterKey] })}
               value={toleratedMax}
               onChangeText={setToleratedMax}
               keyboardType="numeric"
-              helper="Facultatif. Doit être ≥ à l'idéal max."
+              helper={t('ui.facultatifDoitEtreALIdeal_73eec')}
             />
             <Input
-              label="Zone concernée"
+              label={t('ui.zoneConcernee')}
               value={zone}
               onChangeText={setZone}
-              placeholder="Équateur, bassin de la Ruki…"
-              helper="Facultatif : laisse la fourchette non circonscrite."
+              placeholder={t('ui.equateurBassinDeLaRuki')}
+              helper={t('ui.facultatifLaisseLaFourchetteNonCirconscrite')}
             />
             <Input
-              label="Source citable"
+              label={t('ui.sourceCitable')}
               value={sourceReference}
               onChangeText={setSourceReference}
-              placeholder="Référentiel agronomique de test — Manihot esculenta"
-              helper="Obligatoire pour pouvoir valider la plage ensuite."
+              placeholder={t('ui.referentielAgronomiqueDeTestManihotEsculenta')}
+              helper={t('ui.obligatoirePourPouvoirValiderLaPlage')}
             />
             <Input
-              label="Note sur la nature de la valeur"
+              label={t('ui.noteSurLaNatureDeLa')}
               value={sourceNote}
               onChangeText={setSourceNote}
-              helper="À défaut de source, cette note est obligatoire."
+              helper={t('ui.aDefautDeSourceCetteNote')}
             />
-            <Input label="Lot" value={datasetLabel} onChangeText={setDatasetLabel} />
+            <Input label={t('ui.lot')} value={datasetLabel} onChangeText={setDatasetLabel} />
             <Button
-              label="Créer la plage"
+              label={t('ui.creerLaPlage')}
               variant="primary"
               fullWidth
               loading={create.isPending}
@@ -302,8 +295,8 @@ export default function AdminAgronomicRanges() {
           ) : null}
           {ranges.data && items.length === 0 ? (
             <EmptyState
-              title="Données insuffisantes"
-              description="Aucune plage agronomique pour ce filtre. Sans plage en base, le moteur considère le critère comme non évalué — il n'invente jamais de fourchette."
+              title={t('ui.donneesInsuffisantes')}
+              description={t('ui.aucunePlageAgronomiquePourCeFiltre')}
               icon="leaf-outline"
             />
           ) : null}
@@ -316,10 +309,7 @@ export default function AdminAgronomicRanges() {
                     <Text preset="bodyMedium" color={COLORS.textPrimary}>
                       {range.cropSlug} · {PARAMETER_LABELS[range.parameterKey] ?? range.parameterKey}
                     </Text>
-                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      Idéal [{range.minValue} ; {range.maxValue}] {range.unit} · lot {range.datasetLabel} · v
-                      {range.version}
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.idealLotV', { minValue: range.minValue, maxValue: range.maxValue, unit: range.unit, datasetLabel: range.datasetLabel, version: range.version })}</Text>
                     {/*
                       Les bornes tolérées encadrent l'idéal. Quand elles
                       manquent, on le dit : un vide silencieux laisserait croire
@@ -327,19 +317,16 @@ export default function AdminAgronomicRanges() {
                     */}
                     <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
                       {range.toleratedMin !== null && range.toleratedMax !== null
-                        ? `Toléré [${range.toleratedMin} ; ${range.toleratedMax}] ${range.unit}`
-                        : 'Toléré : non renseigné — verdict limité à la plage idéale'}
+                        ? t('ui.tolere', { toleratedMin: range.toleratedMin, toleratedMax: range.toleratedMax, unit: range.unit })
+                        : t('ui.tolereNonRenseigneVerdictLimiteA')}
                     </Text>
                     <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                      {range.sourceType ? `Type : ${SOURCE_TYPE_LABELS[range.sourceType]} · ` : ''}
-                      {range.sourceReference ?? 'Aucune source citable.'}
+                      {range.sourceType ? t('ui.type_55c6e', { value: SOURCE_TYPE_LABELS[range.sourceType] }) : ''}
+                      {range.sourceReference ?? t('ui.aucuneSourceCitable')}
                       {range.sourceNote ? ` · ${range.sourceNote}` : ''}
                     </Text>
                     {range.status === 'VALIDATED' ? (
-                      <Text preset="caption" color={COLORS.success} style={styles.lineHeight}>
-                        Validée par {range.validatedBy}
-                        {range.validatedAt ? ` le ${formatDate(range.validatedAt, locale)}` : ''}
-                      </Text>
+                      <Text preset="caption" color={COLORS.success} style={styles.lineHeight}>{t('ui.valideePar', { validatedBy: range.validatedBy, value: range.validatedAt ? ` le ${formatDate(range.validatedAt, locale)}` : '' })}</Text>
                     ) : null}
                   </View>
                   <Chip
@@ -359,7 +346,7 @@ export default function AdminAgronomicRanges() {
                   <View style={styles.actions}>
                     {range.status === 'PROVISIONAL' ? (
                       <Button
-                        label="Valider"
+                        label={t('ui.valider')}
                         variant="primary"
                         size="sm"
                         onPress={() => {
@@ -369,7 +356,7 @@ export default function AdminAgronomicRanges() {
                       />
                     ) : null}
                     <Button
-                      label="Retirer"
+                      label={t('ui.retirer')}
                       variant="outline"
                       size="sm"
                       loading={retire.isPending}
@@ -384,56 +371,41 @@ export default function AdminAgronomicRanges() {
           {/* ── Validation ──────────────────────────────────────── */}
           {validating ? (
             <Card tone="white" style={styles.card}>
-              <Text preset="overline" color={COLORS.forestGreen}>
-                Valider {validating.cropSlug} · {PARAMETER_LABELS[validating.parameterKey] ?? validating.parameterKey}
-              </Text>
+              <Text preset="overline" color={COLORS.forestGreen}>{t('ui.valider_424cc', { cropSlug: validating.cropSlug, value: PARAMETER_LABELS[validating.parameterKey] ?? validating.parameterKey })}</Text>
               {!validating.sourceReference ? (
-                <Text preset="caption" color={COLORS.error} style={styles.lineHeight}>
-                  Cette plage n’a pas de source citable : le serveur refuse la validation (409).
-                </Text>
+                <Text preset="caption" color={COLORS.error} style={styles.lineHeight}>{t('ui.cettePlageNAPasDe_b45ee')}</Text>
               ) : (
-                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Source enregistrée : {validating.sourceReference}
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.sourceEnregistree', { sourceReference: validating.sourceReference })}</Text>
               )}
               <Input
-                label="Validée par"
+                label={t('ui.valideePar_bbf08')}
                 value={validatedBy}
                 onChangeText={setValidatedBy}
-                placeholder="Dr. Alice Muteba"
-                helper="Le nom du validateur est conservé avec la plage et son horodatage."
+                placeholder={t('ui.drAliceMuteba')}
+                helper={t('ui.leNomDuValidateurEstConserve')}
               />
               <Button
-                label="Confirmer la validation"
+                label={t('ui.confirmerLaValidation')}
                 variant="primary"
                 fullWidth
                 loading={validateRange.isPending}
                 onPress={() => validateRange.mutate()}
               />
-              <Button label="Annuler" variant="outline" fullWidth onPress={() => setValidating(null)} />
+              <Button label={t('common.cancel')} variant="outline" fullWidth onPress={() => setValidating(null)} />
             </Card>
           ) : null}
 
           {/* ── Import CSV ──────────────────────────────────────── */}
           <Card tone="white" style={styles.card}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Import CSV
-            </Text>
-            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-              Une ligne par culture et par paramètre. Chaque ligne est validée individuellement :
-              une ligne invalide est rapportée avec son numéro, les autres sont traitées. Une
-              plage déjà validée n’est jamais écrasée.
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.importCsv')}</Text>
+            <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.uneLigneParCultureEtPar_dafb2')}</Text>
 
             {template.data ? (
-              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                En-tête : {template.data.header.join(' ; ')}
-                {'\n'}Exemple : {template.data.example.join(' ; ')}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.enTeteExemple', { value: template.data.header.join(' ; '), value2: template.data.example.join(' ; ') })}</Text>
             ) : null}
 
             <Input
-              label="Contenu du fichier"
+              label={t('ui.contenuDuFichier')}
               value={csv}
               onChangeText={setCsv}
               multiline
@@ -441,14 +413,14 @@ export default function AdminAgronomicRanges() {
               placeholder={'Culture;Nom scientifique;Paramètre;Unité;Idéal min;Idéal max;Toléré min;Toléré max;Type de source;Source précise;Zone concernée;Statut;Validé par;Date de validation;Remarques\nexemple;Exemplum fictivum;pH du sol;pH;5.5;7.0;4.5;8.0;Agronome;Exemple de format;;;PROVISIONAL;;;Ligne d\u2019exemple : valeurs fictives, à remplacer.'}
             />
             <Button
-              label="Vérifier (sans écrire)"
+              label={t('ui.verifierSansEcrire')}
               variant="outline"
               fullWidth
               loading={importCsv.isPending}
               onPress={() => importCsv.mutate(true)}
             />
             <Button
-              label="Appliquer l'import"
+              label={t('ui.appliquerLImport')}
               variant="primary"
               fullWidth
               loading={importCsv.isPending}
@@ -456,7 +428,7 @@ export default function AdminAgronomicRanges() {
             />
             {template.data ? (
               <Button
-                label="Charger le modèle"
+                label={t('ui.chargerLeModele')}
                 variant="outline"
                 fullWidth
                 onPress={() => setCsv(template.data.csv)}
@@ -466,12 +438,7 @@ export default function AdminAgronomicRanges() {
             {importResult ? (
               <View style={styles.importResult}>
                 <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-                  {importResult.summary.dryRun ? 'Vérification (rien n’a été écrit)' : 'Import appliqué'} —{' '}
-                  {importResult.summary.totalLines} ligne(s) : {importResult.summary.created} créée(s),{' '}
-                  {importResult.summary.updated} mise(s) à jour, {importResult.summary.skippedValidated}{' '}
-                  ignorée(s) car validée(s), {importResult.summary.skippedEmpty} ignorée(s) faute de{' '}
-                  valeurs idéales, {importResult.summary.errors} en erreur.
-                </Text>
+                  {importResult.summary.dryRun ? t('ui.verificationRienNAEteEcrit') : t('ui.importApplique')}{' '}{t('ui.ligneSCreeeSMiseS', { totalLines: importResult.summary.totalLines, created: importResult.summary.created, updated: importResult.summary.updated, skippedValidated: importResult.summary.skippedValidated, skippedEmpty: importResult.summary.skippedEmpty, errors: importResult.summary.errors })}</Text>
                 {importResult.results.map((result) => (
                   <View key={`${result.line}-${result.parameterKey ?? 'none'}`} style={styles.importRow}>
                     <Chip

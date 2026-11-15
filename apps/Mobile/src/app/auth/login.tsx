@@ -57,7 +57,7 @@ export default function Login() {
       setError(caught);
       if (requestError?.fields?.length) {
         setFieldErrors(
-          Object.fromEntries(requestError.fields.map((field) => [field.field, field.message ?? field.code ?? 'Invalide'])),
+          Object.fromEntries(requestError.fields.map((field) => [field.field, field.message ?? field.code ?? t('ui.invalide')])),
         );
       }
     }
@@ -81,7 +81,7 @@ export default function Login() {
           label={t('auth.email')}
           value={identifier}
           onChangeText={setIdentifier}
-          placeholder="vous@exemple.com ou +225…"
+          placeholder={t('ui.vousExempleComOu225')}
           icon="person-outline"
           autoCapitalize="none"
           autoCorrect={false}

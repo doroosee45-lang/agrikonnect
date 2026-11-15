@@ -8,27 +8,28 @@ import { Chip } from '@/components/ui';
 
 /** ADMIN — exploitations enregistrées. */
 export default function AdminFarms() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   return (
     <ResourcePage<Farm>
-      title="Exploitations"
-      subtitle="Toutes les exploitations, avec leur statut de publication."
+      title={t('ui.exploitations')}
+      subtitle={t('ui.toutesLesExploitationsAvecLeurStatut')}
       icon="🏡"
       queryKey={queryKeys.farms.list({ limit: 100 })}
       fetch={() => farmApi.list({ limit: 100 }).then((result) => result.data)}
       rowKey={(farm) => farm.id}
       rowHref={(farm) => `/app/farms/${farm.id}`}
       columns={[
-        { key: 'name', label: 'Nom', render: (farm) => farm.name },
-        { key: 'countryCode', label: 'Pays', render: (farm) => `${farm.countryCode}${farm.province ? ` · ${farm.province}` : ''}` },
-        { key: 'totalAreaHa', label: 'Surface', render: (farm) => (farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—') },
-        { key: 'verificationStatus', label: 'Vérification', render: (farm) => <Chip label={farm.verificationStatus ?? 'non vérifiée'} tone={farm.verificationStatus === 'VERIFIED' ? 'success' : 'warning'} size="sm" /> },
-        { key: 'isPublic', label: 'Publique', render: (farm) => <Chip label={farm.isPublic ? 'oui' : 'non'} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
-        { key: 'updatedAt', label: 'Mise à jour', render: (farm) => formatDate(farm.updatedAt, locale) },
+        { key: 'name', label: t('ui.nom'), render: (farm) => farm.name },
+        { key: 'countryCode', label: t('ui.pays'), render: (farm) => `${farm.countryCode}${farm.province ? ` · ${farm.province}` : ''}` },
+        { key: 'totalAreaHa', label: t('ui.surface'), render: (farm) => (farm.totalAreaHa !== null ? `${farm.totalAreaHa} ha` : '—') },
+        { key: 'verificationStatus', label: t('ui.verification_bb27a'), render: (farm) => <Chip label={farm.verificationStatus ?? t('ui.nonVerifiee')} tone={farm.verificationStatus === 'VERIFIED' ? 'success' : 'warning'} size="sm" /> },
+        { key: 'isPublic', label: t('ui.publique'), render: (farm) => <Chip label={farm.isPublic ? t('ui.oui') : t('ui.non')} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" /> },
+        { key: 'updatedAt', label: t('ui.miseAJour'), render: (farm) => formatDate(farm.updatedAt, locale) },
       ]}
-      emptyTitle="Aucune exploitation"
-      emptyDescription="Aucune exploitation n'a été renvoyée par l'API."
-      notice="Les coordonnées des exploitants ne sont jamais exposées dans les listes d'administration."
+      emptyTitle={t('ui.aucuneExploitation')}
+      emptyDescription={t('ui.aucuneExploitationNAEteRenvoyee')}
+      notice={t('ui.lesCoordonneesDesExploitantsNeSont')}
     />
   );
 }

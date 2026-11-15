@@ -13,6 +13,7 @@ import { SPACING } from '@/theme/space';
 
 /** Offres groupées de la coopérative (`GET /cooperatives/:id/group-offers`). */
 export default function OrganizationOffers() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const current = useQuery({
@@ -31,10 +32,10 @@ export default function OrganizationOffers() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Offres groupées" subtitle="Offres consolidées de la coopérative." />
+      <AppHeader title={t('ui.offresGroupees')} subtitle={t('ui.offresConsolideesDeLaCooperative')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Offres groupées" icon="pricetag-outline">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune offre" description="Aucune offre groupée créée." icon="pricetag-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.offresGroupees')} icon="pricetag-outline">
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneOffre')} description={t('ui.aucuneOffreGroupeeCreee')} icon="pricetag-outline" /> : (
             <View style={styles.list}>
               {items.map((row, index) => {
                 const offer = row as Record<string, unknown>;
@@ -43,9 +44,9 @@ export default function OrganizationOffers() {
                   <Reveal key={String(offer.id ?? index)} index={index} variant="up">
                     <Card tone="white" style={styles.row}>
                       <View style={styles.rowBody}>
-                        <Text preset="bodyMedium">{String(offer.title ?? offer.cropId ?? 'Offre')}</Text>
+                        <Text preset="bodyMedium">{String(offer.title ?? offer.cropId ?? t('ui.offre'))}</Text>
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {offer.quantity !== undefined ? `${String(offer.quantity)} ${String(offer.unit ?? '')}` : 'quantité non renseignée'}
+                          {offer.quantity !== undefined ? `${String(offer.quantity)} ${String(offer.unit ?? '')}` : t('ui.quantiteNonRenseignee')}
                           {createdAt ? ` · ${formatDate(createdAt, locale)}` : ''}
                         </Text>
                       </View>

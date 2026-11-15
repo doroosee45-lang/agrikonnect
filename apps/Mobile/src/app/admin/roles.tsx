@@ -11,6 +11,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * ADMIN M2 — rôles de gouvernance et matrice de permissions (U-M2-6), miroir
@@ -21,6 +22,7 @@ import { SPACING } from '@/theme/space';
  * depuis la fiche de chaque compte (palier 2 — Super Admin).
  */
 export default function AdminRoles() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const roles = useQuery({
@@ -36,12 +38,10 @@ export default function AdminRoles() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Rôles et permissions" subtitle="Matrice effective de la plateforme." />
+      <AppHeader title={t('ui.rolesEtPermissions')} subtitle={t('ui.matriceEffectiveDeLaPlateforme')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Rôles" icon="shield-checkmark-outline">
-          <Text preset="caption" color={COLORS.forestGreen} onPress={() => router.push('/admin/users')} style={styles.retour}>
-            ← Retour aux comptes
-          </Text>
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.roles')} icon="shield-checkmark-outline">
+          <Text preset="caption" color={COLORS.forestGreen} onPress={() => router.push('/admin/users')} style={styles.retour}>{t('ui.retourAuxComptes')}</Text>
 
           {roles.isLoading ? (
             <LoadingState count={3} height={90} />
@@ -49,9 +49,7 @@ export default function AdminRoles() {
             <ErrorState error={roles.error} onRetry={() => void roles.refetch()} />
           ) : !matrice ? (
             <Card tone="white">
-              <Text preset="caption" color={COLORS.slateGray}>
-                Aucun rôle exposé.
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.aucunRoleExpose')}</Text>
             </Card>
           ) : (
             <View style={styles.list}>
@@ -60,11 +58,9 @@ export default function AdminRoles() {
                   <Card tone="white" style={styles.bloc}>
                     <View style={styles.entete}>
                       <Text preset="bodyMedium">{entree.role}</Text>
-                      {entree.role === 'SUPER_ADMIN' && <Chip label="Palier 2" tone="warning" size="sm" />}
+                      {entree.role === 'SUPER_ADMIN' && <Chip label={t('ui.palier2')} tone="warning" size="sm" />}
                     </View>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      {entree.permissions.length} permission(s) effective(s)
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.permissionSEffectiveS', { length: entree.permissions.length })}</Text>
                     <View style={styles.permissions}>
                       {entree.permissions.map((permission) => (
                         <Chip

@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import EmbeddedPostgres from 'embedded-postgres';
 import { startFakeGoTrue } from './fake-gotrue.mjs';
+import { ensureLocalSupabaseRoles } from './ensureLocalSupabaseRoles.mjs';
 
 /**
  * Banc de recette **réel** : PostgreSQL, API HTTP, webhooks sortants.
@@ -120,6 +121,7 @@ export const startHarness = async ({ fresh = true } = {}) => {
   await pg.createDatabase('agrikon');
 
   const databaseUrl = `postgresql://agrikon:agrikon@127.0.0.1:${PG_PORT}/agrikon?schema=public`;
+  await ensureLocalSupabaseRoles(databaseUrl);
 
   const prismaEnv = {
     ...process.env,

@@ -7,6 +7,7 @@ import { Button, Card, Chip, PressableScale, Reveal, Section, Text } from '@/com
 import { PLATFORM_SERVICES } from '@/lib/platform';
 import { COLORS, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 const TONE_BG: Record<string, string> = {
   forest: TINTS.forestGreenBg,
@@ -17,9 +18,10 @@ const TONE_BG: Record<string, string> = {
 
 /** Périmètre fonctionnel réellement livré, service par service (exigences CDC incluses). */
 export default function PublicSiteServices() {
+  const { t } = useI18n();
   return (
     <PublicShell active="services">
-      <PageHeader index="04" eyebrow="Services" title="Ce que la plateforme fait" subtitle="Chaque service est rattaché aux exigences du cahier des charges qu'il couvre." />
+      <PageHeader index="04" eyebrow={t('ui.services')} title={t('ui.ceQueLaPlateformeFait')} subtitle={t('ui.chaqueServiceEstRattacheAuxExigences')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <View style={styles.list}>
           {PLATFORM_SERVICES.map((service, index) => (
@@ -39,10 +41,10 @@ export default function PublicSiteServices() {
                   {service.cdc.map((code) => (
                     <Chip key={code} label={code} tone="neutral" size="sm" />
                   ))}
-                  <Chip label={service.requiresAuth ? 'compte requis' : 'accès anonyme'} tone={service.requiresAuth ? 'warning' : 'success'} size="sm" />
+                  <Chip label={service.requiresAuth ? t('ui.compteRequis') : t('ui.accesAnonyme')} tone={service.requiresAuth ? 'warning' : 'success'} size="sm" />
                 </View>
                 <PressableScale onPress={() => router.push(service.href as never)} style={styles.link}>
-                  <Text preset="bodySm" color={COLORS.forestGreen}>Ouvrir le service →</Text>
+                  <Text preset="bodySm" color={COLORS.forestGreen}>{t('ui.ouvrirLeService')}</Text>
                 </PressableScale>
               </Card>
             </Reveal>

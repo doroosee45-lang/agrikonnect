@@ -6,9 +6,11 @@ import { AuthGate, Button, Card, Chip, ErrorState, Input, Section, Text, TextAre
 import { authApi } from '@/services/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** FARMER — profil producteur et complétude calculée côté serveur. */
 export default function FarmerProfile() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const me = useAuthStore((state) => state.user);
   const refreshProfile = useAuthStore((state) => state.refreshProfile);
@@ -27,22 +29,18 @@ export default function FarmerProfile() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Mon profil" icon="👤">
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.monProfil')} icon="👤">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.slow / 1000, ease: EASE.out }} style={{ maxWidth: 640 }}>
-          <Text preset="h1" style={{ marginBottom: 8 }}>
-            Mon profil
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-            Ces informations apparaissent sur votre fiche publique si vous la publiez.
-          </Text>
+          <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.monProfil')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.cesInformationsApparaissentSurVotreFiche')}</Text>
 
           <Card tone="white" style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <Text preset="bodySm">Email : {me?.email ?? '—'}</Text>
-              <Text preset="bodySm">Téléphone : {me?.phone ?? '—'}</Text>
+              <Text preset="bodySm">{t('ui.email_946f4', { value: me?.email ?? '—' })}</Text>
+              <Text preset="bodySm">{t('ui.telephone', { value: me?.phone ?? '—' })}</Text>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <Chip label={me?.emailVerified ? 'email vérifié' : 'email non vérifié'} tone={me?.emailVerified ? 'success' : 'warning'} size="sm" />
-                {me?.phoneVerified ? <Chip label="téléphone vérifié" tone="success" size="sm" /> : <Chip label="téléphone non vérifié" tone="warning" size="sm" />}
+                <Chip label={me?.emailVerified ? t('ui.emailVerifie') : t('ui.emailNonVerifie')} tone={me?.emailVerified ? 'success' : 'warning'} size="sm" />
+                {me?.phoneVerified ? <Chip label={t('ui.telephoneVerifie_4fdf8')} tone="success" size="sm" /> : <Chip label={t('ui.telephoneNonVerifie')} tone="warning" size="sm" />}
                 <Chip label={me?.status ?? '—'} tone="neutral" size="sm" />
               </div>
             </div>
@@ -57,11 +55,11 @@ export default function FarmerProfile() {
               style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
             >
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <Input label="Prénom" value={firstName} onChange={(event) => setFirstName(event.target.value)} required />
-                <Input label="Nom" value={lastName} onChange={(event) => setLastName(event.target.value)} required />
+                <Input label={t('ui.prenom')} value={firstName} onChange={(event) => setFirstName(event.target.value)} required />
+                <Input label={t('ui.nom')} value={lastName} onChange={(event) => setLastName(event.target.value)} required />
               </div>
               {error ? <ErrorState error={error} showRequestId /> : null}
-              <Button label="Enregistrer" type="submit" loading={save.isPending} />
+              <Button label={t('common.save')} type="submit" loading={save.isPending} />
             </form>
           </Card>
         </motion.div>

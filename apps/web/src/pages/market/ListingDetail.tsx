@@ -12,6 +12,7 @@ import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
 
 export default function AnnonceDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { locale } = useI18n();
@@ -40,14 +41,12 @@ export default function AnnonceDetail() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Connexion requise"
-        description="Connectez-vous pour consulter cette annonce et contacter le vendeur."
+        title={t('ui.connexionRequise_37a92')}
+        description={t('ui.connectezVousPourConsulterCetteAnnonce')}
         icon="📦"
       >
         <div style={{ marginBottom: 24 }}>
-          <Link to="/market/listings" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-            ← Retour aux annonces
-          </Link>
+          <Link to="/market/listings" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourAuxAnnonces')}</Link>
         </div>
 
         {listing.isLoading ? (
@@ -63,10 +62,7 @@ export default function AnnonceDetail() {
                     <Text preset="h1" style={{ marginBottom: 8 }}>
                       {item.title}
                     </Text>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      {item.countryCode}
-                      {item.province ? ` · ${item.province}` : ''} · publiée le {formatDate(item.createdAt, locale)}
-                      {item.expiresAt ? ` · expire le ${formatDate(item.expiresAt, locale)}` : ''}
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.publieeLe_2c645', { countryCode: item.countryCode, value: item.province ? ` · ${item.province}` : '', createdAt: formatDate(item.createdAt, locale) })}{item.expiresAt ? t('ui.expireLe_e1021', { expiresAt: formatDate(item.expiresAt, locale) }) : ''}
                     </Text>
                   </div>
                   <Chip
@@ -77,26 +73,20 @@ export default function AnnonceDetail() {
 
                 <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', marginBottom: 24 }}>
                   <div>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Quantité
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.quantite')}</Text>
                     <Text preset="numeric" color={COLORS.forestGreen}>
                       {formatNumber(item.quantity, locale, 1)} <span style={{ fontSize: 16, fontWeight: 400 }}>{item.unit}</span>
                     </Text>
                   </div>
                   <div>
-                    <Text preset="caption" color={COLORS.slateGray}>
-                      Prix indicatif
-                    </Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.prixIndicatif')}</Text>
                     <Text preset="numeric" color={COLORS.forestGreen}>
-                      {item.indicativePrice !== null ? formatCurrency(item.indicativePrice, item.currency, locale) : 'Non communiqué'}
+                      {item.indicativePrice !== null ? formatCurrency(item.indicativePrice, item.currency, locale) : t('ui.nonCommunique')}
                     </Text>
                   </div>
                   {item.quality ? (
                     <div>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Qualité
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.qualite')}</Text>
                       <Text preset="bodyLg" color={COLORS.textPrimary}>
                         {item.quality}
                       </Text>
@@ -112,9 +102,7 @@ export default function AnnonceDetail() {
 
                 {item.certifications.length > 0 ? (
                   <div style={{ marginBottom: 20 }}>
-                    <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 8 }}>
-                      Certifications
-                    </Text>
+                    <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 8 }}>{t('ui.certifications')}</Text>
                     <ChipRow>
                       {item.certifications.map((certification) => (
                         <Chip key={certification} label={certification} tone="success" size="sm" />
@@ -125,9 +113,7 @@ export default function AnnonceDetail() {
 
                 {item.conditions ? (
                   <div style={{ marginBottom: 20 }}>
-                    <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 8 }}>
-                      Conditions
-                    </Text>
+                    <Text preset="overline" color={COLORS.forestGreen} style={{ marginBottom: 8 }}>{t('ui.conditions')}</Text>
                     <Text preset="bodyMd" color={COLORS.slateGray} style={{ lineHeight: 1.7 }}>
                       {item.conditions}
                     </Text>
@@ -135,30 +121,25 @@ export default function AnnonceDetail() {
                 ) : null}
 
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <Chip label={`Type : ${item.type}`} tone="neutral" size="sm" />
-                  <Chip label={`Source : ${item.source}`} tone="neutral" size="sm" />
-                  {item.availableFrom ? <Chip label={`Disponible dès ${formatDate(item.availableFrom, locale)}`} tone="info" size="sm" /> : null}
-                  {item.availableTo ? <Chip label={`Jusqu'au ${formatDate(item.availableTo, locale)}`} tone="info" size="sm" /> : null}
+                  <Chip label={t('ui.type_0e2c4', { type: item.type })} tone="neutral" size="sm" />
+                  <Chip label={t('ui.source', { source: item.source })} tone="neutral" size="sm" />
+                  {item.availableFrom ? <Chip label={t('ui.disponibleDes', { availableFrom: formatDate(item.availableFrom, locale) })} tone="info" size="sm" /> : null}
+                  {item.availableTo ? <Chip label={t('ui.jusquAu', { availableTo: formatDate(item.availableTo, locale) })} tone="info" size="sm" /> : null}
                 </div>
               </Card>
 
               <Card tone="white">
-                <Text preset="h3" style={{ marginBottom: 12 }}>
-                  Contacter le vendeur
-                </Text>
-                <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.7, marginBottom: 16 }}>
-                  Les coordonnées du vendeur ne transitent jamais par la plateforme : le contact ouvre une
-                  conversation rattachée à cette annonce.
-                </Text>
+                <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.contacterLeVendeur')}</Text>
+                <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.7, marginBottom: 16 }}>{t('ui.lesCoordonneesDuVendeurNeTransitent')}</Text>
 
                 <TextArea
-                  label="Message"
+                  label={t('ui.message')}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Bonjour, je suis intéressé par ce volume…"
+                  placeholder={t('ui.bonjourJeSuisInteresseParCe')}
                   minHeight={110}
                   maxLength={3000}
-                  optionalLabel="optionnel"
+                  optionalLabel={t('ui.optionnel')}
                 />
 
                 {error ? (
@@ -168,7 +149,7 @@ export default function AnnonceDetail() {
                 ) : null}
 
                 <Button
-                  label="Ouvrir la conversation"
+                  label={t('ui.ouvrirLaConversation')}
                   onClick={() => contact.mutate()}
                   loading={contact.isPending}
                   fullWidth

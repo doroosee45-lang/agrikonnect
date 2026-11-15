@@ -6,12 +6,17 @@
  *
  * Erreur :
  * { "success": false, "message": "Validation error",
- *   "errors": [ { "field": "email", "code": "invalid" } ], "requestId": "…" }
+ *   "errors": [ { "field": "email", "code": "invalid", "message": "Adresse e-mail invalide" } ], "requestId": "…" }
+ *
+ * I18N-01 : `message` (succès comme erreur) suit la langue de la requête
+ * (`Accept-Language`, repli français). Voir shared/i18n.
  */
+import { translateMessage } from '../i18n/index.js';
 
 export const success = (res, data = null, { status = 200, message = null, meta = null } = {}) => {
   const body = { success: true };
-  if (message) body.message = message;
+  // I18N-01 — message rendu dans la langue de la requête (source française).
+  if (message) body.message = translateMessage(message, res.req?.locale);
   body.data = data ?? null;
   if (meta) body.meta = meta;
   return res.status(status).json(body);

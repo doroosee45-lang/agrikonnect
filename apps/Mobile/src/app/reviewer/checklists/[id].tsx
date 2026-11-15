@@ -10,6 +10,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 /**
  * Checklist de vérification.
@@ -19,6 +20,7 @@ import { SPACING } from '@/theme/space';
  * La décision (APPROVED / REJECTED) passe par `POST /verifications/:id/decide`.
  */
 export default function ReviewerChecklist() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [reason, setReason] = useState('');
@@ -41,27 +43,27 @@ export default function ReviewerChecklist() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Checklist de vérification" subtitle="Évaluez la demande." />
+      <AppHeader title={t('ui.checklistDeVerification')} subtitle={t('ui.evaluezLaDemande')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Checklist" icon="checkmark-done-outline">
-          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !verification ? <Text preset="body">Vérification introuvable ou déjà traitée.</Text> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.checklist')} icon="checkmark-done-outline">
+          {query.isLoading ? <LoadingState count={1} height={140} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !verification ? <Text preset="body">{t('ui.verificationIntrouvableOuDejaTraitee')}</Text> : (
             <>
               <Card tone="white" style={styles.card}>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Objet</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.objet')}</Text>
                   <Text preset="bodyMedium">{verification.subjectType}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Niveau demandé</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.niveauDemande')}</Text>
                   <Text preset="bodySm">{verification.level}</Text>
                 </View>
                 <View style={styles.field}>
-                  <Text preset="caption" color={COLORS.slateGray}>Statut</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.statut')}</Text>
                   <Chip label={verification.status} tone={verification.status === 'APPROVED' ? 'success' : 'neutral'} size="sm" />
                 </View>
                 {verification.documents && verification.documents.length > 0 ? (
                   <View style={styles.field}>
-                    <Text preset="caption" color={COLORS.slateGray}>Pièces ({verification.documents.length})</Text>
+                    <Text preset="caption" color={COLORS.slateGray}>{t('ui.pieces_001db', { length: verification.documents.length })}</Text>
                     <View style={styles.chips}>
                       {verification.documents.map((doc) => (
                         <Chip key={doc.id} label={`${doc.kind} · ${doc.status}`} tone="neutral" size="sm" />
@@ -72,11 +74,11 @@ export default function ReviewerChecklist() {
               </Card>
               <Card tone="white">
                 <View style={styles.form}>
-                  <Input label="Motif (optionnel)" value={reason} onChangeText={setReason} multiline />
+                  <Input label={t('ui.motifOptionnel')} value={reason} onChangeText={setReason} multiline />
                   {error ? <ErrorState error={error} /> : null}
                   <View style={styles.actions}>
-                    <Button label="Approuver" variant="primary" onPress={() => decide.mutate('APPROVED')} loading={decide.isPending && decide.variables === 'APPROVED'} />
-                    <Button label="Rejeter" variant="outline" onPress={() => decide.mutate('REJECTED')} loading={decide.isPending && decide.variables === 'REJECTED'} />
+                    <Button label={t('ui.approuver')} variant="primary" onPress={() => decide.mutate('APPROVED')} loading={decide.isPending && decide.variables === 'APPROVED'} />
+                    <Button label={t('ui.rejeter')} variant="outline" onPress={() => decide.mutate('REJECTED')} loading={decide.isPending && decide.variables === 'REJECTED'} />
                   </View>
                 </View>
               </Card>

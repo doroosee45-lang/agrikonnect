@@ -1,4 +1,5 @@
 import type { Ionicons } from '@expo/vector-icons';
+import { tr } from '@/i18n';
 
 /**
  * Catalogue des services de la plateforme.
@@ -25,10 +26,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'traceability',
     icon: 'qr-code-outline',
-    title: 'Traçabilité des lots',
-    body: 'Un code unique par lot, de la parcelle à la livraison.',
-    detail:
-      'Chaque lot porte un code (ex. AK-CI-2026-00001) et un journal d’étapes horodaté. Le producteur choisit les champs publiés ; la fiche publique accessible par QR ne contient ni identifiant technique, ni acteur, ni localisation d’événement. Un rappel de lot est tracé et visible.',
+    get title() { return tr('ui.tracabiliteDesLots'); },
+    get body() { return tr('ui.unCodeUniqueParLotDe'); },
+    get detail() { return tr('ui.chaqueLotPorteUnCodeEx'); },
     href: '/public-site/lot',
     requiresAuth: false,
     tone: 'forest',
@@ -37,10 +37,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'mapping',
     icon: 'map-outline',
-    title: 'Cartographie des parcelles',
-    body: 'Délimitation, surface et historique cultural.',
-    detail:
-      'Les parcelles sont créées par point ou par polygone, avec leur surface et leur culture courante. Les positions publiées sont arrondies côté serveur : la coordonnée exacte ne quitte jamais la plateforme. Le regroupement des points est laissé au client.',
+    get title() { return tr('ui.cartographieDesParcelles'); },
+    get body() { return tr('ui.delimitationSurfaceEtHistoriqueCultural'); },
+    get detail() { return tr('ui.lesParcellesSontCreeesParPoint'); },
     href: '/explore',
     requiresAuth: false,
     tone: 'living',
@@ -49,10 +48,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'soil',
     icon: 'flask-outline',
-    title: 'Diagnostic de sol',
-    body: 'Fusion pondérée des analyses, capteurs et imagerie.',
-    detail:
-      'Le moteur géospatial pondère chaque source par sa fiabilité, sa qualité et sa fraîcheur (demi-vie de 365 jours). Les sources en désaccord restent visibles, les avertissements sont affichés, et aucune recommandation n’est déclenchée automatiquement.',
+    get title() { return tr('ui.diagnosticDeSol'); },
+    get body() { return tr('ui.fusionPondereeDesAnalysesCapteursEt'); },
+    get detail() { return tr('ui.leMoteurGeospatialPondereChaqueSource'); },
     href: '/farmer/soil',
     requiresAuth: true,
     tone: 'gold',
@@ -61,10 +59,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'prices',
     icon: 'pricetags-outline',
-    title: 'Prix de marché',
-    body: 'Relevés datés et sourcés, marché par marché.',
-    detail:
-      'Chaque relevé porte son marché, sa devise, son unité, sa date d’observation et sa source. En l’absence de relevé, l’écran indique qu’aucun prix n’est disponible — aucun prix estimé n’est publié sans source.',
+    get title() { return tr('ui.prixDeMarche'); },
+    get body() { return tr('ui.relevesDatesEtSourcesMarchePar'); },
+    get detail() { return tr('ui.chaqueRelevePorteSonMarcheSa'); },
     href: '/prices',
     requiresAuth: true,
     tone: 'gold',
@@ -73,10 +70,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'weather',
     icon: 'partly-sunny-outline',
-    title: 'Météo agricole',
-    body: 'Observations rattachées à la parcelle.',
-    detail:
-      'Les données météo sont rattachées à une parcelle ou à des coordonnées explicites, avec leur source et leur niveau de confiance. Au-delà de 24 heures, un avertissement de fraîcheur s’affiche.',
+    get title() { return tr('ui.meteoAgricole'); },
+    get body() { return tr('ui.observationsRattacheesALaParcelle'); },
+    get detail() { return tr('ui.lesDonneesMeteoSontRattacheesA'); },
     href: '/weather',
     requiresAuth: true,
     tone: 'info',
@@ -85,10 +81,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'market',
     icon: 'storefront-outline',
-    title: 'Marché & mise en relation',
-    body: 'Annonces, demandes, offres, commandes.',
-    detail:
-      'Les annonces et demandes d’achat débouchent sur des offres, puis des commandes suivies étape par étape. Les coordonnées des parties ne transitent pas : la relation passe par la messagerie interne, avec signalement et blocage possibles.',
+    get title() { return tr('ui.marcheMiseEnRelation'); },
+    get body() { return tr('ui.annoncesDemandesOffresCommandes'); },
+    get detail() { return tr('ui.lesAnnoncesEtDemandesDAchat'); },
     href: '/marches',
     requiresAuth: true,
     tone: 'forest',
@@ -97,10 +92,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'transport',
     icon: 'car-outline',
-    title: 'Transport & logistique',
-    body: 'Demandes de transport et preuve de livraison.',
-    detail:
-      'Les demandes de transport sont rattachées à une commande et à un lot, avec suivi du chargement et preuve de livraison horodatée.',
+    get title() { return tr('ui.transportLogistique'); },
+    get body() { return tr('ui.demandesDeTransportEtPreuveDe'); },
+    get detail() { return tr('ui.lesDemandesDeTransportSontRattachees'); },
     href: '/marches',
     requiresAuth: true,
     tone: 'info',
@@ -109,10 +103,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'invest',
     icon: 'trending-up-outline',
-    title: 'Investissement & projets',
-    body: 'Dossiers, dataroom, due diligence, reporting.',
-    detail:
-      'Les dossiers de projet suivent un cycle de soumission et de revue. La dataroom donne un accès limité dans le temps (30 jours par défaut, 90 au plus), journalisé. Le reporting d’avancement et d’impact est versionné.',
+    get title() { return tr('ui.investissementProjets'); },
+    get body() { return tr('ui.dossiersDataroomDueDiligenceReporting'); },
+    get detail() { return tr('ui.lesDossiersDeProjetSuiventUn'); },
     href: '/projets',
     requiresAuth: true,
     tone: 'living',
@@ -121,10 +114,9 @@ export const PLATFORM_SERVICES: PlatformService[] = [
   {
     id: 'tenders',
     icon: 'globe-outline',
-    title: 'Appels d’offres',
-    body: 'Avis internationaux, volumes et exigences.',
-    detail:
-      'Les acheteurs publient des avis avec quantité, qualité, certifications exigées, destination et délai. Les réponses sont tracées, l’attribution et la clôture sont journalisées.',
+    get title() { return tr('ui.appelsDOffres'); },
+    get body() { return tr('ui.avisInternationauxVolumesEtExigences'); },
+    get detail() { return tr('ui.lesAcheteursPublientDesAvisAvec'); },
     href: '/tenders',
     requiresAuth: true,
     tone: 'gold',
@@ -134,15 +126,15 @@ export const PLATFORM_SERVICES: PlatformService[] = [
 
 /** Rôles ouvrables en libre-service (les rôles de gouvernance sont attribués). */
 export const SELF_SERVICE_ROLES = [
-  { id: 'FARMER', label: 'Producteur' },
-  { id: 'COOPERATIVE_ADMIN', label: 'Coopérative' },
-  { id: 'AGRICULTURAL_COMPANY', label: 'Société agricole' },
-  { id: 'BUYER', label: 'Acheteur' },
-  { id: 'SUPPLIER', label: 'Fournisseur' },
-  { id: 'TRANSPORTER', label: 'Transporteur' },
-  { id: 'AGRONOMIST', label: 'Agronome' },
-  { id: 'INVESTOR', label: 'Investisseur' },
-  { id: 'SUPPORT_AGENT', label: 'Agent d’appui' },
+  { id: 'FARMER', get label() { return tr('ui.producteur'); } },
+  { id: 'COOPERATIVE_ADMIN', get label() { return tr('ui.cooperative'); } },
+  { id: 'AGRICULTURAL_COMPANY', get label() { return tr('ui.societeAgricole'); } },
+  { id: 'BUYER', get label() { return tr('ui.acheteur'); } },
+  { id: 'SUPPLIER', get label() { return tr('ui.fournisseur'); } },
+  { id: 'TRANSPORTER', get label() { return tr('ui.transporteur'); } },
+  { id: 'AGRONOMIST', get label() { return tr('ui.agronome'); } },
+  { id: 'INVESTOR', get label() { return tr('ui.investisseur'); } },
+  { id: 'SUPPORT_AGENT', get label() { return tr('ui.agentDAppui'); } },
 ] as const;
 
 /** Calendrier fonctionnel V1 → V5 (périmètre livré). */
@@ -150,26 +142,26 @@ export const RELEASE_TRACK = [
   {
     tag: 'V1',
     name: 'FARM',
-    body: 'Inscription des producteurs, exploitations, parcelles géolocalisées, productions, analyses de sol, profils publics.',
+    get body() { return tr('ui.inscriptionDesProducteursExploitationsParcellesG'); },
   },
   {
     tag: 'V2',
     name: 'MARKET',
-    body: 'Annonces et demandes d’achat, offres, commandes, messagerie interne, transport, avis et réputation.',
+    get body() { return tr('ui.annoncesEtDemandesDAchatOffres'); },
   },
   {
     tag: 'V3',
     name: 'INTELLIGENCE',
-    body: 'Prix de marché sourcés, météo par parcelle, traçabilité des lots, certifications, capteurs, synchronisation hors ligne.',
+    get body() { return tr('ui.prixDeMarcheSourcesMeteoPar_f0936'); },
   },
   {
     tag: 'V4',
     name: 'INVEST',
-    body: 'Dossiers de projet, dataroom à accès limité, due diligence, reporting d’avancement et d’impact, double authentification.',
+    get body() { return tr('ui.dossiersDeProjetDataroomAAcces'); },
   },
   {
     tag: 'V5',
     name: 'GLOBAL',
-    body: 'Appels d’offres internationaux, API publique à clé, exports, jeux de données, indicateurs multi-pays, résidence des données par pays.',
+    get body() { return tr('ui.appelsDOffresInternationauxApiPublique_bde7c'); },
   },
 ] as const;

@@ -48,7 +48,7 @@ export function TraceSection() {
   return (
     <Section
       index={6}
-      eyebrow="Traçabilité"
+      eyebrow={t('ui.tracabilite')}
       title={t('home.traceTitle')}
       subtitle={t('home.traceSubtitle')}
       background={COLORS.naturalWhite}
@@ -57,14 +57,14 @@ export function TraceSection() {
         <Reveal variant="left" style={styles.traceForm}>
           <Card tone="white" style={styles.traceCard}>
             <Input
-              label="Code de lot"
+              label={t('ui.codeDeLot')}
               value={code}
               onChangeText={(value) => setCode(value.toUpperCase())}
               placeholder={t('home.tracePlaceholder')}
               autoCapitalize="characters"
               autoCorrect={false}
               icon="qr-code-outline"
-              helper="Le code figure sur l’étiquette ou le QR collé sur le colis."
+              helper={t('ui.leCodeFigureSurLEtiquette')}
               onSubmitEditing={() => setSubmitted(code.trim() || null)}
               returnKeyType="search"
             />
@@ -83,10 +83,7 @@ export function TraceSection() {
           {submitted === null ? (
             <Card tone="pale" style={styles.traceHint}>
               <Ionicons name="scan-outline" size={22} color={COLORS.forestGreen} />
-              <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-                Saisissez un code pour afficher la fiche publique : champs publiés par le producteur,
-                filière et journal des étapes.
-              </Text>
+              <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.saisissezUnCodePourAfficherLa')}</Text>
             </Card>
           ) : isLoading ? (
             <LoadingState count={1} height={180} />
@@ -94,12 +91,8 @@ export function TraceSection() {
             notFound ? (
               <Card tone="white" style={styles.traceHint}>
                 <Ionicons name="help-circle-outline" size={22} color={COLORS.warning} />
-                <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                  Aucun lot ne correspond à « {submitted} ».
-                </Text>
-                <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-                  Vérifiez le code, ou demandez au vendeur le QR figurant sur le colis.
-                </Text>
+                <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.aucunLotNeCorrespondA_2d6d7', { submitted })}</Text>
+                <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.verifiezLeCodeOuDemandezAu')}</Text>
               </Card>
             ) : (
               <ErrorState error={error} onRetry={() => void refetch()} />
@@ -109,9 +102,7 @@ export function TraceSection() {
               <Card tone="ink" style={styles.lotCard}>
                 <View style={styles.lotHeader}>
                   <View>
-                    <Text preset="overline" color={COLORS.gold}>
-                      Lot
-                    </Text>
+                    <Text preset="overline" color={COLORS.gold}>{t('ui.lot')}</Text>
                     <Text preset="h2" color={DARK.text}>
                       {data.code}
                     </Text>
@@ -125,24 +116,16 @@ export function TraceSection() {
 
                 <View style={styles.lotMeta}>
                   {data.crop ? (
-                    <Text preset="caption" color={DARK.textMuted}>
-                      Filière : {data.crop.name}
-                    </Text>
+                    <Text preset="caption" color={DARK.textMuted}>{t('ui.filiere', { name: data.crop.name })}</Text>
                   ) : null}
-                  <Text preset="caption" color={DARK.textMuted}>
-                    Créé {formatRelative(data.createdAt, locale)}
-                  </Text>
+                  <Text preset="caption" color={DARK.textMuted}>{t('ui.cree', { createdAt: formatRelative(data.createdAt, locale) })}</Text>
                 </View>
 
                 <Divider light />
 
-                <Text preset="overline" color={COLORS.gold}>
-                  Champs publiés
-                </Text>
+                <Text preset="overline" color={COLORS.gold}>{t('ui.champsPublies')}</Text>
                 {Object.keys(data.published).length === 0 ? (
-                  <Text preset="bodySm" color={DARK.textFaint}>
-                    Le producteur n’a publié aucun champ pour ce lot.
-                  </Text>
+                  <Text preset="bodySm" color={DARK.textFaint}>{t('ui.leProducteurNAPublieAucun')}</Text>
                 ) : (
                   <View style={styles.publishedList}>
                     {Object.entries(data.published).map(([key, value]) => (
@@ -160,13 +143,9 @@ export function TraceSection() {
 
                 <Divider light />
 
-                <Text preset="overline" color={COLORS.gold}>
-                  Journal des étapes
-                </Text>
+                <Text preset="overline" color={COLORS.gold}>{t('ui.journalDesEtapes')}</Text>
                 {data.timeline.length === 0 ? (
-                  <Text preset="bodySm" color={DARK.textFaint}>
-                    Aucune étape enregistrée.
-                  </Text>
+                  <Text preset="bodySm" color={DARK.textFaint}>{t('ui.aucuneEtapeEnregistree')}</Text>
                 ) : (
                   <View style={styles.timeline}>
                     {data.timeline.map((event, index) => (
@@ -225,9 +204,9 @@ export function SoilSection() {
   return (
     <Section
       index={7}
-      eyebrow="Données de sol"
-      title="Ce que le réseau sait des sols"
-      subtitle="Moyennes de paramètres mesurés, groupées par pays. Aucun rattachement à une parcelle ou à une exploitation identifiable."
+      eyebrow={t('ui.donneesDeSol')}
+      title={t('ui.ceQueLeReseauSaitDes')}
+      subtitle={t('ui.moyennesDeParametresMesuresGroupeesPar_6b87a')}
       background={COLORS.pureWhite}
     >
       {isLoading ? (
@@ -236,10 +215,7 @@ export function SoilSection() {
         <ErrorState error={error} onRetry={() => void refetch()} />
       ) : !data || data.rows.length === 0 ? (
         <Card tone="paper">
-          <Text preset="bodySm" color={COLORS.slateGray}>
-            Aucune statistique publiable : chaque groupe de moins de {data?.kAnonymity ?? 10} analyses est
-            supprimé plutôt qu’arrondi ou complété.
-          </Text>
+          <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneStatistiquePubliableChaqueGroupeDe', { value: data?.kAnonymity ?? 10 })}</Text>
         </Card>
       ) : (
         <View style={styles.soilLayout}>
@@ -254,9 +230,7 @@ export function SoilSection() {
                 </View>
 
                 {row.parameters.length === 0 ? (
-                  <Text preset="bodySm" color={COLORS.slateGray}>
-                    Aucun paramètre atteint le seuil de publication.
-                  </Text>
+                  <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucunParametreAtteintLeSeuilDe')}</Text>
                 ) : (
                   <View style={styles.paramList}>
                     {row.parameters.map((parameter) => (
@@ -268,7 +242,7 @@ export function SoilSection() {
                           <Text preset="numeric" color={COLORS.forestGreen} style={styles.paramValue}>
                             {formatNumber(parameter.mean, locale, 2)}
                           </Text>
-                          <ProvenanceTag kind="measured" label={`${parameter.samples} échantillons`} />
+                          <ProvenanceTag kind="measured" label={t('ui.echantillons_4b9f2', { samples: parameter.samples })} />
                         </View>
                       </View>
                     ))}
@@ -276,9 +250,7 @@ export function SoilSection() {
                 )}
 
                 {row.withheldParameters.length > 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    Non publiés (trop peu de mesures) : {row.withheldParameters.join(', ')}
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.nonPubliesTropPeuDeMesures', { value: row.withheldParameters.join(', ') })}</Text>
                 ) : null}
               </Card>
             </Reveal>
@@ -295,9 +267,7 @@ export function SoilSection() {
                   {data.provenance.method} — {data.provenance.individuals}.
                 </Text>
                 {data.suppressedGroups.length > 0 ? (
-                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    Groupes supprimés : {data.suppressedGroups.map((g) => `${g.countryCode} (${g.assessments})`).join(', ')}.
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.groupesSupprimes_61933', { value: data.suppressedGroups.map((g) => `${g.countryCode} (${g.assessments})`).join(', ') })}</Text>
                 ) : null}
               </View>
             </Card>
@@ -318,12 +288,12 @@ export function AiSection() {
   const { t } = useI18n();
 
   const ladder = [
-    { label: 'Laboratoire', value: 0.95, color: COLORS.success },
-    { label: 'Capteur terrain', value: 0.85, color: COLORS.success },
-    { label: 'Drone', value: 0.8, color: COLORS.info },
-    { label: 'Satellite', value: 0.7, color: COLORS.info },
-    { label: 'Photo terrain', value: 0.55, color: COLORS.warning },
-    { label: 'Déclaré', value: 0.4, color: COLORS.slateGray },
+    { label: t('ui.laboratoire'), value: 0.95, color: COLORS.success },
+    { label: t('ui.capteurTerrain'), value: 0.85, color: COLORS.success },
+    { label: t('ui.drone'), value: 0.8, color: COLORS.info },
+    { label: t('ui.satellite_d1ffe'), value: 0.7, color: COLORS.info },
+    { label: t('ui.photoTerrain'), value: 0.55, color: COLORS.warning },
+    { label: t('common.declared'), value: 0.4, color: COLORS.slateGray },
   ];
 
   return (
@@ -331,9 +301,7 @@ export function AiSection() {
       <View style={styles.aiInner}>
         <View style={styles.aiGrid}>
           <Reveal variant="left" style={styles.aiText}>
-            <Text preset="overline" color={COLORS.gold}>
-              Aide à la décision
-            </Text>
+            <Text preset="overline" color={COLORS.gold}>{t('ui.aideALaDecision')}</Text>
             <Text preset="display" color={DARK.text} style={styles.aiTitle}>
               {t('home.aiTitle')}
             </Text>
@@ -343,9 +311,9 @@ export function AiSection() {
 
             <View style={styles.aiBullets}>
               {[
-                'Poids d’une source = fiabilité × qualité × fraîcheur (demi-vie 365 jours).',
-                'Les sources en désaccord sont affichées, pas moyennées en silence.',
-                'Le moteur ne déclenche aucune recommandation automatique.',
+                t('ui.poidsDUneSourceFiabiliteQualite'),
+                t('ui.lesSourcesEnDesaccordSontAffichees'),
+                t('ui.leMoteurNeDeclencheAucuneRecommandation'),
               ].map((item) => (
                 <View key={item} style={styles.aiBullet}>
                   <Ionicons name="checkmark" size={13} color={COLORS.livingGreen} />
@@ -357,7 +325,7 @@ export function AiSection() {
             </View>
 
             <Button
-              label="Ouvrir mon diagnostic"
+              label={t('ui.ouvrirMonDiagnostic')}
               onPress={() => router.push('/farmer/soil')}
               variant="gold"
               icon="flask-outline"
@@ -366,9 +334,7 @@ export function AiSection() {
 
           <Reveal index={1} variant="right" style={styles.aiLadder}>
             <Card tone="ink" style={styles.ladderCard}>
-              <Text preset="overline" color={COLORS.gold}>
-                Échelle de fiabilité
-              </Text>
+              <Text preset="overline" color={COLORS.gold}>{t('ui.echelleDeFiabilite')}</Text>
               {ladder.map((step) => (
                 <View key={step.label} style={styles.ladderRow}>
                   <Text preset="caption" color={DARK.textMuted} style={styles.ladderLabel}>
@@ -387,10 +353,7 @@ export function AiSection() {
                   </Text>
                 </View>
               ))}
-              <Text preset="caption" color={DARK.textFaint} style={styles.lineHeight}>
-                Constantes du moteur géospatial (fiabilité de la source, avant pondération par la qualité
-                et la fraîcheur de la mesure).
-              </Text>
+              <Text preset="caption" color={DARK.textFaint} style={styles.lineHeight}>{t('ui.constantesDuMoteurGeospatialFiabiliteDe')}</Text>
             </Card>
           </Reveal>
         </View>

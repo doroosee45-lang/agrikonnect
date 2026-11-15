@@ -18,6 +18,7 @@ import { SPACING } from '@/theme/space';
  * `recordsWithoutKg` séparément et ce compteur est affiché tel quel.
  */
 export default function OrganizationProductionSummary() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -29,29 +30,27 @@ export default function OrganizationProductionSummary() {
   const stats = query.data;
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Synthèse de production" subtitle="Volumes consolidés par culture." />
+      <AppHeader title={t('ui.syntheseDeProduction')} subtitle={t('ui.volumesConsolidesParCulture')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Synthèse de production" icon="stats-chart-outline">
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !stats ? <EmptyState title="Aucune donnée" description="Aucune production enregistrée." icon="stats-chart-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.syntheseDeProduction')} icon="stats-chart-outline">
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : !stats ? <EmptyState title={t('ui.aucuneDonnee')} description={t('ui.aucuneProductionEnregistree')} icon="stats-chart-outline" /> : (
             <>
               <Card tone="white" style={styles.card}>
-                <Text preset="overline" color={COLORS.slateGray}>Totaux</Text>
-                <Text preset="bodyMedium">{formatNumber(stats.totals.quantityKg, locale)} kg sur {stats.totals.records} enregistrement(s)</Text>
+                <Text preset="overline" color={COLORS.slateGray}>{t('ui.totaux')}</Text>
+                <Text preset="bodyMedium">{t('ui.kgSurEnregistrementS', { quantityKg: formatNumber(stats.totals.quantityKg, locale), records: stats.totals.records })}</Text>
                 {stats.totals.recordsWithoutKg > 0 ? (
-                  <Text preset="caption" color={COLORS.warning}>
-                    {stats.totals.recordsWithoutKg} enregistrement(s) en unité non convertible : non additionnés au total.
-                  </Text>
+                  <Text preset="caption" color={COLORS.warning}>{t('ui.enregistrementSEnUniteNonConvertible', { recordsWithoutKg: stats.totals.recordsWithoutKg })}</Text>
                 ) : null}
-                <Text preset="caption" color={COLORS.slateGray}>Source : {stats.source}</Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.source', { source: stats.source })}</Text>
               </Card>
-              {stats.series.length === 0 ? <EmptyState title="Aucune série" description="Aucune production pour ces filtres." icon="stats-chart-outline" /> : (
+              {stats.series.length === 0 ? <EmptyState title={t('ui.aucuneSerie')} description={t('ui.aucuneProductionPourCesFiltres')} icon="stats-chart-outline" /> : (
                 <View style={styles.list}>
                   {stats.series.map((row, index) => (
                     <Reveal key={row.key} index={index} variant="up">
                       <Card tone="white" style={styles.row}>
                         <View style={styles.rowBody}>
                           <Text preset="bodyMedium">{row.label}</Text>
-                          <Text preset="caption" color={COLORS.slateGray}>{row.records} enregistrement(s) · {row.convertibleRecords} convertible(s)</Text>
+                          <Text preset="caption" color={COLORS.slateGray}>{t('ui.enregistrementSConvertibleS', { records: row.records, convertibleRecords: row.convertibleRecords })}</Text>
                         </View>
                         <Text preset="bodyMedium">{formatNumber(row.quantityKg, locale)} kg</Text>
                       </Card>

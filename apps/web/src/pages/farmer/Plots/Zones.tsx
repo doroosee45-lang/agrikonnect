@@ -12,25 +12,24 @@ import { PlotModule } from '@/components/pages';
 
 /** FARMER — zones de gestion (PRE-03 → PRE-05), versions archivées, jamais écrasées. */
 export default function FarmerPlotZones() {
+  const { t } = useI18n();
   const { locale } = useI18n();
 
   return (
     <PlotModule<ManagementZoneList>
-      title="Zones de gestion"
-      subtitle="Zones intra-parcellaires calculées par le moteur. Les versions antérieures sont archivées, jamais écrasées."
+      title={t('ui.zonesDeGestion')}
+      subtitle={t('ui.zonesIntraParcellairesCalculeesParLe')}
       icon="🧩"
-      disclaimer="Une zone de gestion est une hypothèse de travail calculée à partir de séries historiques. Elle doit être confrontée au terrain avant d'orienter une décision d'investissement."
+      disclaimer={t('ui.uneZoneDeGestionEstUne')}
       queryKey={(plotId) => [...queryKeys.plots.one(plotId), 'zones'] as unknown[]}
       fetch={(plotId) => precisionApi.zones(plotId).then((result) => result.data)}
-      emptyTitle="Aucune zone"
-      emptyDescription="Aucune zone de gestion n'a été calculée pour cette parcelle."
+      emptyTitle={t('ui.aucuneZone')}
+      emptyDescription={t('ui.aucuneZoneDeGestionNA')}
       isEmpty={(data) => data.versions.length === 0}
       render={(data) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Card tone="pale">
-            <Text preset="caption">
-              Politique de versionnage : {data.versioning}
-            </Text>
+            <Text preset="caption">{t('ui.politiqueDeVersionnage', { versioning: data.versioning })}</Text>
           </Card>
 
           {data.versions.map((version, index) => (
@@ -43,20 +42,16 @@ export default function FarmerPlotZones() {
             >
               <Card tone="white">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
-                  <Text preset="h4">
-                    Version {version.methodVersion}
-                  </Text>
+                  <Text preset="h4">{t('ui.version_8b8b7', { methodVersion: version.methodVersion })}</Text>
                   <Text preset="caption">
                     {formatDate(version.computedAt, locale)}
                   </Text>
                 </div>
-                <Text preset="caption">
-                  {version.zones.length} zone(s)
-                </Text>
+                <Text preset="caption">{t('ui.zoneS', { length: version.zones.length })}</Text>
                 <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {version.zones.map((zone) => (
                     <div key={`${version.id}-${zone.index}`} style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                      <Chip label={`Zone ${zone.index}`} tone="forest" size="sm" />
+                      <Chip label={t('ui.zone', { index: zone.index })} tone="forest" size="sm" />
                       <Text preset="bodySm" style={{ fontWeight: 600 }}>
                         {zone.label}
                       </Text>
@@ -66,9 +61,7 @@ export default function FarmerPlotZones() {
                 </div>
                 {version.sources.missing.length > 0 ? (
                   <div style={{ marginTop: 12 }}>
-                    <Text preset="caption" style={{ marginBottom: 8 }}>
-                      Sources manquantes :
-                    </Text>
+                    <Text preset="caption" style={{ marginBottom: 8 }}>{t('ui.sourcesManquantes')}</Text>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {version.sources.missing.map((source) => (
                         <Chip key={source} label={source} tone="neutral" size="sm" />

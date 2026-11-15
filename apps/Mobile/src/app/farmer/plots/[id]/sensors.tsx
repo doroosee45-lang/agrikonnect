@@ -22,7 +22,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatDate, formatNumber, formatRelative } from '@/lib/format';
 import { DURATION } from '@/theme/motion';
 import { alertApi, iotApi, plotApi } from '@/services/api/endpoints';
@@ -32,8 +32,8 @@ import { RADIUS, SPACING } from '@/theme/space';
 
 const WINDOWS = [
   { hours: 24, label: '24 h' },
-  { hours: 72, label: '3 jours' },
-  { hours: 168, label: '7 jours' },
+  { hours: 72, get label() { return tr('ui.n3Jours'); } },
+  { hours: 168, get label() { return tr('ui.n7Jours'); } },
 ] as const;
 
 /**
@@ -44,6 +44,7 @@ const WINDOWS = [
  * avec les trous de mesure signalés plutôt qu'interpolés.
  */
 export default function PlotSensors() {
+  const { t } = useI18n();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
@@ -139,18 +140,14 @@ export default function PlotSensors() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <PlotScreenHeader title="Capteurs" plotName={plot.data?.name} plotId={id} />
+      <PlotScreenHeader title={t('ui.capteurs')} plotName={plot.data?.name} plotId={id} />
 
       <Section bare contentStyle={styles.section}>
         <Card tone="white" style={styles.card}>
           <View style={styles.alertHead}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Alertes de seuil
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.alertesDeSeuil')}</Text>
             {plotAlerts.data ? (
-              <Text preset="caption" color={COLORS.slateGray}>
-                {plotAlerts.data.openCount} ouverte(s) / {plotAlerts.data.total}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.ouverteS', { openCount: plotAlerts.data.openCount, total: plotAlerts.data.total })}</Text>
             ) : null}
           </View>
 
@@ -160,8 +157,8 @@ export default function PlotSensors() {
           ) : null}
           {plotAlerts.data && plotAlerts.data.items.length === 0 ? (
             <EmptyState
-              title="Aucune alerte"
-              description="Aucun seuil franchi sur cette parcelle. Un capteur muet déclenche aussi une alerte."
+              title={t('ui.aucuneAlerte')}
+              description={t('ui.aucunSeuilFranchiSurCetteParcelle')}
               icon="notifications-off-outline"
             />
           ) : null}
@@ -174,8 +171,8 @@ export default function PlotSensors() {
                     {alert.parameterLabel}
                   </Text>
                   <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-                    seuil {alert.referenceLabel}
-                    {alert.observedLabel ? ` · observé ${alert.observedLabel}` : ''} ·{' '}
+                    {t('ui.thresholdReference', { referenceLabel: alert.referenceLabel })}
+                    {alert.observedLabel ? t('ui.observe_4c0d9', { observedLabel: alert.observedLabel }) : ''} ·{' '}
                     {alert.observedAt ? formatDate(alert.observedAt, locale) : formatDate(alert.createdAt, locale)}
                   </Text>
                   <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
@@ -186,9 +183,9 @@ export default function PlotSensors() {
                     */}
                     {alert.sourceTypeLabel}
                     {alert.predictive && alert.predictedBreachAt
-                      ? ` — franchissement attendu vers le ${formatDate(alert.predictedBreachAt, locale)}`
+                      ? t('ui.franchissementAttenduVersLe', { predictedBreachAt: formatDate(alert.predictedBreachAt, locale) })
                       : ''}
-                    {alert.channelsSent.length > 0 ? ` · canaux : ${alert.channelsSent.join(', ')}` : ''}
+                    {alert.channelsSent.length > 0 ? t('ui.canaux', { value: alert.channelsSent.join(', ') }) : ''}
                   </Text>
                 </View>
                 <View style={styles.alertChips}>
@@ -209,7 +206,7 @@ export default function PlotSensors() {
                 <View style={styles.alertActions}>
                   {alert.status === 'NEW' ? (
                     <Button
-                      label="Marquer lue"
+                      label={t('ui.marquerLue')}
                       variant="outline"
                       size="sm"
                       loading={markAlert.isPending}
@@ -217,7 +214,7 @@ export default function PlotSensors() {
                     />
                   ) : null}
                   <Button
-                    label="Traiter"
+                    label={t('ui.traiter')}
                     variant="primary"
                     size="sm"
                     loading={markAlert.isPending}
@@ -231,30 +228,25 @@ export default function PlotSensors() {
 
         <Card tone="pale" style={styles.disclaimer}>
           <Ionicons name="key-outline" size={16} color={COLORS.info} />
-          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-            La clé d’appareil est affichée une seule fois, à la création ou à la rotation. Elle n’est pas
-            stockée en clair côté serveur et ne peut pas être récupérée ensuite.
-          </Text>
+          <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.laCleDAppareilEstAffichee')}</Text>
         </Card>
 
         {secret ? (
           <Card tone="gold" style={styles.secret}>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Clé d’appareil — à copier maintenant
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.cleDAppareilACopierMaintenant')}</Text>
             <Text preset="bodySm" color={COLORS.textPrimary} selectable style={styles.key}>
               {secret.deviceKey}
             </Text>
             <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-              {secret.warning ?? 'Cette clé ne sera plus affichée. L’ancienne clé est invalidée immédiatement.'}
+              {secret.warning ?? t('ui.cetteCleNeSeraPlusAffichee')}
             </Text>
-            <Button label="Masquer" onPress={() => setSecret(null)} variant="outline" size="sm" icon="eye-off-outline" />
+            <Button label={t('ui.masquer')} onPress={() => setSecret(null)} variant="outline" size="sm" icon="eye-off-outline" />
           </Card>
         ) : null}
 
         <View style={styles.toolbar}>
           <Button
-            label={registering ? 'Fermer' : 'Enregistrer un appareil'}
+            label={registering ? t('common.close') : t('ui.enregistrerUnAppareil')}
             onPress={() => setRegistering((value) => !value)}
             variant={registering ? 'ghost' : 'primary'}
             size="sm"
@@ -265,11 +257,11 @@ export default function PlotSensors() {
         {registering ? (
           <Animated.View entering={FadeInDown.duration(DURATION.slow)} exiting={FadeOutUp.duration(DURATION.fast)}>
             <Card tone="white" style={styles.form}>
-              <Input label="Nom de l’appareil" value={label} onChangeText={setLabel} placeholder="Sonde humidité nord" icon="hardware-chip-outline" autoCapitalize="words" />
-              <Input label="Numéro de série" value={serial} onChangeText={setSerial} placeholder="SN-0042" icon="pricetag-outline" optionalLabel="facultatif" autoCapitalize="characters" />
+              <Input label={t('ui.nomDeLAppareil')} value={label} onChangeText={setLabel} placeholder={t('ui.sondeHumiditeNord')} icon="hardware-chip-outline" autoCapitalize="words" />
+              <Input label={t('ui.numeroDeSerie')} value={serial} onChangeText={setSerial} placeholder="SN-0042" icon="pricetag-outline" optionalLabel={t('common.optional')} autoCapitalize="characters" />
               {error ? <ErrorState error={error} showRequestId /> : null}
               <Button
-                label="Enregistrer"
+                label={t('common.save')}
                 onPress={() => register.mutate()}
                 variant="primary"
                 fullWidth
@@ -286,10 +278,10 @@ export default function PlotSensors() {
           <ErrorState error={devices.error} onRetry={() => void devices.refetch()} />
         ) : plotDevices.length === 0 ? (
           <EmptyState
-            title="Aucun capteur sur cette parcelle"
-            description="Un capteur rattaché alimente le diagnostic de sol et les zones de gestion."
+            title={t('ui.aucunCapteurSurCetteParcelle')}
+            description={t('ui.unCapteurRattacheAlimenteLeDiagnostic')}
             icon="hardware-chip-outline"
-            action={{ label: 'Enregistrer un appareil', onPress: () => setRegistering(true) }}
+            action={{ label: t('ui.enregistrerUnAppareil'), onPress: () => setRegistering(true) }}
           />
         ) : (
           <View style={styles.list}>
@@ -305,12 +297,12 @@ export default function PlotSensors() {
                         {device.label}
                       </Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {device.lastSeenAt ? `dernier signal ${formatRelative(device.lastSeenAt, locale)}` : 'aucun signal reçu'}
-                        {device.keyRotatedAt ? ` · clé tournée le ${formatDate(device.keyRotatedAt, locale)}` : ''}
+                        {device.lastSeenAt ? t('ui.dernierSignal', { lastSeenAt: formatRelative(device.lastSeenAt, locale) }) : t('ui.aucunSignalRecu')}
+                        {device.keyRotatedAt ? t('ui.cleTourneeLe', { keyRotatedAt: formatDate(device.keyRotatedAt, locale) }) : ''}
                       </Text>
                     </View>
                     <Chip
-                      label={device.status === 'ACTIVE' ? (device.silent ? 'Actif mais muet' : 'Actif') : device.status}
+                      label={device.status === 'ACTIVE' ? (device.silent ? t('ui.actifMaisMuet') : t('ui.actif')) : device.status}
                       tone={device.status === 'ACTIVE' ? (device.silent ? 'warning' : 'success') : 'error'}
                       size="sm"
                     />
@@ -318,9 +310,7 @@ export default function PlotSensors() {
 
                   {device.lastReading ? (
                     <View style={styles.lastReading}>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        Dernière mesure
-                      </Text>
+                      <Text preset="caption" color={COLORS.slateGray}>{t('ui.derniereMesure')}</Text>
                       <Text preset="bodySm" color={COLORS.textPrimary}>
                         {device.lastReading.metric} : {formatNumber(device.lastReading.value, locale, 2)}
                         {device.lastReading.unit ? ` ${device.lastReading.unit}` : ''} · {formatDate(device.lastReading.at, locale)}
@@ -331,14 +321,14 @@ export default function PlotSensors() {
 
                   <View style={styles.actions}>
                     <Button
-                      label="Voir les relevés"
+                      label={t('ui.voirLesReleves')}
                       onPress={() => setSelectedDevice(device.id)}
                       variant={deviceId === device.id ? 'ghost' : 'outline'}
                       size="sm"
                       icon="list-outline"
                     />
                     <Button
-                      label="Tourner la clé"
+                      label={t('ui.tournerLaCle')}
                       onPress={() => rotate.mutate(device.id)}
                       variant="outline"
                       size="sm"
@@ -350,15 +340,15 @@ export default function PlotSensors() {
                   {deviceId === device.id && device.status === 'ACTIVE' ? (
                     <View style={styles.revoke}>
                       <Input
-                        label="Motif de révocation"
+                        label={t('ui.motifDeRevocation')}
                         value={revokeReason}
                         onChangeText={setRevokeReason}
-                        placeholder="Appareil remplacé / perdu"
+                        placeholder={t('ui.appareilRemplacePerdu')}
                         icon="alert-circle-outline"
-                        optionalLabel="5 caractères minimum"
+                        optionalLabel={t('ui.n5CaracteresMinimum')}
                       />
                       <Button
-                        label="Révoquer l’appareil"
+                        label={t('ui.revoquerLAppareil')}
                         onPress={() => revoke.mutate({ target: device.id, reason: revokeReason.trim() })}
                         variant="ghost"
                         size="sm"
@@ -376,9 +366,7 @@ export default function PlotSensors() {
 
         {deviceId ? (
           <>
-            <Text preset="overline" color={COLORS.forestGreen}>
-              Relevés
-            </Text>
+            <Text preset="overline" color={COLORS.forestGreen}>{t('ui.releves')}</Text>
 
             <ChipRow>
               {WINDOWS.map((window) => (
@@ -392,29 +380,21 @@ export default function PlotSensors() {
               <ErrorState error={readings.error} onRetry={() => void readings.refetch()} />
             ) : rows.length === 0 ? (
               <EmptyState
-                title="Aucune mesure sur la période"
-                description={`Fenêtre analysée : ${formatNumber(readings.data?.window.hours ?? hours, locale)} h depuis ${
-                  readings.data ? formatDate(readings.data.window.since, locale) : '—'
-                }.`}
+                title={t('ui.aucuneMesureSurLaPeriode')}
+                description={t('ui.fenetreAnalyseeHDepuis', { value: formatNumber(readings.data?.window.hours ?? hours, locale), value2: readings.data ? formatDate(readings.data.window.since, locale) : '—' })}
                 icon="pulse-outline"
               />
             ) : (
               <Card tone="white" style={styles.card}>
-                <Text preset="caption" color={COLORS.slateGray}>
-                  {formatNumber(rows.length, locale)} mesure(s) · fenêtre {formatNumber(readings.data?.window.hours ?? hours, locale)} h
-                </Text>
+                <Text preset="caption" color={COLORS.slateGray}>{t('ui.mesureSFenetreH', { length: formatNumber(rows.length, locale), value: formatNumber(readings.data?.window.hours ?? hours, locale) })}</Text>
 
                 {(readings.data?.gaps ?? []).length > 0 ? (
                   <View style={styles.gaps}>
                     <Ionicons name="warning-outline" size={15} color={COLORS.warning} />
-                    <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>
-                      {formatNumber(readings.data?.gaps.length ?? 0, locale)} trou(s) de mesure détecté(s) :{' '}
-                      {(readings.data?.gaps ?? [])
+                    <Text preset="caption" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.trouSDeMesureDetecteS', { value: formatNumber(readings.data?.gaps.length ?? 0, locale), value2: (readings.data?.gaps ?? [])
                         .slice(0, 3)
                         .map((gap) => `${formatDate(gap.from, locale)} → ${formatDate(gap.to, locale)} (${formatNumber(gap.minutes, locale)} min)`)
-                        .join(' · ')}
-                      . Aucune valeur n’est interpolée.
-                    </Text>
+                        .join(' · ') })}</Text>
                   </View>
                 ) : null}
 
@@ -444,10 +424,7 @@ export default function PlotSensors() {
         ) : null}
 
         {otherDevices.length > 0 ? (
-          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>
-            {formatNumber(otherDevices.length, locale)} autre(s) appareil(s) rattaché(s) à d’autres parcelles de
-            votre organisation.
-          </Text>
+          <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.autreSAppareilSRattacheS', { length: formatNumber(otherDevices.length, locale) })}</Text>
         ) : null}
       </Section>
     </Screen>

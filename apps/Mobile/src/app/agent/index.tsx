@@ -1,40 +1,41 @@
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 
 import { AppHeader } from '@/components/app/AppHeader';
 import {
   AuthGate,
-  Button,
-  Card,
-  Chip,
-  EmptyState,
   ErrorState,
   LoadingState,
+  MobileHorizonDonutCard,
+  MobileHorizonOverviewCard,
+  MobileHorizonTrackCard,
   PressableCard,
   Reveal,
   Screen,
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import type { MobileHorizonTrack } from '@/components/ui';
+import { useI18n, tr } from '@/i18n';
 import { formatDate, formatNumber } from '@/lib/format';
 import { aiApi, verificationApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
-import { COLORS, TINTS } from '@/theme/colors';
-import { RADIUS, SPACING } from '@/theme/space';
+import { COLORS } from '@/theme/colors';
+import { SPACING } from '@/theme/space';
 
 const TOOLS = [
-  { href: '/reviewer', label: 'File de vérification', icon: 'shield-checkmark-outline' },
-  { href: '/admin', label: 'Administration', icon: 'settings-outline' },
-  { href: '/messages', label: 'Messagerie', icon: 'chatbubbles-outline' },
-  { href: '/notifications', label: 'Notifications', icon: 'notifications-outline' },
+  { href: '/agent/registration', get label() { return tr('ui.enrolerUnProducteur_3d138'); }, get hint() { return tr('ui.creationSousMandatTrace'); } },
+  { href: '/agent/consent', get label() { return tr('ui.consentementAssiste'); }, get hint() { return tr('ui.recueilExpliciteTerrain'); } },
+  { href: '/messages', get label() { return tr('ui.messagerie'); }, get hint() { return tr('ui.suiviDesFilsMetier'); } },
+  { href: '/notifications', get label() { return tr('ui.notifications'); }, get hint() { return tr('ui.alertesEnTempsReel'); } },
 ] as const;
 
-/** Agent de terrain / support : charge réelle, escalades et outils. */
+/** Poste Agent de terrain & Support Mobile (/agent) — Design Horizon 100 % API reelle. */
 export default function Agent() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
@@ -42,128 +43,144 @@ export default function Agent() {
     queryKey: queryKeys.verifications.queue({ limit: 20 }),
     queryFn: () => verificationApi.adminQueue({ limit: 20 }).then((result) => result.data),
     enabled: isAuthenticated,
+    retry: false,
   });
+
   const escalations = useQuery({
     queryKey: queryKeys.ai.list({ status: 'ESCALATED' }),
     queryFn: () => aiApi.list({ status: 'ESCALATED', limit: 20 }).then((result) => result.data),
     enabled: isAuthenticated,
+    retry: false,
   });
 
   const pending = (queue.data ?? []).filter((item) => item.status === 'PENDING');
   const escalated = escalations.data ?? [];
 
+  const tracks: MobileHorizonTrack[] = useMemo(
+    () => [
+      ...pending.slice(0, 2).map((v) => ({
+        id: v.id,
+        code: `${v.subjectType.slice(0, 6)}-${v.id.slice(0, 4).toUpperCase()}`,
+        subtitle: formatDate(v.createdAt, locale),
+        statusLabel: t('ui.enAttente'),
+        tone: 'amber' as const,
+        leftCode: v.level,
+        rightCode: t('ui.trackCodeReview'),
+        progressPct: 50,
+        icon: 'shield-checkmark-outline' as const,
+        onPress: () => router.push('/reviewer'),
+      })),
+      ...escalated.slice(0, 2).map((a) => ({
+        id: a.id,
+        code: `IA-${a.id.slice(0, 5).toUpperCase()}`,
+        subtitle: formatDate(a.createdAt, locale),
+        statusLabel: t('ui.escaladee'),
+        tone: 'red' as const,
+        leftCode: a.type.slice(0, 6),
+        rightCode: 'AI-10',
+        progressPct: 70,
+        icon: 'sparkles-outline' as const,
+        onPress: () => router.push('/reviewer'),
+      })),
+    ],
+    [pending, escalated, locale],
+  );
+
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Agent de terrain" subtitle="Charge de travail réelle, escalades et outils de support." />
+      <AppHeader
+        title={t('ui.agentDeTerrain')}
+        subtitle={t('ui.enrolementSousMandatEscaladesEtSupport')}
+        ctaLabel={t('ui.enroler')}
+        onCtaPress={() => router.push('/agent/registration')}
+      />
 
       <Section bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Accès agent"
-          description="Connectez-vous avec un rôle agent ou support pour accéder à cet espace."
+          title={t('ui.accesAgent')}
+          description={t('ui.connectezVousAvecUnRoleAgent')}
           icon="people-outline"
         >
-          <Card tone="ink" style={styles.summary}>
-            <Text preset="overline" color={COLORS.gold}>
-              Charge en cours
-            </Text>
-            <View style={styles.counts}>
-              <View style={styles.count}>
-                <Text preset="numeric" color={COLORS.pureWhite}>
-                  {formatNumber(pending.length, locale)}
-                </Text>
-                <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
-                  vérifications en attente
-                </Text>
-              </View>
-              <View style={styles.count}>
-                <Text preset="numeric" color={COLORS.pureWhite}>
-                  {formatNumber(escalated.length, locale)}
-                </Text>
-                <Text preset="caption" color="rgba(246, 247, 242, 0.7)">
-                  analyses IA escaladées
-                </Text>
-              </View>
-            </View>
-            <Text preset="caption" color="rgba(246, 247, 242, 0.65)" style={styles.lineHeight}>
-              Compteurs issus des files réelles : rien n’est estimé ni lissé.
-            </Text>
-          </Card>
-
-          <View style={styles.tools}>
-            {TOOLS.map((tool, index) => (
-              <Reveal key={tool.href} index={index} variant="up" style={styles.toolItem}>
-                <PressableCard onPress={() => router.push(tool.href as never)} style={styles.tool}>
-                  <View style={styles.toolIcon}>
-                    <Ionicons name={tool.icon} size={17} color={COLORS.forestGreen} />
-                  </View>
-                  <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                    {tool.label}
-                  </Text>
-                </PressableCard>
-              </Reveal>
-            ))}
-          </View>
-
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Demandes prioritaires
-          </Text>
-          {queue.isLoading ? (
-            <LoadingState count={2} height={90} />
-          ) : queue.isError ? (
+          {queue.isLoading && escalations.isLoading ? (
+            <LoadingState count={2} height={110} />
+          ) : queue.isError && escalations.isError ? (
             <ErrorState error={queue.error} onRetry={() => void queue.refetch()} />
-          ) : pending.length === 0 ? (
-            <EmptyState title="Aucune demande en attente" description="La file de vérification est à jour." icon="checkmark-done-outline" />
           ) : (
-            <View style={styles.list}>
-              {pending.slice(0, 6).map((item, index) => (
-                <Reveal key={item.id} index={index} variant="up">
-                  <Card tone="white" style={styles.row}>
-                    <View style={styles.rowBody}>
-                      <Text preset="bodyMedium" color={COLORS.textPrimary}>
-                        {item.subjectType} · niveau {item.level}
-                      </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        en attente depuis le {formatDate(item.createdAt, locale)}
-                      </Text>
-                    </View>
-                    <Chip label={item.status} tone="warning" size="sm" />
-                  </Card>
-                </Reveal>
-              ))}
-            </View>
-          )}
+            <>
+              <MobileHorizonOverviewCard
+                title={t('ui.chargeDAccompagnementEnCours')}
+                items={[
+                  {
+                    id: 'ver',
+                    label: t('ui.verifications'),
+                    value: formatNumber(pending.length, locale),
+                    subtitle: t('ui.dossiersTerrainEnAttente'),
+                    tone: pending.length > 0 ? 'amber' : 'green',
+                    icon: 'shield-checkmark-outline',
+                    onPress: () => router.push('/reviewer'),
+                  },
+                  {
+                    id: 'ai',
+                    label: t('ui.escaladesIa'),
+                    value: formatNumber(escalated.length, locale),
+                    subtitle: t('ui.validationHumaineAi10'),
+                    tone: escalated.length > 0 ? 'red' : 'green',
+                    icon: 'sparkles-outline',
+                    onPress: () => router.push('/reviewer'),
+                  },
+                  {
+                    id: 'reg',
+                    label: t('ui.enrolement'),
+                    value: t('ui.kpiValueMandate'),
+                    subtitle: t('ui.producteursAssistes'),
+                    badge: 'AG-01',
+                    tone: 'green',
+                    icon: 'person-add-outline',
+                    onPress: () => router.push('/agent/registration'),
+                  },
+                  {
+                    id: 'msg',
+                    label: t('ui.supportFils'),
+                    value: t('ui.kpiValueDirect'),
+                    subtitle: t('ui.messagerieMetier'),
+                    tone: 'blue',
+                    icon: 'chatbubbles-outline',
+                    onPress: () => router.push('/messages'),
+                  },
+                ]}
+              />
 
-          <Text preset="overline" color={COLORS.forestGreen}>
-            Escalades IA à traiter
-          </Text>
-          {escalations.isLoading ? (
-            <LoadingState count={1} height={90} />
-          ) : escalations.isError ? (
-            <ErrorState error={escalations.error} onRetry={() => void escalations.refetch()} />
-          ) : escalated.length === 0 ? (
-            <EmptyState title="Aucune escalade" description="Aucune analyse IA n’attend une revue humaine." icon="sparkles-outline" />
-          ) : (
-            <View style={styles.list}>
-              {escalated.slice(0, 6).map((item, index) => (
-                <Reveal key={item.id} index={index} variant="up">
-                  <Card tone="white" style={styles.row}>
-                    <View style={styles.rowBody}>
-                      <Text preset="bodyMedium" color={COLORS.textPrimary} numberOfLines={2}>
-                        {item.prompt ?? `Analyse ${item.type}`}
-                      </Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        {item.type} · escaladée le {item.escalatedAt ? formatDate(item.escalatedAt, locale) : formatDate(item.createdAt, locale)}
-                      </Text>
-                    </View>
-                    <Chip label="à revoir" tone="info" size="sm" />
-                  </Card>
-                </Reveal>
-              ))}
-            </View>
-          )}
+              <MobileHorizonTrackCard
+                title={t('ui.filesPrioritaires')}
+                items={tracks}
+                emptyMessage={t('ui.aucunDossierEnAttenteDeTraitement')}
+              />
 
-          <Button label="Ouvrir la file complète" onPress={() => router.push('/reviewer')} variant="outline" size="sm" icon="arrow-forward-outline" />
+              <MobileHorizonDonutCard
+                title={t('ui.repartitionDeLaCharge')}
+                totalValue={formatNumber(pending.length + escalated.length, locale)}
+                totalLabel={t('ui.dossiers')}
+                segments={[
+                  { label: t('ui.verifications'), value: pending.length, tone: 'amber' },
+                  { label: t('ui.escaladesIa'), value: escalated.length, tone: 'red' },
+                ]}
+              />
+
+              <View style={styles.grid}>
+                {TOOLS.map((tool, index) => (
+                  <Reveal key={tool.href} index={index} variant="up" style={styles.cell}>
+                    <PressableCard onPress={() => router.push(tool.href as never)}>
+                      <Text preset="bodyMedium">{tool.label}</Text>
+                      <Text preset="caption" color={COLORS.slateGray}>
+                        {tool.hint}
+                      </Text>
+                    </PressableCard>
+                  </Reveal>
+                ))}
+              </View>
+            </>
+          )}
         </AuthGate>
       </Section>
     </Screen>
@@ -172,22 +189,6 @@ export default function Agent() {
 
 const styles = StyleSheet.create({
   section: { paddingTop: SPACING.sm, paddingBottom: SPACING.xxl, gap: SPACING.md },
-  lineHeight: { lineHeight: 18 },
-  summary: { gap: SPACING.md },
-  counts: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xl },
-  count: { gap: 2 },
-  tools: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md },
-  toolItem: { flex: 1, minWidth: 200 },
-  tool: { gap: SPACING.xs, alignItems: 'flex-start' },
-  toolIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: RADIUS.md,
-    backgroundColor: TINTS.forestGreenBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  row: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
-  rowBody: { flex: 1, gap: 2 },
-  list: { gap: SPACING.sm },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
+  cell: { flexGrow: 1, flexBasis: '46%' },
 });

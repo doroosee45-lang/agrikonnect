@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerCertifications() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function FarmerCertifications() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Certifications" subtitle="Certifications rattachées à vos exploitations." />
+      <FarmerHeader title={t('ui.certifications')} subtitle={t('ui.certificationsRattacheesAVosExploitations')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Certifications" icon="ribbon-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune certification" description="Aucune certification enregistrée. La mention « certifié » reste désactivée tant qu'aucun certificat validé n'est joint." icon="ribbon-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.certifications')} icon="ribbon-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneCertification')} description={t('ui.aucuneCertificationEnregistreeLaMentionCertifie')} icon="ribbon-outline" /> : (
             <View style={styles.list}>
               {items.map((certification, index) => (
                 <Reveal key={certification.id} index={index} variant="up">
@@ -35,7 +36,7 @@ export default function FarmerCertifications() {
                       <Text preset="bodyMedium">{certification.type}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
                         {certification.reference ?? '—'} · {certification.issuer}
-                        {certification.expiresAt ? ` · expire le ${formatDate(certification.expiresAt, locale)}` : ''}
+                        {certification.expiresAt ? t('ui.expireLe_e1021', { expiresAt: formatDate(certification.expiresAt, locale) }) : ''}
                       </Text>
                     </View>
                     <Chip label={certification.status} tone={certification.status === 'VALIDATED' ? 'success' : certification.status === 'EXPIRED' ? 'error' : 'warning'} size="sm" />

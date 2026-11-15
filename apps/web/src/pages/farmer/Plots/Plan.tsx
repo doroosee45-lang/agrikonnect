@@ -7,21 +7,23 @@ import type { FarmingPlanList } from '@/services/types';
 import { DURATION, EASE } from '@/theme';
 
 import { PlotModule } from '@/components/pages';
+import { useI18n } from '@/i18n';
 
 const MONTHS = ['jan', 'fév', 'mar', 'avr', 'mai', 'jun', 'jul', 'aoû', 'sep', 'oct', 'nov', 'déc'];
 
 /** FARMER — calendrier agricole issu du jeu de règles (SOIL-07). */
 export default function FarmerPlotPlan() {
+  const { t } = useI18n();
   return (
     <PlotModule<FarmingPlanList>
-      title="Plan agricole"
-      subtitle="Calendrier des activités, généré par le jeu de règles à partir de la rotation retenue."
+      title={t('ui.planAgricole')}
+      subtitle={t('ui.calendrierDesActivitesGenereParLe')}
       icon="🗓️"
-      disclaimer="Le calendrier est une proposition calculée. Les fenêtres restent indicatives : elles ne tiennent pas compte d'un aléa climatique local non mesuré."
+      disclaimer={t('ui.leCalendrierEstUnePropositionCalculee')}
       queryKey={(plotId) => queryKeys.soil.farmingPlans(plotId)}
       fetch={(plotId) => soilApi.farmingPlans(plotId).then((result) => result.data)}
-      emptyTitle="Aucun plan"
-      emptyDescription="Aucun calendrier n'a été généré pour cette parcelle."
+      emptyTitle={t('ui.aucunPlan')}
+      emptyDescription={t('ui.aucunCalendrierNAEteGenere')}
       isEmpty={(data) => data.items.length === 0}
       render={(data) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -34,13 +36,11 @@ export default function FarmerPlotPlan() {
               transition={{ duration: DURATION.base / 1000, delay: Math.min(index, 6) * 0.05, ease: EASE.out }}
             >
               <Card tone="white">
-                <Text preset="h4" style={{ marginBottom: 16 }}>
-                  Plan {plan.calendar.ruleSetVersion}
-                </Text>
+                <Text preset="h4" style={{ marginBottom: 16 }}>{t('ui.plan_bc1c2', { ruleSetVersion: plan.calendar.ruleSetVersion })}</Text>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {plan.calendar.entries.map((entry, entryIndex) => (
                     <div key={`${plan.id}-${entryIndex}`} style={{ display: 'flex', gap: 12, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                      <Chip label={`Année ${entry.year}`} tone="forest" size="sm" />
+                      <Chip label={t('ui.annee_69aa1', { year: entry.year })} tone="forest" size="sm" />
                       <Text preset="bodySm" style={{ fontWeight: 600, minWidth: 140 }}>
                         {entry.activity}
                       </Text>

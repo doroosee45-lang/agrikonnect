@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '../lib/utils';
+import { useI18n } from '@/i18n';
 
 /**
  * ChartCard (kit 8) : carte enveloppe des graphiques et repartitions. Titre,
@@ -20,6 +21,7 @@ export interface ChartCardProps {
 }
 
 export function ChartCard({ titre, periode, source, children, className }: ChartCardProps) {
+  const { t } = useI18n();
   return (
     <section className={cn('rounded-carte border border-bordure bg-surface p-5', className)}>
       <header className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
@@ -27,7 +29,7 @@ export function ChartCard({ titre, periode, source, children, className }: Chart
         {periode || source ? (
           <p className="flex flex-wrap items-center gap-2 text-xs text-texte-doux">
             {periode ? <span>{periode}</span> : null}
-            {source ? <span>Source : {source}</span> : null}
+            {source ? <span>{t('ui.source', { source })}</span> : null}
           </p>
         ) : null}
       </header>

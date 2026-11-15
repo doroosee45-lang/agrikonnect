@@ -11,6 +11,7 @@ import { COLORS, DURATION, EASE } from '@/theme';
 
 /** FARMER — demandes de vérification et leur statut (VERIF-01 → VERIF-06). */
 export default function FarmerVerification() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const { locale } = useI18n();
 
@@ -23,20 +24,16 @@ export default function FarmerVerification() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Vérification" description="Demandes de vérification et leur statut." icon="✅">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Vérification
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Une exploitation ou une production vérifiée a fait l'objet d'un contrôle horodaté. Une exploitation déclarée repose sur une saisie.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.verification_bb27a')} description={t('ui.demandesDeVerificationEtLeurStatut')} icon="✅">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.verification_bb27a')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.uneExploitationOuUneProductionVerifiee')}</Text>
 
         {query.isLoading ? (
           <LoadingState count={2} height={110} />
         ) : query.isError ? (
           <ErrorState error={query.error} onRetry={() => void query.refetch()} showRequestId />
         ) : !query.data || query.data.items.length === 0 ? (
-          <EmptyState title="Aucune demande" description="Aucune demande de vérification n'a été déposée." icon="✅" />
+          <EmptyState title={t('ui.aucuneDemande')} description={t('ui.aucuneDemandeDeVerificationNA')} icon="✅" />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {query.data.items.map((request, index) => (

@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function DevelopersUsage() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function DevelopersUsage() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Consommation API" subtitle="Quotas et historique des appels." />
+      <AppHeader title={t('ui.consommationApi')} subtitle={t('ui.quotasEtHistoriqueDesAppels')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Consommation API" icon="bar-chart-outline">
-          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun client" description="Aucun client API enregistré." icon="bar-chart-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.consommationApi')} icon="bar-chart-outline">
+          {query.isLoading ? <LoadingState count={2} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunClient')} description={t('ui.aucunClientApiEnregistre')} icon="bar-chart-outline" /> : (
             <View style={styles.list}>
               {items.map((client, index) => (
                 <Reveal key={client.id} index={index} variant="up">

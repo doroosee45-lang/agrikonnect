@@ -6,9 +6,11 @@ import { adminApi } from '@/services/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { useI18n } from '@/i18n';
 
 /** ADMIN — rapports et exports disponibles. */
 export default function AdminReports() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const dashboard = useQuery({
@@ -19,13 +21,9 @@ export default function AdminReports() {
 
   return (
     <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Rapports" description="Exports et rapports disponibles." icon="📑">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Rapports
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>
-          Exports générés à la demande. Chaque export est tracé dans le journal d'audit.
-        </Text>
+      <AuthGate isAuthenticated={isAuthenticated} title={t('ui.rapports')} description={t('ui.exportsEtRapportsDisponibles')} icon="📑">
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.rapports')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 32 }}>{t('ui.exportsGeneresALaDemandeChaque')}</Text>
 
         {dashboard.isLoading ? (
           <LoadingState count={1} height={100} />
@@ -36,23 +34,16 @@ export default function AdminReports() {
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DURATION.base / 1000, ease: EASE.out }}>
               <Card tone="white" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                 <div>
-                  <Text preset="bodyMd" color={COLORS.textPrimary} style={{ fontWeight: 600 }}>
-                    Export des exploitations
-                  </Text>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    GET /admin/export/farms — fichier généré à la demande, accès tracé.
-                  </Text>
+                  <Text preset="bodyMd" color={COLORS.textPrimary} style={{ fontWeight: 600 }}>{t('ui.exportDesExploitations')}</Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.getAdminExportFarmsFichierGenere')}</Text>
                 </div>
-                <Button label="Télécharger" onClick={() => window.open(adminApi.exportFarms(), '_blank')} variant="outline" size="sm" />
+                <Button label={t('ui.telecharger')} onClick={() => window.open(adminApi.exportFarms(), '_blank')} variant="outline" size="sm" />
               </Card>
             </motion.div>
 
             <Card tone="pale" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 18 }}>🔒</span>
-              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>
-                Les exports ne contiennent jamais de coordonnées personnelles non nécessaires. Chaque téléchargement
-                est journalisé avec son auteur et son horodatage.
-              </Text>
+              <Text preset="caption" color={COLORS.textPrimary} style={{ lineHeight: 1.7 }}>{t('ui.lesExportsNeContiennentJamaisDe')}</Text>
             </Card>
           </div>
         )}

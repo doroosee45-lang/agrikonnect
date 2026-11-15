@@ -86,9 +86,9 @@ export function Hero({ stats }: { stats: HeroStats }) {
 
           <Reveal index={5} variant="up" distance={18}>
             <View style={styles.trustRow}>
-              <TrustItem symbol="✔" label="Mesures de terrain et de laboratoire" />
-              <TrustItem symbol="≈" label="Estimations signalées comme telles" />
-              <TrustItem symbol="•" label="Coordonnées masquées par défaut" />
+              <TrustItem symbol="✔" label={t('ui.mesuresDeTerrainEtDeLaboratoire')} />
+              <TrustItem symbol="≈" label={t('ui.estimationsSignaleesCommeTelles')} />
+              <TrustItem symbol="•" label={t('ui.coordonneesMasqueesParDefaut')} />
             </View>
           </Reveal>
         </View>
@@ -167,6 +167,7 @@ function TrustItem({ symbol, label }: { symbol: string; label: string }) {
  * jamais un chiffre d'illustration.
  */
 function FloatingDataCard({ stats, locale }: { stats: HeroStats; locale: Locale }) {
+  const { t } = useI18n();
   const float = useSharedValue(0);
   float.value = withRepeat(
     withSequence(
@@ -195,34 +196,32 @@ function FloatingDataCard({ stats, locale }: { stats: HeroStats; locale: Locale 
               <View style={[styles.cardDot, { backgroundColor: COLORS.goldSurface }]} />
               <View style={[styles.cardDot, { backgroundColor: 'rgba(246,247,242,0.3)' }]} />
             </View>
-            <Text preset="overline" color={DARK.textFaint} style={{ fontSize: 9 }}>
-              API publique · temps réel
-            </Text>
+            <Text preset="overline" color={DARK.textFaint} style={{ fontSize: 9 }}>{t('ui.apiPubliqueTempsReel')}</Text>
           </View>
 
           <View style={styles.statGrid}>
             <DataStat
               value={stats.farms ?? 0}
-              label="profils producteurs publiés"
+              label={t('ui.profilsProducteursPublies')}
               locale={locale}
               loading={stats.loading}
             />
             <DataStat
               value={stats.located ?? 0}
-              label="exploitations géolocalisées"
+              label={t('ui.exploitationsGeolocalisees')}
               locale={locale}
               loading={stats.loading}
               accent
             />
             <DataStat
               value={stats.soilAssessments ?? 0}
-              label="analyses de sol agrégées"
+              label={t('ui.analysesDeSolAgregees')}
               locale={locale}
               loading={stats.loading}
             />
             <DataStat
               value={stats.countries ?? 0}
-              label="pays représentés"
+              label={t('ui.paysRepresentes')}
               locale={locale}
               loading={stats.loading}
               accent
@@ -244,9 +243,7 @@ function FloatingDataCard({ stats, locale }: { stats: HeroStats; locale: Locale 
         </Text>
       </Animated.View>
 
-      <Text preset="caption" color={DARK.textFaint} style={styles.cardNote}>
-        Compteurs issus de /public/farms, /public/map et /public/soil-stats.
-      </Text>
+      <Text preset="caption" color={DARK.textFaint} style={styles.cardNote}>{t('ui.compteursIssusDePublicFarmsPublic')}</Text>
     </Animated.View>
   );
 }
@@ -287,6 +284,7 @@ function DataStat({
 }
 
 function ScrollHint() {
+  const { t } = useI18n();
   const bounce = useSharedValue(0);
   bounce.value = withRepeat(
     withSequence(withTiming(1, { duration: 900 }), withTiming(0, { duration: 900 })),
@@ -300,9 +298,7 @@ function ScrollHint() {
 
   return (
     <Animated.View style={[styles.scrollHint, style]} pointerEvents="none">
-      <Text preset="overline" color={DARK.textFaint} style={{ fontSize: 9 }}>
-        Défilez
-      </Text>
+      <Text preset="overline" color={DARK.textFaint} style={{ fontSize: 9 }}>{t('ui.defilez')}</Text>
       <Ionicons name="chevron-down" size={14} color={COLORS.gold} />
     </Animated.View>
   );

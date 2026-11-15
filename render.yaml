@@ -49,9 +49,9 @@ services:
         value: info
       # Origine du site web ci-dessous ; à corriger si Render attribue une autre adresse.
       - key: CORS_ORIGIN
-        value: https://agrikonnect-web.onrender.com
+        value: https://agrikonnectweb.onrender.com
       - key: PUBLIC_WEB_URL
-        value: https://agrikonnect-web.onrender.com
+        value: https://agrikonnectweb.onrender.com
       # ── Secrets et réglages à saisir dans Render ──
       # Connexion Postgres (pooler Supabase) utilisée par Prisma.
       - key: DATABASE_URL
@@ -82,7 +82,7 @@ services:
 
   # ─── Site web ────────────────────────────────────────────────────
   - type: web
-    name: agrikonnect-web
+    name: agrikonnectweb
     runtime: static
     branch: main
     autoDeploy: false

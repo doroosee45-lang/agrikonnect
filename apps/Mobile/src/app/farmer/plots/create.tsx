@@ -9,8 +9,10 @@ import { plotApi } from '@/services/api/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function FarmerPlotCreate() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [farmId, setFarmId] = useState('');
   const [name, setName] = useState('');
@@ -25,16 +27,16 @@ export default function FarmerPlotCreate() {
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Nouvelle parcelle" subtitle="La localisation saisie est approximative." />
+      <FarmerHeader title={t('ui.nouvelleParcelle')} subtitle={t('ui.laLocalisationSaisieEstApproximative')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Nouvelle parcelle" icon="add-circle-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.nouvelleParcelle')} icon="add-circle-outline">
           <Card tone="white">
             <View style={styles.form}>
-              <Input label="Exploitation (ID)" value={farmId} onChangeText={setFarmId} />
-              <Input label="Nom" value={name} onChangeText={setName} />
-              <Input label="Surface (ha)" value={areaHa} onChangeText={setAreaHa} keyboardType="numeric" />
+              <Input label={t('ui.exploitationId')} value={farmId} onChangeText={setFarmId} />
+              <Input label={t('ui.nom')} value={name} onChangeText={setName} />
+              <Input label={t('ui.surfaceHa')} value={areaHa} onChangeText={setAreaHa} keyboardType="numeric" />
               {error ? <ErrorState error={error} /> : null}
-              <Button label="Créer" onPress={() => create.mutate()} loading={create.isPending} disabled={!name.trim() || !farmId.trim()} />
+              <Button label={t('ui.creer')} onPress={() => create.mutate()} loading={create.isPending} disabled={!name.trim() || !farmId.trim()} />
             </View>
           </Card>
         </AuthGate>

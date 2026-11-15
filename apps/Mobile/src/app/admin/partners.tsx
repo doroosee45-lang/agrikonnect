@@ -5,19 +5,19 @@ import { AuthGate, Card, Screen, Section, Text } from '@/components/ui';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 export default function AdminPartners() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Partenaires" subtitle="Organisations partenaires." />
+      <AppHeader title={t('ui.partenaires')} subtitle={t('ui.organisationsPartenaires')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Partenaires" icon="people-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.partenaires')} icon="people-outline">
           <Card tone="white">
-            <Text preset="h3" style={styles.mb}>Réseau de partenaires</Text>
-            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
-              Les partenaires (ONG, institutions, acheteurs) sont référencés ici. Chaque partenariat est formalisé par un accord.
-            </Text>
+            <Text preset="h3" style={styles.mb}>{t('ui.reseauDePartenaires')}</Text>
+            <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.lesPartenairesOngInstitutionsAcheteursSont')}</Text>
           </Card>
         </AuthGate>
       </Section>

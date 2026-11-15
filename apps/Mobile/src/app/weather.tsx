@@ -36,6 +36,7 @@ import { CREME } from '../theme/agrikonnect';
  * 24 heures, le serveur renvoie un avertissement de fraîcheur : on l’affiche.
  */
 export default function Weather() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
@@ -62,26 +63,26 @@ export default function Weather() {
     <PublicShell active="weather">
       <PageHeader
         index={1}
-        eyebrow="Données"
-        title="Météo agricole"
-        subtitle="Observations rattachées à vos parcelles, avec leur source et leur âge. Aucune prévision n’est inventée pour combler un manque de donnée."
+        eyebrow={t('ui.donnees')}
+        title={t('ui.meteoAgricole')}
+        subtitle={t('ui.observationsRattacheesAVosParcellesAvec')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="La météo est rattachée à vos parcelles"
-          description="Connectez-vous pour sélectionner une parcelle et consulter les observations enregistrées."
+          title={t('ui.laMeteoEstRattacheeAVos')}
+          description={t('ui.connectezVousPourSelectionnerUneParcelle')}
           icon="partly-sunny-outline"
         >
           {plots.isLoading ? (
             <LoadingState count={1} height={70} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucune parcelle"
-              description="La météo s’appuie sur la localisation d’une parcelle. Créez-en une pour activer ce service."
+              title={t('ui.aucuneParcelle')}
+              description={t('ui.laMeteoSAppuieSurLa')}
               icon="map-outline"
-              action={{ label: 'Créer une parcelle', onPress: () => router.push('/farmer/plots') }}
+              action={{ label: t('ui.creerUneParcelle'), onPress: () => router.push('/farmer/plots') }}
             />
           ) : (
             <>
@@ -121,11 +122,9 @@ export default function Weather() {
                   <Reveal variant="left" style={styles.column}>
                     <Card tone="ink" style={styles.latest}>
                       <View style={styles.latestHeader}>
-                        <Text preset="overline" color={COLORS.gold}>
-                          Dernière observation
-                        </Text>
+                        <Text preset="overline" color={COLORS.gold}>{t('ui.derniereObservation')}</Text>
                         <Chip
-                          label={weather.data.freshness?.stale ? 'Donnée ancienne' : 'Fraîche'}
+                          label={weather.data.freshness?.stale ? t('ui.donneeAncienne') : t('ui.fraiche')}
                           tone={weather.data.freshness?.stale ? 'warning' : 'success'}
                           size="sm"
                         />
@@ -136,9 +135,9 @@ export default function Weather() {
                       </Text>
 
                       <View style={styles.latestMeta}>
-                        <Chip label={`Source : ${weather.data.latest?.source ?? '—'}`} tone="neutral" size="sm" />
+                        <Chip label={t('ui.source_fab00', { value: weather.data.latest?.source ?? '—' })} tone="neutral" size="sm" />
                         <Chip
-                          label={`Confiance : ${weather.data.latest?.confidence ?? 'non précisée'}`}
+                          label={t('ui.confidenceValue', { value: weather.data.latest?.confidence ?? t('ui.notSpecifiedFem') })}
                           tone="neutral"
                           size="sm"
                         />
@@ -180,13 +179,9 @@ export default function Weather() {
 
                   <Reveal index={1} variant="right" style={styles.column}>
                     <Card tone="white" style={styles.history}>
-                      <Text preset="overline" color={COLORS.livingGreen}>
-                        Historique
-                      </Text>
+                      <Text preset="overline" color={COLORS.livingGreen}>{t('ui.historique')}</Text>
                       {(weather.data.records ?? []).length === 0 ? (
-                        <Text preset="bodySm" color={COLORS.slateGray}>
-                          Aucune observation enregistrée.
-                        </Text>
+                        <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.aucuneObservationEnregistree')}</Text>
                       ) : (
                         (weather.data.records ?? []).map((record) => (
                           <View key={record.id} style={styles.historyRow}>
@@ -197,7 +192,7 @@ export default function Weather() {
                               </Text>
                               <Text preset="caption" color={COLORS.slateGray}>
                                 {record.source}
-                                {record.confidence ? ` · confiance ${record.confidence}` : ''}
+                                {record.confidence ? t('ui.confiance_370bf', { confidence: record.confidence }) : ''}
                               </Text>
                             </View>
                           </View>
@@ -208,7 +203,7 @@ export default function Weather() {
                 </View>
               ) : null}
 
-              <AdvisoryNotice text="Une observation météo est datée et localisée : elle ne constitue pas une prévision de rendement." />
+              <AdvisoryNotice text={t('ui.uneObservationMeteoEstDateeEt')} />
             </>
           )}
         </AuthGate>

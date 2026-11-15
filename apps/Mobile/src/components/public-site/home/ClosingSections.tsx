@@ -21,6 +21,7 @@ const HOME_FAQ_IDS = ['provenance', 'verification', 'contacts', 'carte', 'statis
  * est livré, pas une promesse commerciale.
  */
 export function RoadmapSection() {
+  const { t } = useI18n();
   const { width } = useWindowDimensions();
   const wide = width >= 900;
 
@@ -29,9 +30,9 @@ export function RoadmapSection() {
   return (
     <Section
       index={8}
-      eyebrow="Périmètre"
-      title="Cinq versions, une même exigence"
-      subtitle="Chaque version ajoute des usages sans jamais assouplir la règle de provenance des données."
+      eyebrow={t('ui.perimetre_b5d08')}
+      title={t('ui.cinqVersionsUneMemeExigence')}
+      subtitle={t('ui.chaqueVersionAjouteDesUsagesSans')}
       background={COLORS.naturalWhite}
     >
       <View style={[styles.roadmap, wide ? styles.roadmapWide : null]}>
@@ -50,7 +51,7 @@ export function RoadmapSection() {
                 <Text preset="h3" color={COLORS.forestGreen}>
                   {version.tag} · {version.name}
                 </Text>
-                <Chip label="Livré" tone="success" size="sm" icon="checkmark-circle" />
+                <Chip label={t('ui.livre')} tone="success" size="sm" icon="checkmark-circle" />
               </View>
               <Text preset="bodySm" color={COLORS.slateGray} style={styles.lineHeight}>
                 {version.body}
@@ -74,7 +75,7 @@ export function FaqSection() {
   return (
     <Section
       index={9}
-      eyebrow="Questions"
+      eyebrow={t('ui.questions')}
       title={t('home.faqTitle')}
       subtitle={t('home.faqSubtitle')}
       background={COLORS.pureWhite}
@@ -98,9 +99,7 @@ export function ContactCta() {
         <Reveal variant="up">
           <View style={[styles.ctaContent, wide ? styles.ctaContentWide : null]}>
             <View style={styles.ctaText}>
-              <Text preset="overline" color={COLORS.gold}>
-                Contact
-              </Text>
+              <Text preset="overline" color={COLORS.gold}>{t('ui.contact')}</Text>
               <Text preset="display" color={DARK.text} style={styles.ctaTitle}>
                 {t('home.contactTitle')}
               </Text>
@@ -133,9 +132,7 @@ export function ContactCta() {
         <Reveal index={1} variant="fade">
           <View style={styles.ctaFooter}>
             <Ionicons name="shield-checkmark-outline" size={15} color={COLORS.livingGreen} />
-            <Text preset="caption" color={DARK.textMuted}>
-              Aucune donnée de contact n’est collectée sur ce site sans votre envoi explicite du formulaire.
-            </Text>
+            <Text preset="caption" color={DARK.textMuted}>{t('ui.aucuneDonneeDeContactNEst')}</Text>
           </View>
         </Reveal>
       </View>

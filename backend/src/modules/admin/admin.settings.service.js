@@ -55,7 +55,7 @@ const SECRET_MASK = '••••••••';
 const estSecret = (key) => SETTINGS_CATALOG[key]?.secret === true;
 
 const secretKey = () => {
-  const brut = process.env.SETTINGS_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const brut = process.env.SETTINGS_SECRET_KEY?.trim() || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!brut) {
     throw ApiError.internal('Aucune clé de chiffrement disponible (SETTINGS_SECRET_KEY)');
   }

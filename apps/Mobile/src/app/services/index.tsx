@@ -9,23 +9,21 @@ import { SERVICE_CATALOG, SERVICE_DOMAINS } from '@/lib/service-catalog';
 import { COLORS, TINTS } from '@/theme/colors';
 import { LAYOUT, RADIUS, SPACING } from '@/theme/space';
 import { VERT, TERRE } from '@/theme/agrikonnect';
+import { useI18n } from '@/i18n';
 
 /**
  * Services de la plateforme — miroir mobile de `apps/web/src/pages/Services.tsx`.
  * Textes identiques au web ; « Ouvrir » mène à `/services/[serviceId]`.
  */
 export default function Services() {
+  const { t } = useI18n();
   return (
     <PublicShell active="services" background={COLORS.naturalWhite}>
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <View style={styles.catalogHeader}>
-          <Text preset="overline" color={COLORS.forestGreen}>AGRIKONNECT AFRICA</Text>
-          <Text preset="h2" color={COLORS.textPrimary} accessibilityRole="header">
-            Les services de la plateforme
-          </Text>
-          <Text preset="body" color={COLORS.slateGray}>
-            Des outils connectés pour inspecter les sols, suivre les productions, accéder aux marchés et prendre des décisions éclairées.
-          </Text>
+          <Text preset="overline" color={COLORS.forestGreen}>{t('common.appName')}</Text>
+          <Text preset="h2" color={COLORS.textPrimary} accessibilityRole="header">{t('ui.lesServicesDeLaPlateforme')}</Text>
+          <Text preset="body" color={COLORS.slateGray}>{t('ui.desOutilsConnectesPourInspecterLes')}</Text>
         </View>
 
         <View style={styles.grid}>
@@ -65,12 +63,10 @@ export default function Services() {
                         })
                       }
                       accessibilityRole="button"
-                      accessibilityLabel={`Ouvrir le service ${service.title}`}
+                      accessibilityLabel={t('ui.ouvrirLeService_f5275', { title: service.title })}
                       style={styles.openButton}
                     >
-                      <Text preset="button" color={COLORS.pureWhite} style={styles.openButtonLabel}>
-                        Ouvrir
-                      </Text>
+                      <Text preset="button" color={COLORS.pureWhite} style={styles.openButtonLabel}>{t('ui.ouvrir')}</Text>
                       <Text preset="button" color={COLORS.pureWhite} style={styles.openButtonArrow}>
                         →
                       </Text>
@@ -85,9 +81,9 @@ export default function Services() {
 
       <Section
         index={2}
-        eyebrow="Périmètre complet"
-        title="Une plateforme pour toute la chaîne agricole"
-        subtitle="Les services s’appuient sur des domaines complémentaires, de la gestion des accès aux outils publics."
+        eyebrow={t('ui.perimetreComplet_702f2')}
+        title={t('ui.unePlateformePourTouteLaChaine')}
+        subtitle={t('ui.lesServicesSAppuientSurDes')}
         background={COLORS.paleGreen}
       >
         <View style={styles.domainGrid}>
@@ -101,7 +97,7 @@ export default function Services() {
                     </Text>
                   </View>
                   <Text preset="overline" color={TERRE[700]}>
-                    DOMAINE {String(index + 1).padStart(2, '0')}
+                    {t('ui.domainIndex', { value: String(index + 1).padStart(2, '0') })}
                   </Text>
                 </View>
                 <Text preset="bodyMedium" color={COLORS.textPrimary} accessibilityRole="header">

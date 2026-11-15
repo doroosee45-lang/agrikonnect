@@ -18,7 +18,7 @@ import {
   Section,
   Text,
 } from '@/components/ui';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { formatCurrency, formatDate, formatNumber } from '@/lib/format';
 import { listingApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
@@ -29,18 +29,18 @@ import { RADIUS, SPACING } from '@/theme/space';
 const RULES = [
   {
     icon: 'chatbox-ellipses-outline' as const,
-    title: 'Les coordonnées ne circulent pas',
-    body: 'Le contact passe par la messagerie interne. Ni téléphone ni e-mail ne sont échangés par défaut.',
+    get title() { return tr('ui.lesCoordonneesNeCirculentPas'); },
+    get body() { return tr('ui.leContactPasseParLaMessagerie'); },
   },
   {
     icon: 'time-outline' as const,
-    title: 'Chaque annonce a une durée',
-    body: 'Une annonce porte une disponibilité et une expiration. Passé ce délai, elle n’est plus présentée.',
+    get title() { return tr('ui.chaqueAnnonceAUneDuree'); },
+    get body() { return tr('ui.uneAnnoncePorteUneDisponibiliteEt'); },
   },
   {
     icon: 'shield-checkmark-outline' as const,
-    title: 'La modération laisse une trace',
-    body: 'Une annonce signalée est instruite ; chaque changement de statut est journalisé et notifié.',
+    get title() { return tr('ui.laModerationLaisseUneTrace'); },
+    get body() { return tr('ui.uneAnnonceSignaleeEstInstruiteChaque'); },
   },
 ];
 
@@ -63,16 +63,16 @@ export default function Marches() {
     <PublicShell active="marches">
       <PageHeader
         index={1}
-        eyebrow="Marché"
-        title="Annonces, demandes et commandes"
-        subtitle="Le marché est un espace de travail : les annonces y sont datées, les échanges tracés, les commandes suivies étape par étape."
+        eyebrow={t('ui.marche')}
+        title={t('ui.annoncesDemandesEtCommandes')}
+        subtitle={t('ui.leMarcheEstUnEspaceDe')}
       />
 
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
         <AuthGate
           isAuthenticated={isAuthenticated}
-          title="Le marché est réservé aux comptes actifs"
-          description="Créez un compte producteur, coopérative ou acheteur pour consulter les annonces, répondre à une demande et suivre vos commandes."
+          title={t('ui.leMarcheEstReserveAuxComptes')}
+          description={t('ui.creezUnCompteProducteurCooperativeOu')}
           icon="storefront-outline"
         >
           {listings.isLoading ? (
@@ -81,10 +81,10 @@ export default function Marches() {
             <ErrorState error={listings.error} onRetry={() => void listings.refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              title="Aucune annonce publiée"
-              description="Les annonces apparaissent dès qu’un membre publie un volume disponible ou une demande d’achat."
+              title={t('ui.aucuneAnnoncePubliee_a6ef3')}
+              description={t('ui.lesAnnoncesApparaissentDesQuUn')}
               icon="storefront-outline"
-              action={{ label: 'Publier une annonce', onPress: () => router.push('/ventes') }}
+              action={{ label: t('ui.publierUneAnnonce'), onPress: () => router.push('/ventes') }}
             />
           ) : (
             <View style={[styles.grid, wide ? styles.gridWide : null]}>
@@ -110,7 +110,7 @@ export default function Marches() {
                       <View style={styles.metaRow}>
                         <Ionicons name="scale-outline" size={13} color={COLORS.slateGray} />
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {quantity !== null ? `${formatNumber(quantity, locale, 1)} ${unit}` : 'Volume non précisé'}
+                          {quantity !== null ? `${formatNumber(quantity, locale, 1)} ${unit}` : t('ui.volumeNonPrecise')}
                           {country ? ` · ${country}` : ''}
                         </Text>
                       </View>
@@ -121,12 +121,10 @@ export default function Marches() {
                             {formatCurrency(price, currency, locale)}
                           </Text>
                         ) : (
-                          <Text preset="bodySm" color={COLORS.slateGray}>
-                            Prix indicatif non communiqué
-                          </Text>
+                          <Text preset="bodySm" color={COLORS.slateGray}>{t('ui.prixIndicatifNonCommunique')}</Text>
                         )}
                         <Text preset="caption" color={COLORS.slateGray}>
-                          {availableFrom ? `Disponible ${formatDate(availableFrom, locale)}` : ''}
+                          {availableFrom ? t('ui.disponible', { availableFrom: formatDate(availableFrom, locale) }) : ''}
                         </Text>
                       </View>
 
@@ -139,7 +137,7 @@ export default function Marches() {
                       ) : null}
 
                       <Button
-                        label="Ouvrir la discussion"
+                        label={t('ui.ouvrirLaDiscussion')}
                         variant="outline"
                         size="sm"
                         icon="chatbubble-ellipses-outline"
@@ -156,8 +154,8 @@ export default function Marches() {
 
       <Section
         index={2}
-        eyebrow="Règles"
-        title="Comment le marché protège les deux parties"
+        eyebrow={t('ui.regles')}
+        title={t('ui.commentLeMarcheProtegeLesDeux')}
         background={COLORS.pureWhite}
       >
         <View style={[styles.rules, wide ? styles.rulesWide : null]}>

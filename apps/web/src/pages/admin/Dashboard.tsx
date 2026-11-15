@@ -1,96 +1,40 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
+import { AuthGate, Button, ErrorState, LoadingState } from '@/components/ui';
 import {
-  AuthGate, Button, Card, ChipRow, ErrorState, FilterChip, Input, LoadingState, Section, Text,
-} from '@/components/ui';
-import { adminApi } from '@/services/endpoints';
-import { queryKeys } from '@/services/query';
-import { useAuthStore } from '@/store/auth';
+  HorizonAreaChartCard,
+  HorizonDonutCard,
+  HorizonGeoMapCard,
+  HorizonOverviewCard,
+  HorizonQuadMetricsCard,
+  HorizonShell,
+  HorizonTrackListCard,
+  formatHorizonTimestamp,
+} from '@/design-system';
+import type {
+  HorizonMapMarker,
+  HorizonSeriesPoint,
+  HorizonTrackItem,
+} from '@/design-system';
+import { useI18n, tr } from '@/i18n';
 import { formatNumber } from '@/lib/format';
-import { useI18n } from '@/i18n';
-import { COLORS, DURATION, EASE } from '@/theme';
-import { ChartCard, StatCard } from '@/design-system';
+import { adminApi, farmApi, queryKeys, referenceApi, verificationApi } from '@/services';
+import { useAuthStore } from '@/store/auth';
 
-/**
- * ADMIN — Tableau de bord centralisé (SPEC-SUPER-ADMIN M1).
- *
- * Chaque indicateur est servi par `GET /admin/dashboard` : agrégations
- * calculées à la requête (RG-M1-1), filtres pays/période, drill-down vers les
- * listes correspondantes, export CSV audité (RG-M1-4).
- */
-
-type PointSerie = { month: string; count: number };
-
-type DashboardData = {
-  series?: { signups?: PointSerie[] };
-  filters?: { country?: string | null; from?: string | null; to?: string | null };
+type SignupPoint = { month: string; count: number };
+type DashboardData = Record<string, unknown> & {
+  series?: { signups?: SignupPoint[] };
   generatedAt?: string;
   note?: string;
-} & Record<string, unknown>;
-
-type Kpi = { cle: string; label: string; vers?: string };
-type Bloc = { titre: string; vers: string; kpis: Kpi[] };
-
-const BLOCS: Bloc[] = [
-  {
-    titre: 'Comptes',
-    vers: '/admin/users',
-    kpis: [
-      { cle: 'users', label: 'Comptes créés', vers: '/admin/users' },
-      { cle: 'usersActive', label: 'Actifs', vers: '/admin/users' },
-      { cle: 'usersSuspended', label: 'Suspendus', vers: '/admin/users' },
-      { cle: 'usersUnverifiedEmail', label: 'E-mails non vérifiés', vers: '/admin/users' },
-      { cle: 'usersMfa', label: 'MFA active', vers: '/admin/users' },
-      { cle: 'usersNewInPeriod', label: 'Nouveaux (période)', vers: '/admin/users' },
-    ],
-  },
-  {
-    titre: 'Organisations',
-    vers: '/admin/farmers',
-    kpis: [
-      { cle: 'organizationsIndividual', label: 'Individuelles', vers: '/admin/farmers' },
-      { cle: 'organizationsCooperative', label: 'Coopératives', vers: '/admin/cooperatives' },
-      { cle: 'organizationsCompany', label: 'Sociétés', vers: '/admin/producers' },
-    ],
-  },
-  {
-    titre: 'Activité',
-    vers: '/admin/farms',
-    kpis: [
-      { cle: 'farms', label: 'Exploitations', vers: '/admin/farms' },
-      { cle: 'plots', label: 'Parcelles', vers: '/admin/plots' },
-      { cle: 'productions', label: 'Productions', vers: '/admin/productions' },
-      { cle: 'soilAssessments', label: 'Analyses de sol', vers: '/admin/farms' },
-      { cle: 'cooperatives', label: 'Coopératives actives', vers: '/admin/cooperatives' },
-    ],
-  },
-  {
-    titre: 'Marché',
-    vers: '/admin/marketplace',
-    kpis: [
-      { cle: 'listingsPublished', label: 'Annonces publiées', vers: '/admin/marketplace' },
-      { cle: 'ordersInPeriod', label: 'Commandes (période)', vers: '/admin/orders' },
-      { cle: 'disputesOpen', label: 'Litiges ouverts', vers: '/admin/moderation' },
-    ],
-  },
-  {
-    titre: 'Qualité',
-    vers: '/admin/verifications',
-    kpis: [
-      { cle: 'pendingVerifications', label: 'Vérifications en attente', vers: '/admin/verifications' },
-      { cle: 'openReports', label: 'Signalements ouverts', vers: '/admin/reports' },
-    ],
-  },
-];
+};
 
 const PERIODES = [
-  { id: '30', label: '30 jours' },
-  { id: '90', label: '90 jours' },
-  { id: '365', label: '12 mois' },
-  { id: 'all', label: 'Tout' },
+  { id: '30', get label() { return tr('ui.n30Jours'); } },
+  { id: '90', get label() { return tr('ui.n90Jours'); } },
+  { id: '365', get label() { return tr('ui.n12Mois'); } },
+  { id: 'all', get label() { return tr('ui.tout'); } },
 ];
 
 const bornesPeriode = (periode: string): { from?: string; to?: string } => {
@@ -100,7 +44,19 @@ const bornesPeriode = (periode: string): { from?: string; to?: string } => {
   return { from: debut.toISOString().slice(0, 10), to: new Date().toISOString().slice(0, 10) };
 };
 
+const toBars = (v: number, total: number): [number, number, number, number] => {
+  const ratio = total > 0 ? Math.min(100, Math.round((v / total) * 100)) : v > 0 ? 72 : 18;
+  return [
+    Math.max(18, Math.round(ratio * 0.55)),
+    Math.max(22, Math.round(ratio * 0.85)),
+    Math.max(18, Math.round(ratio * 0.65)),
+    Math.max(24, ratio),
+  ];
+};
+
+/** M1 — Tableau de bord Super-Admin & Gouvernance (Design Horizon, 100 % API reelle). */
 export default function AdminDashboard() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const [pays, setPays] = useState('');
@@ -108,10 +64,13 @@ export default function AdminDashboard() {
   const [exportEnCours, setExportEnCours] = useState(false);
   const [exportErreur, setExportErreur] = useState<string | null>(null);
 
-  const filtres = {
-    ...(pays.trim().length === 2 ? { country: pays.trim().toUpperCase() } : {}),
-    ...bornesPeriode(periode),
-  };
+  const filtres = useMemo(
+    () => ({
+      ...(pays.trim().length === 2 ? { country: pays.trim().toUpperCase() } : {}),
+      ...bornesPeriode(periode),
+    }),
+    [pays, periode],
+  );
 
   const dashboard = useQuery({
     queryKey: queryKeys.admin.dashboard(filtres),
@@ -119,9 +78,29 @@ export default function AdminDashboard() {
     enabled: isAuthenticated,
   });
 
+  const countriesQuery = useQuery({
+    queryKey: ['admin', 'horizon', 'countries'],
+    queryFn: () => referenceApi.countries().then((r) => r.data ?? []),
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  const farmsQuery = useQuery({
+    queryKey: ['admin', 'horizon', 'farms', filtres.country ?? 'ALL'],
+    queryFn: () => farmApi.list({ limit: 12 }).then((r) => r.data ?? []),
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  const verificationsQuery = useQuery({
+    queryKey: ['admin', 'horizon', 'verifications'],
+    queryFn: () => verificationApi.adminQueue({ limit: 4 }).then((r) => r.data?.items ?? []),
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
   const data = dashboard.data ?? {};
-  const serie = data.series?.signups ?? [];
-  const maxSerie = Math.max(1, ...serie.map((point) => Number(point.count) || 0));
+  const num = (key: string) => Number(data[key] ?? 0) || 0;
 
   const exporter = async () => {
     setExportEnCours(true);
@@ -136,142 +115,275 @@ export default function AdminDashboard() {
       lien.click();
       URL.revokeObjectURL(url);
     } catch (erreur) {
-      setExportErreur(erreur instanceof Error ? erreur.message : "L'export a échoué.");
+      setExportErreur(erreur instanceof Error ? erreur.message : t('ui.lExportCsvAEchoue'));
     } finally {
       setExportEnCours(false);
     }
   };
 
-  return (
-    <Section>
-      <AuthGate isAuthenticated={isAuthenticated} title="Administration" description="Pilotage de la plateforme." icon="⚙️">
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Tableau de bord
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 24 }}>
-          Vue consolidée de la plateforme. Toutes les valeurs sont des agrégations calculées à la
-          requête — aucune donnée personnelle ni aucune valeur figée.
-        </Text>
+  const signupPoints: HorizonSeriesPoint[] = useMemo(() => {
+    const raw = data.series?.signups ?? [];
+    return raw.slice(-8).map((pt) => ({
+      label: String(pt.month).slice(2),
+      primary: Number(pt.count) || 0,
+    }));
+  }, [data.series?.signups]);
 
-        {/* ── Filtres (RG-M1-1) ── */}
-        <Card tone="white" style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'flex-end' }}>
-            <div style={{ width: 160 }}>
-              <Input
-                label="Pays (ISO)"
+  const mapMarkers: HorizonMapMarker[] = useMemo(() => {
+    const farms = farmsQuery.data ?? [];
+    if (farms.length > 0) {
+      return farms.map((f) => ({
+        id: f.id,
+        code: f.slug.slice(0, 9).toUpperCase(),
+        label: f.name,
+        countryCode: f.countryCode,
+        tone:
+          f.verificationStatus === 'VERIFIED'
+            ? 'green'
+            : f.verificationStatus === 'PENDING'
+              ? 'amber'
+              : 'blue',
+        href: '/admin/farms',
+      }));
+    }
+    return (countriesQuery.data ?? []).slice(0, 10).map((c) => ({
+      id: c.code,
+      code: `PAYS-${c.code}`,
+      label: c.name,
+      countryCode: c.code,
+      tone: c.status === 'ACTIVE' ? 'green' : 'neutral',
+      href: '/admin/countries',
+      isHub: c.code === 'CD' || c.code === 'CI',
+    }));
+  }, [farmsQuery.data, countriesQuery.data]);
+
+  const queueItems: HorizonTrackItem[] = useMemo(() => {
+    const list = verificationsQuery.data ?? [];
+    return list.slice(0, 4).map((v) => ({
+      id: v.id,
+      code: `${v.subjectType.slice(0, 4).toUpperCase()}-${v.id.slice(0, 5).toUpperCase()}`,
+      subtitle: new Date(v.createdAt).toLocaleDateString(locale),
+      statusLabel: v.status === 'VERIFIED' ? t('common.verified') : v.status === 'REJECTED' ? t('ui.rejete') : t('ui.enAttente'),
+      tone: v.status === 'VERIFIED' ? 'green' : v.status === 'REJECTED' ? 'red' : 'amber',
+      leftCode: v.level || 'N1',
+      leftLabel: v.subjectType,
+      rightCode: v.status === 'VERIFIED' ? 'OK' : t('ui.trackCodeReview'),
+      rightLabel: t('ui.conformite'),
+      progressPct: v.status === 'VERIFIED' ? 100 : v.status === 'REJECTED' ? 100 : 52,
+      icon: 'shield',
+      href: '/admin/verifications',
+    }));
+  }, [verificationsQuery.data, locale]);
+
+  const totalOrgs =
+    num('organizationsIndividual') + num('organizationsCooperative') + num('organizationsCompany');
+
+  return (
+    <AuthGate isAuthenticated={isAuthenticated} title={t('ui.administration')} description={t('ui.pilotageDeLaPlateforme')} icon="⚙️">
+      <HorizonShell>
+        {/* Barre de filtres temps reel + Export audite (RG-M1-1 / RG-M1-4) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-bordure bg-surface px-4 py-3 shadow-2xs">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 rounded-xl border border-bordure bg-fond px-3 py-1.5 text-xs">
+              <span className="font-semibold text-texte-doux">{t('ui.paysIso')}</span>
+              <input
+                type="text"
                 value={pays}
-                onChange={(event) => setPays(event.target.value.toUpperCase().slice(0, 2))}
-                placeholder="ex. CD"
                 maxLength={2}
+                placeholder={t('ui.tousExCd')}
+                onChange={(e) => setPays(e.target.value.toUpperCase().slice(0, 2))}
+                className="w-24 border-0 bg-transparent font-mono text-xs font-semibold text-texte outline-none placeholder:font-sans placeholder:font-normal placeholder:text-texte-doux"
               />
+            </label>
+
+            <div className="flex items-center gap-1 rounded-xl border border-bordure bg-fond p-1">
+              {PERIODES.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setPeriode(item.id)}
+                  className={
+                    periode === item.id
+                      ? 'rounded-lg bg-surface px-2.5 py-1 text-xs font-semibold text-texte shadow-2xs'
+                      : 'rounded-lg px-2.5 py-1 text-xs font-medium text-texte-doux hover:text-texte'
+                  }
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
-            <div>
-              <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 6 }}>
-                Période
-              </Text>
-              <ChipRow>
-                {PERIODES.map((item) => (
-                  <FilterChip
-                    key={item.id}
-                    label={item.label}
-                    active={periode === item.id}
-                    onPress={() => setPeriode(item.id)}
-                  />
-                ))}
-              </ChipRow>
-            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {exportErreur ? (
+              <span className="text-xs font-medium text-danger">{exportErreur}</span>
+            ) : null}
             <Button
-              label={exportEnCours ? 'Export en cours…' : 'Exporter CSV'}
+              label={exportEnCours ? t('ui.exportCsv') : t('ui.exporterCsv')}
               onClick={() => void exporter()}
               variant="outline"
               size="sm"
             />
           </div>
-          {exportErreur ? (
-            <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>
-              {exportErreur}
-            </Text>
-          ) : null}
-        </Card>
+        </div>
 
         {dashboard.isLoading ? (
-          <LoadingState count={3} height={120} />
+          <LoadingState count={3} height={150} />
         ) : dashboard.isError ? (
           <ErrorState error={dashboard.error} onRetry={() => void dashboard.refetch()} showRequestId />
         ) : (
           <>
-            {BLOCS.map((bloc) => (
-              <div key={bloc.titre} style={{ marginBottom: 28 }}>
-                <Text preset="h2" style={{ marginBottom: 12 }}>
-                  {bloc.titre}
-                </Text>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
-                  {bloc.kpis.map((kpi, index) => (
-                    <motion.div
-                      key={kpi.cle}
-                      initial={{ opacity: 0, y: 16 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: DURATION.base / 1000, delay: Math.min(index, 10) * 0.03, ease: EASE.out }}
-                    >
-                      <Link to={kpi.vers ?? bloc.vers} style={{ textDecoration: 'none' }}>
-                        <StatCard
-                          label={kpi.label}
-                          valeur={formatNumber(Number(data[kpi.cle] ?? 0), locale)}
-                        />
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            ))}
+            {/* RANGE 1 : Vue d'ensemble des operations (4 colonnes Horizon) */}
+            <HorizonOverviewCard
+              title={t('ui.vueDEnsembleDesOperations')}
+              updatedLabel={formatHorizonTimestamp(data.generatedAt, locale)}
+              items={[
+                {
+                  id: 'users',
+                  label: t('ui.utilisateursInscrits'),
+                  value: formatNumber(num('users'), locale),
+                  subtitle: t('ui.actifsMfa', { value: formatNumber(num('usersActive'), locale), value2: formatNumber(num('usersMfa'), locale) }),
+                  badgeText: `+${formatNumber(num('usersNewInPeriod'), locale)}`,
+                  badgeSubtext: t('ui.surLaPeriode'),
+                  tone: 'green',
+                  icon: 'users',
+                  href: '/admin/users',
+                },
+                {
+                  id: 'farms',
+                  label: t('ui.exploitationsAgricoles'),
+                  value: formatNumber(num('farms'), locale),
+                  subtitle: t('ui.parcellesProducteurs', { value: formatNumber(num('plots'), locale), value2: formatNumber(num('farmers'), locale) }),
+                  badgeText: t('ui.coop', { value: formatNumber(num('cooperatives'), locale) }),
+                  badgeSubtext: t('ui.kpiSubActiveFemPlural'),
+                  tone: 'blue',
+                  icon: 'leaf',
+                  href: '/admin/farms',
+                },
+                {
+                  id: 'market',
+                  label: t('ui.annoncesCommandes'),
+                  value: formatNumber(num('listingsPublished'), locale),
+                  subtitle: t('ui.commandeSSurLaPeriode', { value: formatNumber(num('ordersInPeriod'), locale) }),
+                  badgeText: t('ui.litigeS', { value: formatNumber(num('disputesOpen'), locale) }),
+                  badgeSubtext: t('ui.kpiSubOpenMascPlural'),
+                  tone: num('disputesOpen') > 0 ? 'amber' : 'green',
+                  icon: 'truck',
+                  href: '/admin/marketplace',
+                },
+                {
+                  id: 'quality',
+                  label: t('ui.verificationsAlertes'),
+                  value: formatNumber(num('pendingVerifications'), locale),
+                  subtitle: t('ui.signalementSAInstruire', { value: formatNumber(num('openReports'), locale) }),
+                  badgeText: num('pendingVerifications') > 0 ? t('ui.aInstruire') : t('ui.aJour'),
+                  badgeSubtext: t('ui.fileQualite'),
+                  tone: num('pendingVerifications') > 0 || num('openReports') > 0 ? 'red' : 'green',
+                  icon: 'shield',
+                  href: '/admin/verifications',
+                },
+              ]}
+            />
 
-            {/* ── Série des inscriptions (graphe + tableau alternatif, §4.2) ── */}
-            <ChartCard titre="Inscriptions — 12 derniers mois" className="mb-6">
-              {serie.length === 0 ? (
-                <Text preset="bodyMd" color={COLORS.slateGray}>
-                  Aucune inscription sur la période.
-                </Text>
-              ) : (
-                <>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 120, marginBottom: 16 }}>
-                    {serie.map((point) => (
-                      <div
-                        key={point.month}
-                        title={`${point.month} : ${point.count}`}
-                        style={{
-                          flex: 1,
-                          height: `${Math.max(6, (Number(point.count) / maxSerie) * 100)}%`,
-                          backgroundColor: COLORS.forestGreen,
-                          borderRadius: 4,
-                          minWidth: 8,
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <tbody>
-                      {serie.map((point) => (
-                        <tr key={point.month}>
-                          <td style={{ padding: '4px 0', color: COLORS.slateGray }}>{point.month}</td>
-                          <td style={{ padding: '4px 0', textAlign: 'right' }}>
-                            {formatNumber(Number(point.count) || 0, locale)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
-            </ChartCard>
+            {/* RANGE 2 : Courbe des inscriptions (50 %) + Carte des exploitations/pays (50 %) */}
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <HorizonAreaChartCard
+                title={t('ui.dynamiqueDesInscriptions12Mois')}
+                primaryLabel={t('ui.nouveauxComptes')}
+                points={signupPoints}
+                emptyMessage={t('ui.aucuneInscriptionEnregistreeSurLaFenetre')}
+                sourceNote={data.note ? String(data.note) : t('ui.agregationTempsReelGetAdminDashboard')}
+              />
 
-            <Text preset="caption" color={COLORS.slateGray}>
-              {data.note ? `${String(data.note)} — ` : ''}
-              Calculé le {data.generatedAt ? new Date(String(data.generatedAt)).toLocaleString(locale) : '—'}.
-            </Text>
+              <HorizonGeoMapCard
+                title={t('ui.couvertureGeographiqueExploitations')}
+                markers={mapMarkers}
+                searchPlaceholder={t('ui.filtrerPaysOuExploitation')}
+                emptyMessage={t('ui.aucuneExploitationOuJuridictionActiveTrouvee')}
+                legend={[
+                  { label: t('ui.exploitations'), tone: 'green', count: num('farms') },
+                  { label: t('ui.parcelles'), tone: 'blue', count: num('plots') },
+                  { label: t('ui.aVerifier'), tone: 'amber', count: num('pendingVerifications') },
+                  { label: t('ui.signalements'), tone: 'red', count: num('openReports') },
+                ]}
+              />
+            </div>
+
+            {/* RANGE 3 : File active + Grille 2x2 Sparkbars + Anneau Donut */}
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+              <HorizonTrackListCard
+                title={t('ui.fileDeVerificationEnCours')}
+                items={queueItems}
+                viewAllHref="/admin/verifications"
+                emptyMessage={t('ui.aucuneDemandeDeVerificationEnAttente')}
+              />
+
+              <HorizonQuadMetricsCard
+                title={t('ui.indicateursMetierSecurite')}
+                cells={[
+                  {
+                    id: 'productions',
+                    value: formatNumber(num('productions'), locale),
+                    label: t('ui.recoltesEnregistrees'),
+                    bars: toBars(num('productions'), Math.max(10, num('plots'))),
+                    tone: 'green',
+                    href: '/admin/productions',
+                  },
+                  {
+                    id: 'soils',
+                    value: formatNumber(num('soilAssessments'), locale),
+                    label: t('ui.analysesDeSol'),
+                    bars: toBars(num('soilAssessments'), Math.max(10, num('plots'))),
+                    tone: 'blue',
+                    href: '/admin/farms',
+                  },
+                  {
+                    id: 'unverified',
+                    value: formatNumber(num('usersUnverifiedEmail'), locale),
+                    label: t('ui.eMailsNonVerifies'),
+                    bars: toBars(num('usersUnverifiedEmail'), Math.max(1, num('users'))),
+                    tone: 'amber',
+                    href: '/admin/users',
+                  },
+                  {
+                    id: 'suspended',
+                    value: formatNumber(num('usersSuspended'), locale),
+                    label: t('ui.comptesSuspendus'),
+                    bars: toBars(num('usersSuspended'), Math.max(1, num('users'))),
+                    tone: 'red',
+                    href: '/admin/security',
+                  },
+                ]}
+              />
+
+              <HorizonDonutCard
+                title={t('ui.structureDesOrganisations')}
+                totalValue={formatNumber(totalOrgs, locale)}
+                totalLabel={t('ui.organisations')}
+                segments={[
+                  { label: t('ui.individuelles'), value: num('organizationsIndividual'), tone: 'green' },
+                  { label: t('ui.cooperatives'), value: num('organizationsCooperative'), tone: 'blue' },
+                  { label: t('ui.entreprises'), value: num('organizationsCompany'), tone: 'amber' },
+                  { label: t('ui.litigesOuverts'), value: num('disputesOpen'), tone: 'red' },
+                ]}
+              />
+            </div>
+
+            {/* Raccourcis rapides vers les modules de gouvernance */}
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-bordure bg-surface px-4 py-3 text-xs text-texte-doux">
+              <span>{t('ui.accesDirectGouvernance')}{' '}<Link to="/admin/audit" className="font-semibold text-marque hover:underline">{t('ui.journalDAudit_d7747')}</Link>{' '}
+                ·{' '}
+                <Link to="/admin/monitoring" className="font-semibold text-marque hover:underline">{t('ui.supervision')}</Link>{' '}
+                ·{' '}
+                <Link to="/admin/jobs" className="font-semibold text-marque hover:underline">{t('ui.tachesPlanifiees_8a786')}</Link>{' '}
+                ·{' '}
+                <Link to="/admin/roles" className="font-semibold text-marque hover:underline">{t('ui.rolesMfa')}</Link>
+              </span>
+              <span>{t('ui.getAdminDashboard')}</span>
+            </div>
           </>
         )}
-      </AuthGate>
-    </Section>
+      </HorizonShell>
+    </AuthGate>
   );
 }

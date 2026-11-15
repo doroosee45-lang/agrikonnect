@@ -14,6 +14,7 @@ import { SPACING } from '@/theme/space';
 
 /** Marketplace — les annonces ne font pas partie de la surface anonyme (`/public/*`). */
 export default function PublicSiteAnnonces() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -25,11 +26,11 @@ export default function PublicSiteAnnonces() {
   const items = query.data ?? [];
   return (
     <PublicShell active="annonces">
-      <PageHeader index="09" eyebrow="Marketplace" title="Annonces" subtitle="Offres et demandes publiées par les organisations." />
+      <PageHeader index="09" eyebrow={t('ui.marketplace')} title={t('ui.annonces')} subtitle={t('ui.offresEtDemandesPublieesParLes')} />
       <Section background={COLORS.naturalWhite} bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Annonces" icon="megaphone-outline" description="La marketplace exige un compte : les annonces ne sont pas exposées anonymement.">
-          <Button label="Publier une annonce" variant="primary" onPress={() => router.push('/public-site/annonces/creer')} />
-          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune annonce" description="Aucune annonce publiée pour le moment." icon="megaphone-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.annonces')} icon="megaphone-outline" description={t('ui.laMarketplaceExigeUnCompteLes')}>
+          <Button label={t('ui.publierUneAnnonce')} variant="primary" onPress={() => router.push('/public-site/annonces/creer')} />
+          {query.isLoading ? <LoadingState count={3} height={100} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneAnnonce')} description={t('ui.aucuneAnnoncePublieePourLeMoment')} icon="megaphone-outline" /> : (
             <View style={styles.list}>
               {items.map((listing, index) => (
                 <Reveal key={listing.id} index={index} variant="up">
@@ -42,7 +43,7 @@ export default function PublicSiteAnnonces() {
                         </Text>
                       </View>
                       <View style={styles.right}>
-                        <Text preset="bodySm">{listing.indicativePrice !== null ? formatCurrency(listing.indicativePrice, listing.currency, locale) : 'sur demande'}</Text>
+                        <Text preset="bodySm">{listing.indicativePrice !== null ? formatCurrency(listing.indicativePrice, listing.currency, locale) : t('ui.surDemande')}</Text>
                         <Chip label={listing.type} tone={listing.type === 'OFFER' ? 'success' : 'info'} size="sm" />
                       </View>
                     </View>

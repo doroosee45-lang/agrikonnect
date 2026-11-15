@@ -11,6 +11,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function AdminFarms() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -22,10 +23,10 @@ export default function AdminFarms() {
   const items = query.data ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Exploitations" subtitle="Toutes les exploitations." />
+      <AppHeader title={t('ui.exploitations')} subtitle={t('ui.toutesLesExploitations')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Exploitations" icon="home-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucune exploitation" description="Aucune exploitation enregistrée." icon="home-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.exploitations')} icon="home-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucuneExploitation')} description={t('ui.aucuneExploitationEnregistree')} icon="home-outline" /> : (
             <View style={styles.list}>
               {items.map((farm, index) => (
                 <Reveal key={farm.id} index={index} variant="up">
@@ -34,7 +35,7 @@ export default function AdminFarms() {
                       <Text preset="bodyMedium">{farm.name}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>{farm.countryCode}{farm.province ? ` · ${farm.province}` : ''}</Text>
                     </View>
-                    <Chip label={farm.isPublic ? 'publique' : 'privée'} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" />
+                    <Chip label={farm.isPublic ? t('ui.publique_9eb2b') : t('ui.privee')} tone={farm.isPublic ? 'success' : 'neutral'} size="sm" />
                   </Card>
                 </Reveal>
               ))}

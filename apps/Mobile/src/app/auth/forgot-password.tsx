@@ -25,7 +25,7 @@ export default function ForgotPassword() {
   return (
     <AuthShell
       title={t('auth.forgot')}
-      subtitle="Indiquez l’e-mail ou le téléphone de votre compte. Si un compte correspond, un lien de réinitialisation est envoyé."
+      subtitle={t('ui.indiquezLEMailOuLe')}
     >
       <View style={styles.form}>
         <Input
@@ -33,11 +33,11 @@ export default function ForgotPassword() {
           value={identifier}
           onChangeText={setIdentifier}
           onBlur={() => setTouched(true)}
-          placeholder="vous@exemple.com ou +225…"
+          placeholder={t('ui.vousExempleComOu225')}
           icon="mail-outline"
           autoCapitalize="none"
           autoCorrect={false}
-          error={invalid ? 'Renseignez un e-mail ou un téléphone.' : null}
+          error={invalid ? t('ui.enterEmailOrPhone') : null}
         />
 
         {mutation.isError ? <ErrorState error={mutation.error} showRequestId /> : null}
@@ -45,15 +45,12 @@ export default function ForgotPassword() {
         {mutation.isSuccess ? (
           <Card tone="pale" style={styles.success}>
             <Ionicons name="checkmark-circle-outline" size={18} color={COLORS.success} />
-            <Text preset="bodySm" color={COLORS.textPrimary} style={styles.lineHeight}>
-              Si un compte correspond, un e-mail de réinitialisation vient d’être envoyé. Le lien expire
-              rapidement : pensez à vérifier vos indésirables.
-            </Text>
+            <Text preset="bodySm" color={COLORS.textPrimary} style={styles.lineHeight}>{t('ui.siUnCompteCorrespondUnE')}</Text>
           </Card>
         ) : null}
 
         <Button
-          label="Envoyer le lien"
+          label={t('ui.envoyerLeLien')}
           onPress={() => {
             setTouched(true);
             if (identifier.trim().length < 3) return;

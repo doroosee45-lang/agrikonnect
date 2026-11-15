@@ -10,6 +10,7 @@ import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
+import { useI18n } from '@/i18n';
 
 type Dict = Record<string, unknown>;
 
@@ -29,6 +30,7 @@ const SEVERITE_TONE: Record<string, 'error' | 'warning' | 'info'> = {
 
 /** M6 U-M6-1 — journal d'audit : recherche avancée, détail avant/après, export. */
 export default function AdminAudit() {
+  const { t } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
 
   const [brouillon, setBrouillon] = useState({ action: '', actor: '', resource: '', from: '', to: '', severity: '' });
@@ -63,73 +65,70 @@ export default function AdminAudit() {
     try {
       const sortie = await adminApi.auditExport({ ...requete, format });
       await Share.share({ message: sortie.content });
-      setAvis(`Export généré : ${sortie.filename}`);
+      setAvis(t('ui.exportGenere', { filename: sortie.filename }));
     } catch (caught) {
       const dict = asDict(caught);
-      setErreur(typeof dict.message === 'string' && dict.message ? dict.message : 'Export impossible');
+      setErreur(typeof dict.message === 'string' && dict.message ? dict.message : t('ui.exportImpossible'));
     }
   };
 
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Journal d'audit" subtitle="Actions sensibles — recherche avancée, détail avant/après, export (U-M6-1)." />
+      <AppHeader title={t('ui.journalDAudit_52309')} subtitle={t('ui.actionsSensiblesRechercheAvanceeDetailAvant')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Journal d'audit" icon="time-outline">
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.journalDAudit_52309')} icon="time-outline">
           <View style={styles.list}>
-            <Text preset="caption" color={COLORS.slateGray}>
-              Recherche par acteur, action, ressource, date et gravité. Le journal est en insertion seule (RG-S2) :
-              aucune entrée n'est modifiable ni supprimable ; les exports sont eux-mêmes journalisés (admin.audit.export).
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.auditLogIntro')}</Text>
             <Input
-              label="Action"
-              placeholder="Ex. : auth.login"
+              label={t('ui.action')}
+              placeholder={t('ui.exAuthLogin')}
               value={brouillon.action}
               onChangeText={(texte) => setBrouillon({ ...brouillon, action: texte })}
               icon="flash-outline"
             />
             <Input
-              label="Acteur"
-              placeholder="E-mail, nom ou identifiant"
+              label={t('ui.acteur')}
+              placeholder={t('ui.eMailNomOuIdentifiant')}
               value={brouillon.actor}
               onChangeText={(texte) => setBrouillon({ ...brouillon, actor: texte })}
               icon="person-outline"
             />
             <Input
-              label="Ressource"
-              placeholder="Ex. : profile"
+              label={t('ui.ressource')}
+              placeholder={t('ui.exProfile')}
               value={brouillon.resource}
               onChangeText={(texte) => setBrouillon({ ...brouillon, resource: texte })}
               icon="cube-outline"
             />
             <Input
-              label="Du"
-              placeholder="AAAA-MM-JJ"
+              label={t('ui.du')}
+              placeholder={t('ui.aaaaMmJj')}
               value={brouillon.from}
               onChangeText={(texte) => setBrouillon({ ...brouillon, from: texte })}
               icon="calendar-outline"
             />
             <Input
-              label="Au"
-              placeholder="AAAA-MM-JJ"
+              label={t('ui.au')}
+              placeholder={t('ui.aaaaMmJj')}
               value={brouillon.to}
               onChangeText={(texte) => setBrouillon({ ...brouillon, to: texte })}
               icon="calendar-outline"
             />
-            <Text preset="caption" color={COLORS.slateGray}>Gravité</Text>
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.gravite')}</Text>
             <View style={styles.chips}>
               {['', 'haute', 'moyenne', 'info'].map((valeur) => (
                 <FilterChip
                   key={valeur || 'toutes'}
-                  label={valeur || 'Toutes'}
+                  label={valeur || t('ui.toutes')}
                   active={brouillon.severity === valeur}
                   onPress={() => setBrouillon({ ...brouillon, severity: valeur })}
                 />
               ))}
             </View>
             <View style={styles.actions}>
-              <Button label="Rechercher" size="sm" onPress={() => setFiltres({ ...brouillon })} />
+              <Button label={t('common.search')} size="sm" onPress={() => setFiltres({ ...brouillon })} />
               <Button
-                label="Réinitialiser"
+                label={t('ui.reinitialiser')}
                 variant="outline"
                 size="sm"
                 onPress={() => {
@@ -140,8 +139,8 @@ export default function AdminAudit() {
               />
             </View>
             <View style={styles.actions}>
-              <Button label="Exporter CSV" variant="outline" size="sm" onPress={() => void exporter('csv')} />
-              <Button label="Exporter JSON" variant="outline" size="sm" onPress={() => void exporter('json')} />
+              <Button label={t('ui.exporterCsv')} variant="outline" size="sm" onPress={() => void exporter('csv')} />
+              <Button label={t('ui.exporterJson')} variant="outline" size="sm" onPress={() => void exporter('json')} />
             </View>
 
             {avis ? (
@@ -155,17 +154,14 @@ export default function AdminAudit() {
               </Card>
             ) : null}
 
-            <Text preset="caption" color={COLORS.slateGray}>
-              page {typeof meta.page === 'number' ? meta.page : '—'} · {lignes.length} entrées affichées · total{' '}
-              {typeof meta.total === 'number' ? meta.total : '—'}
-            </Text>
+            <Text preset="caption" color={COLORS.slateGray}>{t('ui.pageEntreesAfficheesTotal_824e1', { value: typeof meta.page === 'number' ? meta.page : '—', length: lignes.length, value2: typeof meta.total === 'number' ? meta.total : '—' })}</Text>
 
             {journal.isLoading ? (
               <LoadingState count={3} height={80} />
             ) : journal.isError ? (
               <ErrorState error={journal.error} onRetry={() => void journal.refetch()} />
             ) : lignes.length === 0 ? (
-              <EmptyState title="Journal vide" description="Aucune entrée d'audit pour ces critères." icon="time-outline" />
+              <EmptyState title={t('ui.journalVide')} description={t('ui.aucuneEntreeDAuditPourCes')} icon="time-outline" />
             ) : (
               lignes.map((ligne, index) => {
                 const cle = asText(ligne.id, `entree-${String(index)}`);
@@ -186,20 +182,17 @@ export default function AdminAudit() {
                     </Text>
                     <Pressable onPress={() => setOuvert(ouvert === cle ? null : cle)}>
                       <Text preset="caption" color={COLORS.forestGreen}>
-                        {ouvert === cle ? 'Masquer' : 'Détail'}
+                        {ouvert === cle ? t('ui.masquer') : t('ui.detail')}
                       </Text>
                     </Pressable>
                     {ouvert === cle ? (
                       <View style={styles.detail}>
-                        <Text preset="caption" color={COLORS.slateGray}>
-                          Identifiant : {cle} · Ressource : {asText(ligne.resource)} ({asText(ligne.resourceId)}) ·
-                          Adresse IP : {asText(ligne.ip)} · Agent : {asText(ligne.userAgent)}
-                        </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>Avant</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.identifiantRessourceAdresseIpAgent', { cle, resource: asText(ligne.resource), resourceId: asText(ligne.resourceId), ip: asText(ligne.ip), userAgent: asText(ligne.userAgent) })}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.avant')}</Text>
                         <Text preset="caption">
                           {ligne.oldValue === null || ligne.oldValue === undefined ? '—' : JSON.stringify(ligne.oldValue, null, 2)}
                         </Text>
-                        <Text preset="caption" color={COLORS.slateGray}>Après</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.apres')}</Text>
                         <Text preset="caption">
                           {ligne.newValue === null || ligne.newValue === undefined ? '—' : JSON.stringify(ligne.newValue, null, 2)}
                         </Text>

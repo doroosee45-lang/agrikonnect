@@ -25,7 +25,7 @@ import type {
 } from '@/services/types';
 import { useAuthStore } from '@/store/auth';
 import { formatDate } from '@/lib/format';
-import { useI18n } from '@/i18n';
+import { useI18n, tr } from '@/i18n';
 import { COLORS } from '@/theme';
 
 /**
@@ -51,11 +51,11 @@ const STATUS_TONE: Record<RangeStatus, 'success' | 'warning' | 'neutral'> = {
 };
 
 const PARAMETER_LABELS: Record<RangeParameterKey, string> = {
-  ph: 'pH du sol',
-  airTemperatureC: "Température de l'AIR",
-  moisture: 'Humidité volumique du sol',
-  ec: 'Salinité (CE)',
-  depthCm: 'Profondeur racinaire utile',
+  get ph() { return tr('ui.phDuSol'); },
+  get airTemperatureC() { return tr('ui.temperatureDeLAir'); },
+  get moisture() { return tr('ui.humiditeVolumiqueDuSol'); },
+  get ec() { return tr('ui.saliniteCe'); },
+  get depthCm() { return tr('ui.profondeurRacinaireUtile'); },
 };
 
 const PARAMETER_UNITS: Record<RangeParameterKey, string> = {
@@ -70,17 +70,17 @@ const PARAMETER_KEYS = Object.keys(PARAMETER_LABELS) as RangeParameterKey[];
 
 /** Libellés du menu « Type de source », identiques à ceux du tableau. */
 const SOURCE_TYPE_LABELS: Record<RangeSourceType, string> = {
-  AGRONOMIST: 'Agronome',
-  PUBLICATION: 'Publication',
-  PILOT: 'Pilote',
+  get AGRONOMIST() { return tr('ui.agronome'); },
+  get PUBLICATION() { return tr('ui.publication'); },
+  get PILOT() { return tr('ui.pilote'); },
 };
 
 /** Le menu reprend le libellé du tableau : « A choisir » signifie non renseigné. */
 const SOURCE_TYPE_OPTIONS: Array<{ value: RangeSourceType | ''; label: string }> = [
-  { value: '', label: 'A choisir' },
-  { value: 'AGRONOMIST', label: 'Agronome' },
-  { value: 'PUBLICATION', label: 'Publication' },
-  { value: 'PILOT', label: 'Pilote' },
+  { value: '', get label() { return tr('ui.aChoisir'); } },
+  { value: 'AGRONOMIST', get label() { return tr('ui.agronome'); } },
+  { value: 'PUBLICATION', get label() { return tr('ui.publication'); } },
+  { value: 'PILOT', get label() { return tr('ui.pilote'); } },
 ];
 
 interface FormState {
@@ -112,6 +112,7 @@ const EMPTY_FORM: FormState = {
 };
 
 export default function AdminAgronomicRanges() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
@@ -254,25 +255,15 @@ export default function AdminAgronomicRanges() {
     <Section>
       <AuthGate
         isAuthenticated={isAuthenticated}
-        title="Plages agronomiques"
-        description="Référentiel des fourchettes culturales."
+        title={t('ui.plagesAgronomiques')}
+        description={t('ui.referentielDesFourchettesCulturales')}
         icon="🌾"
       >
-        <Text preset="h1" style={{ marginBottom: 8 }}>
-          Plages agronomiques
-        </Text>
-        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 16 }}>
-          Une plage provisoire rend les recommandations « indicatives ». La valider exige un
-          validateur nommé et une source citable : c'est ce qui distingue une fourchette
-          générique d'une plage confirmée pour les sols locaux.
-        </Text>
+        <Text preset="h1" style={{ marginBottom: 8 }}>{t('ui.plagesAgronomiques')}</Text>
+        <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 16 }}>{t('ui.unePlageProvisoireRendLesRecommandations')}</Text>
 
         <Card tone="pale" style={{ marginBottom: 24 }}>
-          <Text preset="caption">
-            Aucune valeur ne peut être enregistrée sans provenance : une source citable ou, à
-            défaut, une note expliquant son origine et ses limites. Modifier une plage validée
-            annule sa validation — elle portait sur les anciennes bornes.
-          </Text>
+          <Text preset="caption">{t('ui.aucuneValeurNePeutEtreEnregistree')}</Text>
         </Card>
 
         {error ? <ErrorState error={error} /> : null}
@@ -281,13 +272,13 @@ export default function AdminAgronomicRanges() {
         <Card tone="white" style={{ marginBottom: 24 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
             <Input
-              label="Culture (slug)"
+              label={t('ui.cultureSlug')}
               value={filters.cropSlug}
               placeholder="manioc"
               onChange={(event) => setFilters((current) => ({ ...current, cropSlug: event.target.value }))}
             />
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <Text preset="caption">Statut</Text>
+              <Text preset="caption">{t('ui.statut')}</Text>
               <select
                 value={filters.status}
                 onChange={(event) =>
@@ -295,10 +286,10 @@ export default function AdminAgronomicRanges() {
                 }
                 style={{ padding: '10px 12px', borderRadius: 8, border: `1px solid ${COLORS.lightBorder}` }}
               >
-                <option value="">Tous</option>
-                <option value="PROVISIONAL">Provisoires</option>
-                <option value="VALIDATED">Validées</option>
-                <option value="RETIRED">Retirées</option>
+                <option value="">{t('ui.tous')}</option>
+                <option value="PROVISIONAL">{t('ui.provisoires')}</option>
+                <option value="VALIDATED">{t('ui.validees')}</option>
+                <option value="RETIRED">{t('ui.retirees')}</option>
               </select>
             </label>
           </div>
@@ -307,17 +298,17 @@ export default function AdminAgronomicRanges() {
         {/* ── Création / modification ────────────────────────────── */}
         <Card tone="white" style={{ marginBottom: 24 }}>
           <Text preset="h3" style={{ marginBottom: 12 }}>
-            {editingId ? 'Modifier la plage' : 'Créer une plage'}
+            {editingId ? t('ui.modifierLaPlage') : t('ui.creerUnePlage')}
           </Text>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 16 }}>
             <Input
-              label="Culture (slug)"
+              label={t('ui.cultureSlug')}
               value={form.cropSlug}
               disabled={Boolean(editingId)}
               onChange={(event) => setForm((current) => ({ ...current, cropSlug: event.target.value }))}
             />
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <Text preset="caption">Paramètre</Text>
+              <Text preset="caption">{t('ui.parametre')}</Text>
               <select
                 value={form.parameterKey}
                 disabled={Boolean(editingId)}
@@ -334,50 +325,48 @@ export default function AdminAgronomicRanges() {
               </select>
             </label>
             <Input
-              label={`Min (${PARAMETER_UNITS[form.parameterKey]})`}
+              label={t('ui.min', { value: PARAMETER_UNITS[form.parameterKey] })}
               type="number"
               step="any"
               value={form.minValue}
-              hint={bounds(form.parameterKey) ? `borne physique : ${bounds(form.parameterKey)?.min}` : undefined}
+              hint={bounds(form.parameterKey) ? t('ui.physicalBound', { value: bounds(form.parameterKey)?.min }) : undefined}
               onChange={(event) => setForm((current) => ({ ...current, minValue: event.target.value }))}
             />
             <Input
-              label={`Max (${PARAMETER_UNITS[form.parameterKey]})`}
+              label={t('ui.max', { value: PARAMETER_UNITS[form.parameterKey] })}
               type="number"
               step="any"
               value={form.maxValue}
-              hint={bounds(form.parameterKey) ? `borne physique : ${bounds(form.parameterKey)?.max}` : undefined}
+              hint={bounds(form.parameterKey) ? t('ui.physicalBound', { value: bounds(form.parameterKey)?.max }) : undefined}
               onChange={(event) => setForm((current) => ({ ...current, maxValue: event.target.value }))}
             />
             <Input
-              label={`Toléré min (${PARAMETER_UNITS[form.parameterKey]})`}
+              label={t('ui.tolereMin', { value: PARAMETER_UNITS[form.parameterKey] })}
               type="number"
               step="any"
               value={form.toleratedMin}
-              hint="Facultatif. Doit être ≤ à l'idéal min. Vide = aucune limite tolérée inventée."
+              hint={t('ui.facultatifDoitEtreALIdeal')}
               onChange={(event) => setForm((current) => ({ ...current, toleratedMin: event.target.value }))}
             />
             <Input
-              label={`Toléré max (${PARAMETER_UNITS[form.parameterKey]})`}
+              label={t('ui.tolereMax', { value: PARAMETER_UNITS[form.parameterKey] })}
               type="number"
               step="any"
               value={form.toleratedMax}
-              hint="Facultatif. Doit être ≥ à l'idéal max."
+              hint={t('ui.facultatifDoitEtreALIdeal_73eec')}
               onChange={(event) => setForm((current) => ({ ...current, toleratedMax: event.target.value }))}
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 16 }}>
             <Input
-              label="Source citable"
+              label={t('ui.sourceCitable')}
               value={form.sourceReference}
-              placeholder="Référentiel agronomique de test — Manihot esculenta"
-              hint="Obligatoire pour pouvoir valider la plage ensuite."
+              placeholder={t('ui.referentielAgronomiqueDeTestManihotEsculenta')}
+              hint={t('ui.obligatoirePourPouvoirValiderLaPlage')}
               onChange={(event) => setForm((current) => ({ ...current, sourceReference: event.target.value }))}
             />
             <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <Text preset="caption" color={COLORS.slateGray}>
-                Type de source
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray}>{t('ui.typeDeSource')}</Text>
               <select
                 value={form.sourceType}
                 onChange={(event) =>
@@ -392,36 +381,36 @@ export default function AdminAgronomicRanges() {
               </select>
             </label>
             <Input
-              label="Zone concernée"
+              label={t('ui.zoneConcernee')}
               value={form.zone}
-              placeholder="Équateur, bassin de la Ruki…"
-              hint="Facultatif : laisse la fourchette non circonscrite."
+              placeholder={t('ui.equateurBassinDeLaRuki')}
+              hint={t('ui.facultatifLaisseLaFourchetteNonCirconscrite')}
               onChange={(event) => setForm((current) => ({ ...current, zone: event.target.value }))}
             />
             <Input
-              label="Lot"
+              label={t('ui.lot')}
               value={form.datasetLabel}
               onChange={(event) => setForm((current) => ({ ...current, datasetLabel: event.target.value }))}
             />
           </div>
           <TextArea
-            label="Note sur la nature de la valeur"
+            label={t('ui.noteSurLaNatureDeLa')}
             value={form.sourceNote}
             onChange={(event) => setForm((current) => ({ ...current, sourceNote: event.target.value }))}
-            placeholder="Température de l'AIR (référentiel générique), et non température du sol."
-            hint="À défaut de source citable, cette note est obligatoire : aucune valeur sans provenance."
+            placeholder={t('ui.temperatureDeLAirReferentielGenerique')}
+            hint={t('ui.aDefautDeSourceCitableCette')}
             minHeight={70}
           />
           <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
             <Button
-              label={editingId ? 'Enregistrer les modifications' : 'Créer la plage'}
+              label={editingId ? t('ui.enregistrerLesModifications') : t('ui.creerLaPlage')}
               variant="primary"
               loading={save.isPending}
               onClick={() => save.mutate()}
             />
             {editingId ? (
               <Button
-                label="Annuler"
+                label={t('common.cancel')}
                 variant="outline"
                 onClick={() => {
                   setEditingId(null);
@@ -433,15 +422,13 @@ export default function AdminAgronomicRanges() {
         </Card>
 
         {/* ── Liste ──────────────────────────────────────────────── */}
-        <Text preset="h3" style={{ marginBottom: 12 }}>
-          Référentiel
-        </Text>
+        <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.referentiel')}</Text>
         {ranges.isLoading ? <LoadingState count={3} height={72} /> : null}
         {ranges.isError ? <ErrorState error={ranges.error} /> : null}
         {ranges.data && items.length === 0 ? (
           <EmptyState
-            title="Données insuffisantes"
-            description="Aucune plage agronomique n'est enregistrée pour ce filtre. Sans plage en base, le moteur de recommandation considère le critère comme non évalué — il n'invente jamais de fourchette."
+            title={t('ui.donneesInsuffisantes')}
+            description={t('ui.aucunePlageAgronomiqueNEstEnregistree')}
             icon="🌾"
           />
         ) : null}
@@ -454,10 +441,7 @@ export default function AdminAgronomicRanges() {
                   <Text preset="bodyMd" style={{ marginBottom: 4 }}>
                     {range.cropSlug} · {PARAMETER_LABELS[range.parameterKey] ?? range.parameterKey}
                   </Text>
-                  <Text preset="caption" color={COLORS.slateGray}>
-                    Idéal [{range.minValue} ; {range.maxValue}] {range.unit} · lot {range.datasetLabel} · v
-                    {range.version}
-                  </Text>
+                  <Text preset="caption" color={COLORS.slateGray}>{t('ui.idealLotV', { minValue: range.minValue, maxValue: range.maxValue, unit: range.unit, datasetLabel: range.datasetLabel, version: range.version })}</Text>
                   {/*
                     Les bornes tolérées encadrent l'idéal. Quand elles manquent,
                     on l'affiche explicitement : un vide silencieux laisserait
@@ -466,8 +450,8 @@ export default function AdminAgronomicRanges() {
                   */}
                   <Text preset="caption" color={COLORS.slateGray}>
                     {range.toleratedMin !== null && range.toleratedMax !== null
-                      ? `Toléré [${range.toleratedMin} ; ${range.toleratedMax}] ${range.unit}`
-                      : 'Toléré : non renseigné — verdict limité à la plage idéale'}
+                      ? t('ui.tolere', { toleratedMin: range.toleratedMin, toleratedMax: range.toleratedMax, unit: range.unit })
+                      : t('ui.tolereNonRenseigneVerdictLimiteA')}
                   </Text>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -476,28 +460,25 @@ export default function AdminAgronomicRanges() {
                     <Chip label={SOURCE_TYPE_LABELS[range.sourceType]} tone="info" size="sm" />
                   ) : null}
                   {range.zone ? <Chip label={range.zone} tone="neutral" size="sm" /> : null}
-                  {range.organizationId ? <Chip label="organisation" tone="info" size="sm" /> : null}
+                  {range.organizationId ? <Chip label={t('ui.organisation')} tone="info" size="sm" /> : null}
                 </div>
               </div>
 
               <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 8 }}>
-                {range.sourceReference ? `Source : ${range.sourceReference}` : 'Aucune source citable.'}
+                {range.sourceReference ? t('ui.source_3c4d0', { sourceReference: range.sourceReference }) : t('ui.aucuneSourceCitable')}
                 {range.sourceNote ? ` · ${range.sourceNote}` : ''}
               </Text>
 
               {range.status === 'VALIDATED' ? (
-                <Text preset="caption" color={COLORS.success} style={{ marginBottom: 8 }}>
-                  Validée par {range.validatedBy}
-                  {range.validatedAt ? ` le ${formatDate(range.validatedAt, locale)}` : ''}
-                </Text>
+                <Text preset="caption" color={COLORS.success} style={{ marginBottom: 8 }}>{t('ui.valideePar', { validatedBy: range.validatedBy, value: range.validatedAt ? ` le ${formatDate(range.validatedAt, locale)}` : '' })}</Text>
               ) : null}
 
               {range.status !== 'RETIRED' ? (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  <Button label="Modifier" size="sm" variant="outline" onClick={() => startEdit(range)} />
+                  <Button label={t('ui.modifier')} size="sm" variant="outline" onClick={() => startEdit(range)} />
                   {range.status === 'PROVISIONAL' ? (
                     <Button
-                      label="Valider"
+                      label={t('ui.valider')}
                       size="sm"
                       variant="primary"
                       onClick={() => {
@@ -507,7 +488,7 @@ export default function AdminAgronomicRanges() {
                     />
                   ) : null}
                   <Button
-                    label="Retirer"
+                    label={t('ui.retirer')}
                     size="sm"
                     variant="outline"
                     loading={retire.isPending}
@@ -522,57 +503,41 @@ export default function AdminAgronomicRanges() {
         {/* ── Validation ─────────────────────────────────────────── */}
         {validating ? (
           <Card tone="white" style={{ marginBottom: 24 }}>
-            <Text preset="h3" style={{ marginBottom: 8 }}>
-              Valider {validating.cropSlug} · {PARAMETER_LABELS[validating.parameterKey] ?? validating.parameterKey}
-            </Text>
+            <Text preset="h3" style={{ marginBottom: 8 }}>{t('ui.valider_424cc', { cropSlug: validating.cropSlug, value: PARAMETER_LABELS[validating.parameterKey] ?? validating.parameterKey })}</Text>
             {!validating.sourceReference ? (
-              <Text preset="caption" color={COLORS.error} style={{ marginBottom: 12 }}>
-                Cette plage n'a pas de source citable : le serveur refuse la validation (409).
-                Renseignez d'abord une source.
-              </Text>
+              <Text preset="caption" color={COLORS.error} style={{ marginBottom: 12 }}>{t('ui.cettePlageNAPasDe')}</Text>
             ) : (
-              <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 12 }}>
-                Source enregistrée : {validating.sourceReference}
-              </Text>
+              <Text preset="caption" color={COLORS.slateGray} style={{ marginBottom: 12 }}>{t('ui.sourceEnregistree', { sourceReference: validating.sourceReference })}</Text>
             )}
             <Input
-              label="Validée par"
+              label={t('ui.valideePar_bbf08')}
               value={validatedBy}
-              placeholder="Dr. Alice Muteba"
-              hint="Le nom du validateur est conservé avec la plage et son horodatage."
+              placeholder={t('ui.drAliceMuteba')}
+              hint={t('ui.leNomDuValidateurEstConserve')}
               onChange={(event) => setValidatedBy(event.target.value)}
             />
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <Button
-                label="Confirmer la validation"
+                label={t('ui.confirmerLaValidation')}
                 variant="primary"
                 loading={validateRange.isPending}
                 onClick={() => validateRange.mutate()}
               />
-              <Button label="Annuler" variant="outline" onClick={() => setValidating(null)} />
+              <Button label={t('common.cancel')} variant="outline" onClick={() => setValidating(null)} />
             </div>
           </Card>
         ) : null}
 
         {/* ── Import CSV ─────────────────────────────────────────── */}
         <Card tone="white">
-          <Text preset="h3" style={{ marginBottom: 8 }}>
-            Import CSV
-          </Text>
-          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 12 }}>
-            Une ligne par culture et par paramètre. Chaque ligne est validée individuellement :
-            une ligne invalide est rapportée avec son numéro et sa raison, les autres sont
-            traitées. Une plage déjà validée n'est jamais écrasée.
-          </Text>
+          <Text preset="h3" style={{ marginBottom: 8 }}>{t('ui.importCsv')}</Text>
+          <Text preset="bodyMd" color={COLORS.slateGray} style={{ marginBottom: 12 }}>{t('ui.uneLigneParCultureEtPar')}</Text>
 
           {template.data ? (
             <Card tone="pale" style={{ marginBottom: 12 }}>
-              <Text preset="caption" style={{ marginBottom: 8 }}>
-                En-tête attendu :{' '}
-                <span style={{ fontFamily: 'monospace' }}>{template.data.header.join(' ; ')}</span>
+              <Text preset="caption" style={{ marginBottom: 8 }}>{t('ui.enTeteAttendu')}{' '}<span style={{ fontFamily: 'monospace' }}>{template.data.header.join(' ; ')}</span>
               </Text>
-              <Text preset="caption" style={{ marginBottom: 8 }}>
-                Exemple : <span style={{ fontFamily: 'monospace' }}>{template.data.example.join(' ; ')}</span>
+              <Text preset="caption" style={{ marginBottom: 8 }}>{t('ui.exemple')}{' '}<span style={{ fontFamily: 'monospace' }}>{template.data.example.join(' ; ')}</span>
               </Text>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {template.data.notes.map((note) => (
@@ -585,7 +550,7 @@ export default function AdminAgronomicRanges() {
           ) : null}
 
           <TextArea
-            label="Contenu du fichier"
+            label={t('ui.contenuDuFichier')}
             value={csv}
             onChange={(event) => setCsv(event.target.value)}
             minHeight={140}
@@ -593,20 +558,20 @@ export default function AdminAgronomicRanges() {
           />
           <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
             <Button
-              label="Vérifier (sans écrire)"
+              label={t('ui.verifierSansEcrire')}
               variant="outline"
               loading={importCsv.isPending}
               onClick={() => importCsv.mutate(true)}
             />
             <Button
-              label="Appliquer l'import"
+              label={t('ui.appliquerLImport')}
               variant="primary"
               loading={importCsv.isPending}
               onClick={() => importCsv.mutate(false)}
             />
             {template.data ? (
               <Button
-                label="Charger le modèle"
+                label={t('ui.chargerLeModele')}
                 variant="outline"
                 onClick={() => setCsv(template.data.csv)}
               />
@@ -616,12 +581,7 @@ export default function AdminAgronomicRanges() {
           {importResult ? (
             <div style={{ marginTop: 16 }}>
               <Text preset="bodyMd" style={{ marginBottom: 8 }}>
-                {importResult.summary.dryRun ? 'Vérification (rien n’a été écrit)' : 'Import appliqué'} —{' '}
-                {importResult.summary.totalLines} ligne(s) : {importResult.summary.created} créée(s),{' '}
-                {importResult.summary.updated} mise(s) à jour, {importResult.summary.skippedValidated}{' '}
-                ignorée(s) car validée(s), {importResult.summary.skippedEmpty} ignorée(s) faute de{' '}
-                valeurs idéales, {importResult.summary.errors} en erreur.
-              </Text>
+                {importResult.summary.dryRun ? t('ui.verificationRienNAEteEcrit') : t('ui.importApplique')}{' '}{t('ui.ligneSCreeeSMiseS', { totalLines: importResult.summary.totalLines, created: importResult.summary.created, updated: importResult.summary.updated, skippedValidated: importResult.summary.skippedValidated, skippedEmpty: importResult.summary.skippedEmpty, errors: importResult.summary.errors })}</Text>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {importResult.results.map((result) => (
                   <div

@@ -8,6 +8,7 @@ import { authApi } from '@/services/endpoints';
 import { useAuthStore } from '@/store/auth';
 import { COLORS, DURATION, EASE } from '@/theme';
 import { getUserInitialRoute } from '@/lib/redirects';
+import { useI18n } from '@/i18n';
 
 /**
  * AUTH — vérification de l'adresse e-mail.
@@ -39,6 +40,7 @@ import { getUserInitialRoute } from '@/lib/redirects';
  * unique, il n'est jamais écrit dans la console ni dans un log applicatif.
  */
 export default function AuthVerifyEmail() {
+  const { t } = useI18n();
   const [params] = useSearchParams();
   const jetonUrl = params.get('token_hash') ?? params.get('token') ?? '';
   const emailUrl = params.get('email') ?? '';
@@ -84,9 +86,7 @@ export default function AuthVerifyEmail() {
         style={{ width: '100%', maxWidth: 460 }}
       >
         <Card tone="white" style={{ padding: 32 }}>
-          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>
-            Vérification d'email
-          </Text>
+          <Text preset="h2" style={{ marginBottom: 8, textAlign: 'center' }}>{t('ui.verificationDEmail')}</Text>
 
           {verifie ? (
             /*
@@ -94,30 +94,26 @@ export default function AuthVerifyEmail() {
              * à consommer un second jeton alors que l'adresse est déjà vérifiée.
              */
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
-              <Text preset="h3" style={{ marginBottom: 12 }}>
-                ✓ Adresse vérifiée
-              </Text>
-              <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 20 }}>
-                Connectez-vous pour accéder à votre espace.
-              </Text>
+              <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.adresseVerifiee')}</Text>
+              <Text preset="bodySm" color={COLORS.slateGray} style={{ marginBottom: 20 }}>{t('ui.connectezVousPourAccederAVotre')}</Text>
               <Link to="/auth/login">
-                <Button label="Se connecter" variant="primary" size="sm" />
+                <Button label={t('ui.seConnecter')} variant="primary" size="sm" />
               </Link>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <Text preset="bodySm" color={COLORS.slateGray} style={{ textAlign: 'center' }}>
                 {jetonUrl
-                  ? 'Le jeton contenu dans votre lien est prérempli. Vérifiez-le, ou collez-en un autre.'
-                  : 'Collez le jeton reçu par email, ou demandez un nouveau lien.'}
+                  ? t('ui.leJetonContenuDansVotreLien')
+                  : t('ui.collezLeJetonRecuParEmail')}
               </Text>
 
               <Input
-                label="Adresse e-mail à vérifier"
+                label={t('ui.adresseEMailAVerifier')}
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="vous@exemple.com"
+                placeholder={t('ui.emailPlaceholder')}
                 autoComplete="email"
               />
 
@@ -127,10 +123,10 @@ export default function AuthVerifyEmail() {
                 navigateur l'enverrait dans l'historique de saisie.
               */}
               <Input
-                label="Jeton de vérification"
+                label={t('ui.jetonDeVerification')}
                 value={tokenHash}
                 onChange={(event) => setTokenHash(event.target.value)}
-                placeholder="Collez le jeton reçu par email"
+                placeholder={t('ui.collezLeJetonRecuParEmail_91532')}
                 autoComplete="off"
                 spellCheck={false}
               />
@@ -138,7 +134,7 @@ export default function AuthVerifyEmail() {
               {verifier.isError ? <ErrorState error={verifier.error} showRequestId /> : null}
 
               <Button
-                label="Vérifier mon adresse"
+                label={t('ui.verifierMonAdresse')}
                 loading={verifier.isPending}
                 disabled={!peutVerifier}
                 onClick={() => verifier.mutate()}
@@ -148,12 +144,12 @@ export default function AuthVerifyEmail() {
               <div style={{ borderTop: `1px solid ${COLORS.lightBorder}`, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <Text preset="caption" color={COLORS.slateGray} style={{ textAlign: 'center' }}>
                   {renvoye
-                    ? 'Nouveau lien envoyé. Vérifiez votre boîte de réception, et le dossier indésirables.'
-                    : 'Lien expiré ou introuvable ?'}
+                    ? t('ui.nouveauLienEnvoyeVerifiezVotreBoite')
+                    : t('ui.lienExpireOuIntrouvable')}
                 </Text>
                 {renvoyer.isError ? <ErrorState error={renvoyer.error} showRequestId /> : null}
                 <Button
-                  label={renvoye ? 'Renvoyer un lien' : 'Renvoyer le lien'}
+                  label={renvoye ? t('ui.renvoyerUnLien') : t('ui.renvoyerLeLien')}
                   variant="outline"
                   size="sm"
                   loading={renvoyer.isPending}
@@ -166,9 +162,7 @@ export default function AuthVerifyEmail() {
 
           {!verifie ? (
             <div style={{ marginTop: 24, textAlign: 'center' }}>
-              <Link to="/auth/login" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>
-                ← Retour à la connexion
-              </Link>
+              <Link to="/auth/login" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourALaConnexion_b56d3')}</Link>
             </div>
           ) : null}
         </Card>

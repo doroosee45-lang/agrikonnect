@@ -13,6 +13,7 @@ import { SPACING } from '@/theme/space';
 
 /** Membres de l'organisation active (adhésions + rôles + consentements). */
 export default function OrganizationMembers() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const me = useQuery({ queryKey: queryKeys.me, queryFn: () => authApi.me().then((r) => r.data), enabled: isAuthenticated, retry: false });
@@ -26,21 +27,20 @@ export default function OrganizationMembers() {
   const items = query.data?.memberships ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <AppHeader title="Membres" subtitle="Accès, rôles et consentements." />
+      <AppHeader title={t('ui.membres')} subtitle={t('ui.accesRolesEtConsentements')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Membres" icon="people-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun membre" description="Aucune adhésion enregistrée." icon="people-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.membres')} icon="people-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunMembre')} description={t('ui.aucuneAdhesionEnregistree')} icon="people-outline" /> : (
             <View style={styles.list}>
               {items.map((membership, index) => (
                 <Reveal key={membership.id} index={index} variant="up">
                   <Card tone="white" style={styles.row}>
                     <View style={styles.rowBody}>
-                      <Text preset="bodyMedium">{membership.user ? `${membership.user.firstName} ${membership.user.lastName}` : 'Membre'}</Text>
+                      <Text preset="bodyMedium">{membership.user ? `${membership.user.firstName} ${membership.user.lastName}` : t('ui.membre')}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {membership.roles.join(', ') || 'sans rôle'} · depuis {formatDate(membership.joinedAt, locale)}
-                      </Text>
+                        {membership.roles.join(', ') || t('ui.sansRole')}{' '}{t('ui.depuis', { joinedAt: formatDate(membership.joinedAt, locale) })}</Text>
                       {membership.consentScopes && membership.consentScopes.length > 0 ? (
-                        <Text preset="caption" color={COLORS.slateGray}>Consentements : {membership.consentScopes.join(', ')}</Text>
+                        <Text preset="caption" color={COLORS.slateGray}>{t('ui.consentements', { value: membership.consentScopes.join(', ') })}</Text>
                       ) : null}
                     </View>
                     <Chip label={membership.status} tone={membership.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm" />

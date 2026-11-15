@@ -12,6 +12,7 @@ import { COLORS } from '@/theme/colors';
 import { SPACING } from '@/theme/space';
 
 export default function FarmerDevices() {
+  const { t } = useI18n();
   const { locale } = useI18n();
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
   const query = useQuery({
@@ -23,10 +24,10 @@ export default function FarmerDevices() {
   const items = query.data?.items ?? [];
   return (
     <Screen background={COLORS.naturalWhite}>
-      <FarmerHeader title="Capteurs" subtitle="Capteurs rattachés à vos parcelles." />
+      <FarmerHeader title={t('ui.capteurs')} subtitle={t('ui.capteursRattachesAVosParcelles')} />
       <Section bare contentStyle={styles.section}>
-        <AuthGate isAuthenticated={isAuthenticated} title="Capteurs" icon="radio-outline">
-          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title="Aucun capteur" description="Aucun capteur rattaché à vos parcelles." icon="radio-outline" /> : (
+        <AuthGate isAuthenticated={isAuthenticated} title={t('ui.capteurs')} icon="radio-outline">
+          {query.isLoading ? <LoadingState count={3} height={90} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : items.length === 0 ? <EmptyState title={t('ui.aucunCapteur')} description={t('ui.aucunCapteurRattacheAVosParcelles')} icon="radio-outline" /> : (
             <View style={styles.list}>
               {items.map((device, index) => (
                 <Reveal key={device.id} index={index} variant="up">
@@ -34,12 +35,12 @@ export default function FarmerDevices() {
                     <View style={styles.rowBody}>
                       <Text preset="bodyMedium">{device.label}</Text>
                       <Text preset="caption" color={COLORS.slateGray}>
-                        {device.lastSeenAt ? `Dernière communication ${formatDate(device.lastSeenAt, locale)}` : 'Jamais vu'}
+                        {device.lastSeenAt ? t('ui.derniereCommunication_a9842', { lastSeenAt: formatDate(device.lastSeenAt, locale) }) : t('ui.jamaisVu')}
                       </Text>
                     </View>
                     <View style={styles.rowAside}>
                       <Chip label={device.status} tone={device.status === 'ONLINE' ? 'success' : device.status === 'OFFLINE' ? 'error' : 'neutral'} size="sm" />
-                      {device.silent ? <Chip label="muet" tone="warning" size="sm" /> : null}
+                      {device.silent ? <Chip label={t('ui.muet')} tone="warning" size="sm" /> : null}
                     </View>
                   </Card>
                 </Reveal>
