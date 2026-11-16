@@ -9,6 +9,7 @@ import { z } from 'zod';
 
 import { verifierConfigMessagerie } from './messagingConfig.js';
 import { verifierUrlWebPublique } from './publicWebUrl.js';
+import { verifierUrlBase } from './databaseUrl.js';
 
 /**
  * Validation stricte des variables d'environnement.
@@ -446,6 +447,11 @@ if (rapportUrlWeb.erreurs.length > 0) {
   for (const erreur of rapportUrlWeb.erreurs) console.error(`   • ${erreur}`);
   console.error('\n👉 Renseigne PUBLIC_WEB_URL avec l\'adresse https du site web.\n');
   process.exit(1);
+}
+
+// Avertissement seulement : une URL en mode session fonctionne, mais sature vite.
+for (const avertissement of verifierUrlBase(raw).avertissements) {
+  console.warn(`⚠️  ${avertissement} Voir backend/docs/SUPABASE_CONNEXIONS.md.`);
 }
 
 export const env = Object.freeze({
