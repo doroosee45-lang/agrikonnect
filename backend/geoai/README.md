@@ -5,7 +5,8 @@ base : le backend lui envoie un JSON, il renvoie un diagnostic traçable.
 
 ```bash
 pip install -r geoai/requirements.txt
-python3 geoai/server.py            # http://0.0.0.0:8100 (GEOAI_PORT)
+python3 geoai/server.py            # http://127.0.0.1:8100 (GEOAI_HOST, GEOAI_PORT)
+# Écoute réseau (ex. conteneur) : GEOAI_HOST=0.0.0.0 exige GEOAI_TOKEN, sinon refus de démarrer.
 python3 -m unittest discover -s geoai/tests -t .   # 70 tests
 ```
 

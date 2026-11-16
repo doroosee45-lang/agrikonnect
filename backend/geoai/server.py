@@ -9,6 +9,7 @@ est défini, chaque requête doit porter l'en-tête `X-GeoAI-Token`.
 from __future__ import annotations
 
 import argparse
+import hmac
 import json
 import os
 import sys
@@ -155,7 +156,9 @@ class GeoHandler(BaseHTTPRequestHandler):
     def _authorised(self) -> bool:
         if not TOKEN:
             return True
-        return self.headers.get("X-GeoAI-Token") == TOKEN
+        # M-09 : comparaison en temps constant (pas d'oracle de durée).
+        fourni = self.headers.get("X-GeoAI-Token") or ""
+        return hmac.compare_digest(fourni.encode("utf-8"), TOKEN.encode("utf-8"))
 
     def _read_json(self) -> dict[str, Any]:
         length = int(self.headers.get("Content-Length") or 0)
@@ -216,7 +219,17 @@ class GeoHandler(BaseHTTPRequestHandler):
         sys.stderr.write(f"[geoai] {self.address_string()} {format % args}\n")
 
 
-def create_server(host: str = "0.0.0.0", port: int = 8100) -> ThreadingHTTPServer:
+HOTES_LOCAUX = {"127.0.0.1", "localhost", "::1"}
+
+
+def create_server(host: str = "127.0.0.1", port: int = 8100) -> ThreadingHTTPServer:
+    # M-09 : par défaut, écoute locale uniquement. Exposé sur le réseau
+    # (ex. 0.0.0.0 dans un conteneur), le moteur exige un jeton GEOAI_TOKEN.
+    if host not in HOTES_LOCAUX and not TOKEN:
+        raise SystemExit(
+            f"[geoai] refus de démarrer : écoute réseau ({host}) sans GEOAI_TOKEN. "
+            "Définis GEOAI_TOKEN (et la même valeur côté backend) ou écoute sur 127.0.0.1."
+        )
     server = ThreadingHTTPServer((host, port), GeoHandler)
     server.daemon_threads = True
     return server
@@ -224,7 +237,7 @@ def create_server(host: str = "0.0.0.0", port: int = 8100) -> ThreadingHTTPServe
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="AGRIKONNECT — moteur géospatial et pédologique")
-    parser.add_argument("--host", default=os.environ.get("GEOAI_HOST", "0.0.0.0"))
+    parser.add_argument("--host", default=os.environ.get("GEOAI_HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=int(os.environ.get("GEOAI_PORT", "8100")))
     args = parser.parse_args()
 

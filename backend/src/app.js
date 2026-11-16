@@ -29,6 +29,7 @@ import { authenticate } from './middleware/auth.js';
 import { rejectOperators } from './middleware/validate.js';
 import { notFound } from './shared/http/notFound.js';
 import { errorHandler } from './shared/http/errorHandler.js';
+import { ApiError } from './shared/errors/ApiError.js';
 import { localeMiddleware } from './shared/i18n/index.js';
 
 export const createApp = () => {
@@ -47,7 +48,8 @@ export const createApp = () => {
         if (!origin || env.corsOrigins.includes('*') || env.corsOrigins.includes(origin)) {
           return callback(null, true);
         }
-        return callback(new Error(`Origine non autorisée par CORS : ${origin}`));
+        // F-11 : un refus CORS est un 403, pas une erreur serveur (500).
+        return callback(ApiError.forbidden(`Origine non autorisée par CORS : ${origin}`));
       },
       credentials: true,
       exposedHeaders: ['X-Request-Id'],

@@ -37,7 +37,8 @@ export const PERMISSIONS = {
   'countries.read': EVERYONE,
   'countries.write': ['SUPER_ADMIN'],
   'fx.read': EVERYONE,
-  'fx.write': [...ADMIN_ROLES, 'SUPPORT_AGENT'],
+  // H-01 : SUPPORT_AGENT s'obtient à l'inscription libre — il ne publie pas de taux.
+  'fx.write': ADMIN_ROLES,
   'farms.read': [...PRODUCER, ...MODERATION],
   'farms.write': PRODUCER,
   'farms.delete': PRODUCER,
@@ -175,7 +176,8 @@ export const PERMISSIONS = {
   'ai.review': EXPERT,
   'weather.read': EVERYONE,
   'prices.read': EVERYONE,
-  'prices.write': [...ADMIN_ROLES, 'SUPPORT_AGENT'],
+  // H-01 : de faux prix de marché ne doivent pas venir d'un compte auto-déclaré.
+  'prices.write': ADMIN_ROLES,
   'lots.read': [...PRODUCER, ...MODERATION],
   'lots.write': PRODUCER,
   'certifications.read': [...PRODUCER, 'BUYER', ...MODERATION],

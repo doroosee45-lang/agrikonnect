@@ -414,7 +414,7 @@
   "PUT /admin/flags": 401,
   "PUT /admin/security/policy": 401,
   "PUT /admin/settings": 401,
-  "PUT /countries/fx-rates": 403,
+  "PUT /countries/fx-rates": 401,
   "PUT /investors/me": 401,
   "PUT /lots/:id/public-fields": 401,
   "PUT /notifications/preferences": 401

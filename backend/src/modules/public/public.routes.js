@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { success } from '../../shared/http/response.js';
 import { asyncHandler } from '../../shared/http/asyncHandler.js';
 import { validate } from '../../middleware/validate.js';
+import { contactLimiter, contactPerFarmLimiter } from '../../middleware/rateLimit.js';
 import * as controller from './public.controller.js';
 import * as schema from './public.schema.js';
 import * as service from './public.service.js';
@@ -33,7 +34,9 @@ router.get(
 
 router.post(
   '/farms/:slug/contact',
+  contactLimiter,
   validate(schema.slugParam, 'params'),
+  contactPerFarmLimiter,
   validate(schema.contactSchema),
   asyncHandler(controller.contact),
 );

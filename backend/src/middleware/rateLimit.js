@@ -61,3 +61,26 @@ export const publicRateLimit = rateLimit({
   legacyHeaders: false,
   message: errorBody('PUBLIC_RATE_LIMITED', 'Trop de consultations, réessaie plus tard'),
 });
+
+/**
+ * M-06 — formulaire de contact public (sans compte) : un visiteur ne peut pas
+ * inonder les producteurs de messages. Deux plafonds complémentaires :
+ * - par IP : quelques messages par heure ;
+ * - par ferme ciblée : protège un producteur même si l'émetteur change d'IP.
+ */
+export const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: env.isProd ? 5 : 1_000,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: errorBody('CONTACT_RATE_LIMITED', 'Trop de messages envoyés, réessaie dans une heure'),
+});
+
+export const contactPerFarmLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: env.isProd ? 20 : 1_000,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => `farm:${String(req.params?.slug ?? '').toLowerCase()}`,
+  message: errorBody('CONTACT_RATE_LIMITED', 'Ce producteur a reçu trop de messages, réessaie plus tard'),
+});

@@ -109,8 +109,12 @@ router.get(
   asyncHandler(async (req, res) => success(res, await fx.listPairs(req.query))),
 );
 
+// F-01 : sans `authenticate`, `authorize` voyait des rôles vides → 403 pour
+// tout le monde, administrateurs compris. L'écriture exige une session.
 router.put(
   '/fx-rates',
+  authenticate,
+  resolveTenant,
   authorize('fx.write'),
   validate(
     z.object({

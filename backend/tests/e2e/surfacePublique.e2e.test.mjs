@@ -192,7 +192,8 @@ test('Surface publique : les écritures de référence refusent l’anonyme', ()
    */
   const ecriture = carte.find((c) => c.route === 'PUT /countries/fx-rates');
   assert.ok(ecriture, 'PUT /countries/fx-rates absente de l’inventaire');
-  assert.equal(ecriture.status, 403, `attendu 403, obtenu ${ecriture.status}`);
+  // 401 : l'écriture exige une session (F-01) — un anonyme n'atteint pas la permission.
+  assert.equal(ecriture.status, 401, `attendu 401, obtenu ${ecriture.status}`);
 
   const lecture = carte.find((c) => c.route === 'GET /countries/fx-rates/pairs');
   assert.equal(lecture.status, 200, 'la lecture des paires est publique par conception');
