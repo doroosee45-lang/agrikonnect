@@ -1764,7 +1764,8 @@ export interface OrganizationDetail {
   id: string;
   type: string;
   name: string;
-  slug: string;
+  /** `null` pour les organisations créées à l'inscription (colonne facultative). */
+  slug: string | null;
   description: string | null;
   countryCode: string;
   /** Rôles de l'utilisateur courant dans cette organisation. */

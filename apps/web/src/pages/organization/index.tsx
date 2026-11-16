@@ -94,7 +94,8 @@ export default function OrganizationHome() {
     () =>
       orgs.map((org) => ({
         id: org.id,
-        code: org.slug.slice(0, 9).toUpperCase(),
+        // `slug` est facultatif : les organisations créées à l'inscription n'en ont pas.
+        code: (org.slug ?? org.name ?? org.id).slice(0, 9).toUpperCase(),
         label: `${org.name} (${org.type})`,
         countryCode: org.countryCode,
         tone: org.id === activeOrgId ? 'blue' : org.cooperative ? 'green' : 'amber',
@@ -127,13 +128,13 @@ export default function OrganizationHome() {
     }
     return orgs.slice(0, 4).map((org) => ({
       id: org.id,
-      code: org.type.slice(0, 8),
+      code: (org.type ?? '').slice(0, 8),
       subtitle: org.countryCode,
       statusLabel: org.cooperative ? t('ui.cooperative') : org.type,
       tone: org.cooperative ? 'green' : 'blue',
       leftCode: org.countryCode,
       leftLabel: t('ui.juridiction'),
-      rightCode: org.roles[0] ?? t('ui.trackCodeMember'),
+      rightCode: org.roles?.[0] ?? t('ui.trackCodeMember'),
       rightLabel: org.name,
       progressPct: org.id === activeOrgId ? 100 : 65,
       icon: 'users',
