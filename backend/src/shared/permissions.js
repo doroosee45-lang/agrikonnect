@@ -167,6 +167,13 @@ export const PERMISSIONS = {
   'messages.read': [...PRODUCER, 'BUYER', 'SUPPLIER', 'TRANSPORTER', ...MODERATION],
   'messages.write': [...PRODUCER, 'BUYER', 'SUPPLIER', 'TRANSPORTER', ...MODERATION],
   'messages.moderate': MODERATION,
+  /**
+   * Appels audio : mêmes acteurs que la messagerie (un appel naît dans une
+   * conversation). La permission ne suffit pas : le service vérifie en plus
+   * l'appartenance ACTIVE aux organisations de la conversation, et l'invitation.
+   */
+  'calls.start': [...PRODUCER, 'BUYER', 'SUPPLIER', 'TRANSPORTER', ...MODERATION],
+  'calls.join': [...PRODUCER, 'BUYER', 'SUPPLIER', 'TRANSPORTER', ...MODERATION],
   'notifications.read': EVERYONE,
   'notifications.write': EVERYONE,
   'invoices.read': [...COMMERCE, ...ADMIN_ROLES],

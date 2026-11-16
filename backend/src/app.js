@@ -137,7 +137,24 @@ export const createApp = () => {
    */
   const gardeDepotMultipart = chainer(writeLimiter, authenticate);
 
+  /*
+   * Webhook LiveKit : corps BRUT indispensable à la vérification officielle
+   * (empreinte SHA-256 du corps signée dans l'en-tête `Authorization`). LiveKit
+   * envoie `application/webhook+json`, ignoré par `express.json` : ce chemin a
+   * donc son propre parseur brut, plafonné, AVANT le parseur JSON global.
+   */
+  const CHEMIN_WEBHOOK_LIVEKIT = `${env.apiPrefix}/webhooks/livekit`;
+  const corpsBrutLiveKit = express.raw({ type: () => true, limit: '64kb' });
+
   app.use((req, res, next) => {
+    if (req.method === 'POST' && req.path === CHEMIN_WEBHOOK_LIVEKIT) {
+      return corpsBrutLiveKit(req, res, (erreur) => {
+        if (erreur) return next(erreur);
+        if (Buffer.isBuffer(req.body)) req.rawBody = req.body;
+        req.body = {};
+        return next();
+      });
+    }
     if (req.method !== 'POST') return jsonGlobal(req, res, next);
     if (req.path === CHEMIN_DEPOT_MULTIPART) return gardeDepotMultipart(req, res, next);
     if (req.path === CHEMIN_DEPOT) return gardeDepot(req, res, next);

@@ -157,6 +157,21 @@ export const JOBS = {
     },
   },
 
+  /**
+   * Appels audio — sonneries échues → appels / invitations manqués.
+   * Complément du mode paresseux (chaque lecture d'appel expire déjà ce qui
+   * doit l'être, y compris quand les tâches sont désactivées en production).
+   */
+  'calls.expireRinging': {
+    description: 'Marque comme manqués les appels audio dont la sonnerie a expiré',
+    intervalMs: 60 * 1000,
+    run: async () => {
+      if (env.CALLS_ENABLED !== 'true') return { skipped: 'CALLS_ENABLED=false' };
+      const { expirerSonneries } = await import('../modules/calls/calls.service.js');
+      return expirerSonneries();
+    },
+  },
+
   /** V2 DISP-02 — alerte SLA sur les litiges ouverts trop longtemps. */
   'disputes.sla': {
     description: 'Alerte les modérateurs sur les litiges ouverts au-delà du SLA',

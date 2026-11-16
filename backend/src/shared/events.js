@@ -2,6 +2,7 @@ import { prisma } from '../config/prisma.js';
 import { logger } from './http/logger.js';
 import { sendEmail } from '../integrations/email.js';
 import { emitToUser } from '../realtime/bus.js';
+import { envoyerAuxAppareils } from '../integrations/push.js';
 import { DEFAULT_LOCALE, normalizeLocale, translateMessage } from './i18n/index.js';
 
 /** Langue enregistrée sur le profil du destinataire (repli : français). */
@@ -30,6 +31,12 @@ export const notify = async ({
   payload = null,
   dedupeKey = null,
   email = null,
+  /**
+   * Canal PUSH (FCM / APNs, src/integrations/push.js) : `genre` APPEL_ENTRANT
+   * (sonnerie : FCM priorité haute, VoIP iOS), APPEL_TERMINE ou NOTIFICATION
+   * (défaut) ; `ttlSecondes`, `collapseId` facultatifs.
+   */
+  push = null,
 }) => {
   const created = [];
 
@@ -50,6 +57,7 @@ export const notify = async ({
 
     if (pref && pref.enabled === false) continue;
 
+    let creee = false;
     try {
       const notification = await prisma.notification.create({
         data: {
@@ -66,6 +74,7 @@ export const notify = async ({
         },
       });
       created.push(notification);
+      creee = true;
 
       // Temps réel : la pastille de notification se met à jour sans polling
       emitToUser(userId, 'notification:new', {
@@ -80,6 +89,19 @@ export const notify = async ({
 
     if (channel === 'EMAIL' && email) {
       await sendEmail({ to: email, subject: title, text: body ?? title });
+    }
+
+    // Push : seulement pour une notification NOUVELLE (un doublon dédupliqué ne resonne pas).
+    if (channel === 'PUSH' && creee) {
+      await envoyerAuxAppareils(userId, {
+        genre: push?.genre ?? 'NOTIFICATION',
+        type,
+        titre: title,
+        corps: body ?? title,
+        donnees: payload ?? {},
+        ttlSecondes: push?.ttlSecondes,
+        collapseId: push?.collapseId,
+      }).catch((erreur) => logger.warn('Push :', erreur.message));
     }
 
     if (channel === 'SMS') {

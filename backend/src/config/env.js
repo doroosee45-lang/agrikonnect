@@ -11,6 +11,9 @@ import { verifierConfigMessagerie } from './messagingConfig.js';
 import { verifierUrlWebPublique } from './publicWebUrl.js';
 import { verifierUrlBase } from './databaseUrl.js';
 
+/** Variable facultative laissée vide = « non configurée », pas « mal configurée ». */
+const emptyToUndefined = (value) => (value === '' ? undefined : value);
+
 /**
  * Validation stricte des variables d'environnement.
  * Refus de démarrer si une variable critique manque (SEC-08 : pas de secret par défaut).
@@ -95,6 +98,45 @@ const schema = z.object({
   REALTIME_ENABLED: z.enum(['true', 'false']).default('true'),
   /** Tâches planifiées internes — désactivables pour les scripts et les tests */
   JOBS_ENABLED: z.enum(['true', 'false']).default('true'),
+
+  /*
+   * Appels audio (LiveKit Cloud). DÉSACTIVÉS par défaut.
+   * Interrupteur d'infrastructure : `CALLS_ENABLED=false` coupe le module quel
+   * que soit le réglage d'administration `modules.appels` (voir
+   * src/modules/calls/callsConfig.js pour la règle de priorité complète).
+   * Les trois variables LIVEKIT_* sont des secrets/adresses de déploiement :
+   * vides = module indisponible (jamais de valeur par défaut).
+   */
+  CALLS_ENABLED: z.enum(['true', 'false']).default('false'),
+  LIVEKIT_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
+  LIVEKIT_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  LIVEKIT_API_SECRET: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  /** Durée de vie d'un jeton LiveKit (s) : courte, le client en redemande un pour rejoindre. */
+  CALL_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(300),
+  /** Délai de sonnerie avant « appel manqué » (s). */
+  CALL_RING_TIMEOUT_SECONDS: z.coerce.number().int().min(10).max(300).default(45),
+  /** Plafond de participants d'une conférence, hôte compris. */
+  CALL_MAX_PARTICIPANTS: z.coerce.number().int().min(2).max(50).default(8),
+
+  /*
+   * Notifications push. DÉSACTIVÉES par défaut (`PUSH_ENABLED=false`).
+   * Un fournisseur n'est utilisé que si PUSH_ENABLED=true ET ses variables
+   * sont toutes présentes (src/integrations/push.js). Secrets : jamais dans le
+   * dépôt, jamais journalisés ; clés privées au format PEM (\n échappés acceptés).
+   */
+  PUSH_ENABLED: z.enum(['true', 'false']).default('false'),
+  /** Android — Firebase Cloud Messaging, API HTTP v1 (compte de service). */
+  FCM_PROJECT_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  FCM_CLIENT_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
+  FCM_PRIVATE_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  /** iOS — APNs, authentification par jeton (clé .p8). */
+  APNS_TEAM_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  APNS_KEY_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  APNS_PRIVATE_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  /** Identifiant de l'application iOS ; le sujet VoIP est `<bundle>.voip`. */
+  APNS_BUNDLE_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+  /** `sandbox` (builds de développement) ou `production` (TestFlight / App Store). */
+  APNS_ENVIRONMENT: z.enum(['sandbox', 'production']).default('sandbox'),
   PUBLIC_WEB_URL: z.string().default('http://localhost:5173'),
 
   // Intégrations (non bloquantes en dev : providers "console" par défaut)

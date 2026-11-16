@@ -189,6 +189,10 @@ model Profile {
   memberships Membership[]
   auditLogs   AuditLog[]   @relation("AuditActor")
 
+  callsCreated       CallSession[]     @relation("CallCreator")
+  callParticipations CallParticipant[]
+  pushDevices        PushDevice[]
+
   @@index([countryCode])
   @@map("profiles")
 }
@@ -225,6 +229,8 @@ model Organization {
   aiModels         AiModelVersion[]
   imports          GeospatialImport[]
   agronomicRanges  CropAgronomicRange[]
+
+  callParticipants CallParticipant[]
 
   @@index([type])
   @@index([countryCode])
@@ -1211,6 +1217,7 @@ model Conversation {
   updatedAt         DateTime           @updatedAt @map("updated_at")
 
   messages Message[]
+  calls    CallSession[]
 
   @@index([status, updatedAt])
   @@map("conversations")
@@ -3095,4 +3102,165 @@ model BlogPost {
 
   @@index([status, publishedAt], map: "blog_posts_status_published_at_idx")
   @@map("blog_posts")
+}
+
+// ─────────────────────────────────────────────────────────────
+// APPELS AUDIO (LiveKit Cloud transporte l'audio ; PostgreSQL décide)
+// ─────────────────────────────────────────────────────────────
+
+/// Individuel (un invité) ou conférence (plusieurs invités choisis par l'appelant).
+enum CallKind {
+  DIRECT
+  GROUP
+}
+
+/// Cycle de vie d'un appel. États terminaux : ENDED, CANCELLED, DECLINED, MISSED.
+enum CallStatus {
+  RINGING
+  ACTIVE
+  ENDED
+  CANCELLED
+  DECLINED
+  MISSED
+}
+
+/// Situation d'une personne dans un appel. L'hôte est créé ACCEPTED.
+enum CallParticipantStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+  JOINED
+  LEFT
+  MISSED
+  CANCELLED
+}
+
+/// Session d'appel, toujours rattachée à une conversation existante.
+///
+/// Pourquoi une table : `Conversation` relie des organisations sans cycle de
+/// vie temporel, et `Message` n'a ni statut ni participants. Le nom de salle
+/// LiveKit est généré par le serveur (`roomName`), jamais fourni par le client.
+/// `version` sert au contrôle de concurrence optimiste des transitions.
+model CallSession {
+  id                   String     @id
+  conversationId       String     @map("conversation_id")
+  kind                 CallKind
+  status               CallStatus @default(RINGING)
+  roomName             String     @unique @map("room_name")
+  createdBy            String     @map("created_by") @db.Uuid
+  callerOrganizationId String     @map("caller_organization_id")
+  ringExpiresAt        DateTime   @map("ring_expires_at")
+  startedAt            DateTime?  @map("started_at")
+  endedAt              DateTime?  @map("ended_at")
+  endReason            String?    @map("end_reason")
+  version              Int        @default(1)
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+
+  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  creator      Profile           @relation("CallCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  participants CallParticipant[]
+  events       CallEvent[]
+
+  @@index([conversationId, createdAt])
+  @@index([status, ringExpiresAt])
+  @@index([createdBy, status])
+  @@map("call_sessions")
+}
+
+/// Personne invitée à un appel (ou son hôte).
+///
+/// Pourquoi une table : un appel concerne des personnes précises, pas des
+/// organisations entières ; seule une ligne ici autorise la délivrance d'un
+/// jeton LiveKit (unicité `callId` + `userId`).
+model CallParticipant {
+  id             String                @id
+  callId         String                @map("call_id")
+  userId         String                @map("user_id") @db.Uuid
+  organizationId String                @map("organization_id")
+  isHost         Boolean               @default(false) @map("is_host")
+  status         CallParticipantStatus
+  invitedAt      DateTime              @default(now()) @map("invited_at")
+  respondedAt    DateTime?             @map("responded_at")
+  joinedAt       DateTime?             @map("joined_at")
+  leftAt         DateTime?             @map("left_at")
+
+  call         CallSession  @relation(fields: [callId], references: [id], onDelete: Cascade)
+  user         Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([callId, userId])
+  @@index([userId, status])
+  @@map("call_participants")
+}
+
+/// Journal des transitions d'appel et des webhooks LiveKit reçus.
+///
+/// Pourquoi une table : `IdempotencyKey` expire après 24 h et vise les
+/// réponses HTTP rejouées ; la déduplication des webhooks doit être DURABLE
+/// (unicité `source` + `externalId`) et les transitions conservées pour
+/// l'audit. Aucun secret, jeton ni corps brut n'y est stocké.
+model CallEvent {
+  id         String   @id
+  callId     String?  @map("call_id")
+  source     String
+  type       String
+  externalId String?  @map("external_id")
+  actorId    String?  @map("actor_id") @db.Uuid
+  fromStatus String?  @map("from_status")
+  toStatus   String?  @map("to_status")
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  call CallSession? @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@unique([source, externalId])
+  @@index([callId, createdAt])
+  @@map("call_events")
+}
+
+// ─────────────────────────────────────────────────────────────
+// NOTIFICATIONS PUSH (FCM Android, APNs iOS — alertes et VoIP/PushKit)
+// ─────────────────────────────────────────────────────────────
+
+/// Canal de livraison d'un jeton d'appareil.
+///   FCM        Android (Firebase Cloud Messaging, API HTTP v1) ;
+///   APNS       iOS, notifications classiques (alertes) ;
+///   APNS_VOIP  iOS, jeton PushKit : UNIQUEMENT pour les appels entrants
+///              (Apple impose d'afficher un appel CallKit à chaque push VoIP).
+enum PushProvider {
+  FCM
+  APNS
+  APNS_VOIP
+}
+
+/// Appareil d'un utilisateur et son jeton push.
+///
+/// Pourquoi une table : aucun registre d'appareils n'existe ; le canal `PUSH`
+/// de `NotificationChannel` n'avait aucun destinataire technique. Un jeton est
+/// unique par fournisseur (`provider` + `token`) : un téléphone réinstallé ou
+/// passé à un autre compte change de propriétaire au lieu de se dupliquer. Les
+/// jetons invalidés par le fournisseur sont RÉVOQUÉS (`revokedAt`), jamais
+/// réutilisés. Le jeton n'est jamais renvoyé en clair par l'API.
+model PushDevice {
+  id             String       @id
+  userId         String       @map("user_id") @db.Uuid
+  provider       PushProvider
+  token          String
+  /// Identifiant d'installation choisi par l'application (aucune donnée matérielle).
+  installationId String       @map("installation_id")
+  appVersion     String?      @map("app_version")
+  locale         String?
+  lastSeenAt     DateTime     @default(now()) @map("last_seen_at")
+  revokedAt      DateTime?    @map("revoked_at")
+  revokedReason  String?      @map("revoked_reason")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, token])
+  @@index([userId, revokedAt])
+  @@index([installationId])
+  @@map("push_devices")
 }
