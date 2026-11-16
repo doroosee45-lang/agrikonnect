@@ -360,6 +360,7 @@ export const uiEn: UiDictionary = {
   aucuneDonneeNEstTransmiseA: 'No data is sent to an AI model without explicit, dated and revocable consent.',
   aucuneEntiteGeolocaliseeEnregistree: 'No geolocated entity recorded.',
   aucuneEntreeDAuditPourCes: 'No audit entry for these criteria.',
+  aucuneEntreeDeMenuNeCorrespond: 'No menu entry matches.',
   aucuneEscaladeIaOuverte: 'No open AI escalation',
   aucuneEstimationDeRendementNEst: 'No yield estimate is produced here, or anywhere else in the app. A missing yield stays missing: it is never filled in with an average.',
   aucuneEvaluation: 'No assessment',
