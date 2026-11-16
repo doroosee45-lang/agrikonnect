@@ -65,7 +65,6 @@ export const uiFr = {
   adresseVerifiee: '✓ Adresse vérifiée',
   afficherLaFiche: 'Afficher la fiche',
   affichesSurProfilsPublics: '{length} affichés sur {total} profils publics',
-  agentDAppui: 'Agent d’appui',
   agentDeTerrain: 'Agent de terrain',
   agregatsAnonymisesAvecSeuilKAnonymat: 'Agrégats anonymisés avec seuil k-anonymat',
   agregatsPubliesSousKAnonymatAvec: 'Agrégats publiés sous k-anonymat, avec source et méthode.',

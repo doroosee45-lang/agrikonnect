@@ -39,6 +39,14 @@ export const PERMISSIONS = {
   'fx.read': EVERYONE,
   // H-01 : SUPPORT_AGENT s'obtient à l'inscription libre — il ne publie pas de taux.
   'fx.write': ADMIN_ROLES,
+  /**
+   * H-02 — créer une coopérative ou une entreprise attribue au créateur un rôle
+   * producteur (COOPERATIVE_ADMIN / AGRICULTURAL_COMPANY) : réservé aux comptes
+   * déjà producteurs, jamais à un acheteur, investisseur ou transporteur.
+   * Modifier une organisation : ses responsables seulement (pas un simple membre).
+   */
+  'organizations.create': ['FARMER', 'COOPERATIVE_ADMIN', 'AGRICULTURAL_COMPANY', ...ADMIN_ROLES],
+  'organizations.write': ['FARMER', 'COOPERATIVE_ADMIN', 'AGRICULTURAL_COMPANY', ...ADMIN_ROLES],
   'farms.read': [...PRODUCER, ...MODERATION],
   'farms.write': PRODUCER,
   'farms.delete': PRODUCER,
@@ -270,6 +278,22 @@ export const GOVERNANCE_ROLES = [
   'VERIFIER',
   'LAB_PARTNER',
 ];
+
+/**
+ * H-03 — rôles « de plateforme » : ils valent quelle que soit l'organisation
+ * active, parce qu'ils portent sur la plateforme entière (gouvernance,
+ * vérification, expertise agronomique transverse). Tous les AUTRES rôles
+ * (producteur, coopérative, acheteur…) ne valent que dans l'organisation qui
+ * les porte : être COOPERATIVE_ADMIN dans A ne donne rien dans B.
+ */
+export const PLATFORM_ROLES = [...GOVERNANCE_ROLES, 'AGRONOMIST'];
+
+/**
+ * H-01 — rôles qu'un Super Admin peut attribuer depuis l'administration :
+ * la gouvernance, plus les rôles métier retirés de l'inscription libre
+ * (agronome, agent d'appui), attribués après vérification de la personne.
+ */
+export const ASSIGNABLE_ROLES = [...GOVERNANCE_ROLES, 'AGRONOMIST', 'SUPPORT_AGENT'];
 
 
 

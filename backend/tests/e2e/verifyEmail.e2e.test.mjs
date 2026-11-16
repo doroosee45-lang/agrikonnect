@@ -39,6 +39,9 @@ let h;
 
 before(async () => {
   h = await startHarness();
+  // Cette recette éprouve justement les états « non vérifié » : pas de
+  // confirmation implicite à la connexion.
+  h.gotrue.setAutoConfirmOnLogin(false);
 
   const inscrit = await h.request('POST', '/auth/register', {
     body: {

@@ -109,7 +109,25 @@ export const optionalAuth = async (req, _res, next) => {
 /** Exige un compte dont l'email ou le téléphone est vérifié. */
 export const requireVerified = (req, _res, next) => {
   if (!req.user?.emailConfirmed && !req.user?.phoneVerified) {
-    return next(ApiError.forbidden('Vérifie ton téléphone ou ton email avant cette action'));
+    return next(
+      ApiError.forbidden('Vérifie ton téléphone ou ton email avant cette action', { accountNotVerified: true }),
+    );
   }
   next();
+};
+
+const METHODES_ECRITURE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/**
+ * H-07 — à monter devant un module métier : les LECTURES passent sans
+ * condition, les ÉCRITURES exigent une session (`authenticate`, idempotent)
+ * puis un compte vérifié. Monté au niveau du routeur principal, il couvre
+ * toutes les routes d'écriture du module, y compris celles ajoutées plus tard.
+ */
+export const requireVerifiedForWrites = (req, res, next) => {
+  if (!METHODES_ECRITURE.has(req.method)) return next();
+  return authenticate(req, res, (erreur) => {
+    if (erreur) return next(erreur);
+    return requireVerified(req, res, next);
+  });
 };

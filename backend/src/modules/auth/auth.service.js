@@ -192,6 +192,15 @@ export const register = async (payload, req) => {
     if (email) {
       const signIn = await supabase.auth.signInWithPassword({ email, password });
       session = signIn.data?.session ?? null;
+      // Même report qu'à la connexion : une adresse déjà confirmée côté Supabase
+      // (projet sans « Confirm email ») est vérifiée pour l'application (H-07).
+      const confirmeeLe = signIn.data?.user?.email_confirmed_at;
+      if (confirmeeLe) {
+        await prisma.profile.updateMany({
+          where: { id: result.profile.id, emailVerifiedAt: null },
+          data: { emailVerifiedAt: new Date(confirmeeLe) },
+        });
+      }
     }
 
     return {

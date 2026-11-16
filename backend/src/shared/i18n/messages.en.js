@@ -457,6 +457,7 @@ export const MESSAGES_EN = [
   ["Organisation introuvable", "Organisation not found"],
   ["Organisation mise à jour", "Organisation updated"],
   ["organisation requise", "organisation required"],
+  ["Origine non autorisée par CORS : {origin}", "Origin not allowed by CORS: {origin}", ["origin"]],
   ["Paramètre « {parameter} » non prévirable. Grandeurs acceptées : {p1}.", "Parameter “{parameter}” cannot be forecast. Accepted quantities: {p1}.", ["parameter", "p1"]],
   ["Paramètre bbox invalide (minLng,minLat,maxLng,maxLat)", "Invalid bbox parameter (minLng,minLat,maxLng,maxLat)"],
   ["Paramètre enregistré", "Setting saved"],

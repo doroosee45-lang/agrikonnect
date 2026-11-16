@@ -67,7 +67,6 @@ export const uiEn: UiDictionary = {
   adresseVerifiee: '✓ Address verified',
   afficherLaFiche: 'Show details',
   affichesSurProfilsPublics: '{length} shown out of {total} public profiles',
-  agentDAppui: 'Support agent',
   agentDeTerrain: 'Field agent',
   agregatsAnonymisesAvecSeuilKAnonymat: 'Anonymised aggregates with a k-anonymity threshold',
   agregatsPubliesSousKAnonymatAvec: 'Aggregates published under k-anonymity, with source and method.',

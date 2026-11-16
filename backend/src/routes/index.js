@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requireVerifiedForWrites } from '../middleware/auth.js';
 
 import authRoutes from '../modules/auth/auth.routes.js';
 import usersRoutes from '../modules/users/users.routes.js';
@@ -143,6 +144,19 @@ router.use('/anomalies', anomalyRoutes); // anomalies de mesure et revue agronom
 router.use('/geospatial', geospatialRoutes); // moteur géospatial & pédologique (Python)
 router.use('/verifications', verificationRoutes);
 router.use('/reports', reportsRoutes);
+
+/**
+ * H-07 — écritures métier réservées aux comptes vérifiés (e-mail ou téléphone).
+ * Lectures inchangées. Monté AVANT les modules concernés (annexe A du plan
+ * de correction) : marché, transport, messagerie, investissement, export.
+ */
+router.use(
+  [
+    '/listings', '/purchase-requests', '/market', '/orders', '/reviews', '/transport',
+    '/messaging', '/prices', '/projects', '/dataroom', '/investment', '/tenders', '/exports',
+  ],
+  requireVerifiedForWrites,
+);
 
 // ─── V2 MARKET ────────────────────────────────────────────────
 router.use('/listings', listingsRoutes);

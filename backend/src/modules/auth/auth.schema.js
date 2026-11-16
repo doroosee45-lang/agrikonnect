@@ -17,18 +17,25 @@ const password = z
  * (agronome) et les investisseurs. Les rôles de gouvernance (ADMIN,
  * MODERATOR, VERIFIER, LAB_PARTNER, API_CLIENT) ne s'obtiennent JAMAIS par
  * inscription : ils sont attribués par un administrateur (SEC-03).
+ *
+ * H-01 — AGRONOMIST et SUPPORT_AGENT sont retirés de l'inscription libre :
+ * l'agronome valide des règles et plages agronomiques qui pilotent les
+ * recommandations de TOUS les agriculteurs, et l'agent d'appui agit pour le
+ * compte de producteurs. Ces rôles sont attribués par un administrateur après
+ * vérification (écran d'administration des utilisateurs).
  */
 export const SELF_SERVICE_ACCOUNT_TYPES = [
   'FARMER',
   'COOPERATIVE_ADMIN',
   'AGRICULTURAL_COMPANY',
-  'SUPPORT_AGENT',
   'BUYER',
   'SUPPLIER',
   'TRANSPORTER',
-  'AGRONOMIST',
   'INVESTOR',
 ];
+
+/** H-01 — types de compte attribués uniquement par un administrateur. */
+export const ADMIN_ASSIGNED_ACCOUNT_TYPES = ['AGRONOMIST', 'SUPPORT_AGENT'];
 
 const accountType = z.enum(SELF_SERVICE_ACCOUNT_TYPES);
 

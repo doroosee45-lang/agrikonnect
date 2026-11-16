@@ -18,7 +18,8 @@ constat reste ouvert ; **Ouvert** = code inchangé depuis l'audit.
 | Lot | État | Branche |
 |---|---|---|
 | Lot 1 — Correctifs rapides | **Appliqué** (16/11/2026), tests `tests/auditLot1.test.mjs` | `fix/audit-lot1-correctifs-rapides` |
-| Lots 2 à 6 | À faire | — |
+| Lot 2 — Autorisation et isolation | **Appliqué** (16/11/2026), tests `tests/auditLot2.test.mjs` | `fix/audit-lot2-autorisations` |
+| Lots 3 à 6 | À faire | — |
 
 Les tableaux du §2 décrivent l'état **avant** le Lot 1 ; le détail du Lot 1 est au §4.
 
@@ -149,7 +150,24 @@ Plan initial du lot :
 9. **C-01 (partie dépôt)** — remplacer les valeurs Cloudinary de `backend/.env.example` par
    des placeholders (la rotation et la purge d'historique suivront la fin du projet).
 
-### Lot 2 — Autorisation et isolation (≈ 3-4 j/p) — **bloquant ouverture au public**
+### Lot 2 — Autorisation et isolation (≈ 3-4 j/p) — ✅ appliqué
+
+Décisions du porteur (16/11/2026) : agronome et agent d'appui retirés de l'inscription
+libre ; compte vérifié exigé pour toutes les écritures métier.
+
+| Point | Statut | Ce qui a été fait |
+|---|---|---|
+| H-03 | **Corrigé** | `rolesEffectifs()` : rôles de l'organisation active + `PLATFORM_ROLES` (gouvernance + `AGRONOMIST`) seulement. `/me/permissions` suit la même règle (menus cohérents). |
+| H-02 | **Corrigé** | Permissions `organizations.create` / `organizations.write` (FARMER, COOPERATIVE_ADMIN, AGRICULTURAL_COMPANY, admins) + compte vérifié sur `POST`/`PATCH /organizations`. Validation administrative des coopératives : non ajoutée (le statut de vérification existant s'applique). |
+| H-01 | **Corrigé** | `AGRONOMIST` et `SUPPORT_AGENT` retirés de l'inscription (API, web, mobile) ; attribuables par un Super Admin (`ASSIGNABLE_ROLES`, écran Utilisateurs → rôles). `SUPPORT_AGENT` reste dans le groupe PRODUCER (rôle désormais attribué, plus auto-déclaré). **À faire par le porteur** : revoir les comptes existants porteurs de ces rôles. |
+| H-07 | **Corrigé** | `requireVerifiedForWrites` monté devant listings, purchase-requests, market, orders, reviews, transport, messaging, prices, projects, dataroom, investment, tenders, exports (écritures seulement ; 403 `details.accountNotVerified`). L'inscription reporte aussi une adresse déjà confirmée côté Supabase. |
+| M-01 | **Corrigé** | Clé stockée `<userId>:<clé>` : l'unicité `(key, scope)` devient propre à chaque utilisateur, **sans migration**. |
+
+Recettes e2e : le faux GoTrue confirme l'adresse à la connexion (parcours réel en
+production) ; les recettes qui « inscrivent un agronome » passent par une
+attribution de rôle simulée dans le harnais.
+
+Plan initial du lot :
 
 1. **H-03** — `effectiveRoles` = rôles de l'organisation active + rôles de plateforme seulement.
 2. **H-02** — `authorize('organizations.create')` / `organizations.write` ; coopérative et

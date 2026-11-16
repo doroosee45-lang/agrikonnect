@@ -73,7 +73,6 @@ export const uiFr = {
   adresseEMail: 'Adresse e-mail',
   adresseEMailAVerifier: 'Adresse e-mail à vérifier',
   adresseVerifiee: '✓ Adresse vérifiée',
-  agentDAppui: 'Agent d’appui',
   agregationStricteDesMembresAyantConsenti: 'Agrégation stricte des membres ayant consenti au partage de leurs données.',
   agregationTempsReelGetAdminDashboard: 'Agrégation temps réel GET /admin/dashboard',
   agregatsAnonymisesSoumisAuSeuilDe: 'Agrégats anonymisés soumis au seuil de k-anonymat',

@@ -100,6 +100,8 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
   let dernierEmailRedirectTo = null;
   /** Option « Confirm email » du projet Supabase — désactivée par défaut, comme avant. */
   let exigerConfirmationEmail = false;
+  /** Adresse confirmée à la première connexion (lien cliqué) — voir `/token`. */
+  let confirmerALaConnexion = true;
   /** Dernier corps reçu par `/resend` — sert au diagnostic en cas d'échec. */
   let dernierCorpsRenvoi = null;
 
@@ -224,6 +226,16 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
       // Option « Confirm email » de Supabase : refus APRÈS contrôle du mot de passe.
       if (exigerConfirmationEmail && user.email && !user.emailConfirmedAt) {
         return json(res, 400, { code: 400, error_code: 'email_not_confirmed', msg: 'Email not confirmed' });
+      }
+      /*
+       * Comportement par défaut des recettes : l'utilisateur qui se connecte a
+       * cliqué le lien reçu (c'est le parcours réel en production, où Supabase
+       * refuse la connexion d'une adresse non confirmée). Sans cela, l'exigence
+       * de compte vérifié (audit H-07) bloquerait toutes les écritures métier
+       * des recettes. Désactivable : `setAutoConfirmOnLogin(false)`.
+       */
+      if (confirmerALaConnexion && user.email && !user.emailConfirmedAt) {
+        user.emailConfirmedAt = new Date().toISOString();
       }
       return json(res, 200, issueSession(user));
     }
@@ -367,6 +379,10 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
     /** Active l'option « Confirm email » : connexion refusée tant que l'adresse n'est pas confirmée. */
     setRequireEmailConfirmation: (valeur) => {
       exigerConfirmationEmail = Boolean(valeur);
+    },
+    /** Confirmation automatique de l'adresse à la connexion (défaut : activée). */
+    setAutoConfirmOnLogin: (valeur) => {
+      confirmerALaConnexion = Boolean(valeur);
     },
     /** Confirme l'adresse côté GoTrue seulement (lien au format par défaut, ou tableau de bord). */
     confirmEmail: (email) => {

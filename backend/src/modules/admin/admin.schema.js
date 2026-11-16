@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { paginationSchema } from '../../shared/pagination.js';
-import { GOVERNANCE_ROLES } from '../../shared/permissions.js';
+import { ASSIGNABLE_ROLES } from '../../shared/permissions.js';
 
 /**
  * SPEC-SUPER-ADMIN §6.2 / §10 — schémas de validation des routes admin.
@@ -104,7 +104,7 @@ export const settingSchema = z.object({
  */
 export const grantRoleSchema = z
   .object({
-    role: z.enum(GOVERNANCE_ROLES),
+    role: z.enum(ASSIGNABLE_ROLES),
     organizationId: z.string().trim().min(10).max(60).optional(),
     mfaCode: z.string().trim().min(6).max(14),
     password: z.string().min(8).max(128).optional(),
@@ -118,7 +118,7 @@ export const grantRoleSchema = z
 /** Révocation de rôle : `role` validé contre la liste gouvernance. */
 export const userRoleParams = z.object({
   id: z.string().min(10).max(60),
-  role: z.enum(GOVERNANCE_ROLES),
+  role: z.enum(ASSIGNABLE_ROLES),
 });
 
 /** Marquage e-mail / téléphone vérifié (motif requis, U-M2-4). */

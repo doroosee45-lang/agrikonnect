@@ -15,6 +15,9 @@ import { logger } from '../shared/http/logger.js';
  * Le client envoie `Idempotency-Key: <uuid>`. Si la clé a déjà produit une
  * réponse, on la rejoue telle quelle au lieu de créer un doublon.
  */
+/** M-01 — fonction pure (testée) : clé stockée, cloisonnée par utilisateur. */
+export const cleIdempotence = (userId, cleClient) => `${userId ?? 'anonyme'}:${String(cleClient)}`;
+
 export const idempotency = (scope) => async (req, res, next) => {
   const key = req.headers['idempotency-key'];
 
@@ -24,7 +27,13 @@ export const idempotency = (scope) => async (req, res, next) => {
     );
   }
 
-  const value = String(key);
+  /*
+   * M-01 — la clé est rangée PAR UTILISATEUR (`<userId>:<clé>`) : l'unicité
+   * `(key, scope)` devient propre à chacun. Une clé connue d'un tiers (journal,
+   * proxy, client qui génère des clés prévisibles) ne rejoue jamais la réponse
+   * d'un autre utilisateur. Aucune migration : seul le contenu de `key` change.
+   */
+  const value = cleIdempotence(req.user?.id, key);
   const where = { key_scope: { key: value, scope } };
 
   try {

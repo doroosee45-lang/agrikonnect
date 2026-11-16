@@ -43,7 +43,8 @@ test('démo — un compte agriculteur et un compte agronome sont créés, avec u
     assert.ok(session.jeton, `aucun jeton pour ${session.compte.email}`);
     assert.equal(session.cree, true, `${session.compte.email} aurait dû être créé`);
   }
-  const roles = resultat.comptes.map((s) => s.compte.accountType).sort();
+  // Audit H-01 : l'agronome s'inscrit en FARMER, puis reçoit le rôle attribué.
+  const roles = resultat.comptes.map((s) => s.compte.roleAttribue ?? s.compte.accountType).sort();
   assert.deepEqual(roles, ['AGRONOMIST', 'FARMER']);
 });
 
@@ -65,9 +66,10 @@ test('démo — les deux comptes existent en base, avec leur rôle et leur organ
      * d'avoir un rôle différent selon l'organisation.
      */
     const roles = profil.memberships.flatMap((m) => m.roles ?? []);
+    const attendu = compte.roleAttribue ?? compte.accountType;
     assert.ok(
-      roles.includes(compte.accountType),
-      `${compte.email} : rôles ${JSON.stringify(roles)}, attendu ${compte.accountType}`,
+      roles.includes(attendu),
+      `${compte.email} : rôles ${JSON.stringify(roles)}, attendu ${attendu}`,
     );
   }
 });

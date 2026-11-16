@@ -249,7 +249,7 @@ export const startHarness = async ({ fresh = true } = {}) => {
    *   de remise en formulaire, et la signature porte sur ces paramètres. Les
    *   tester en JSON ne prouverait rien sur le chemin réellement utilisé.
    */
-  const request = async (
+  const requeteBrute = async (
     method,
     route,
     { body, token, headers = {}, raw = false, form = false, rawBody = false } = {},
@@ -296,6 +296,31 @@ export const startHarness = async ({ fresh = true } = {}) => {
       payload = { __raw: text };
     }
     return { status: response.status, body: payload };
+  };
+
+  /**
+   * Audit H-01 — AGRONOMIST et SUPPORT_AGENT ne s'obtiennent plus à
+   * l'inscription : en production, un administrateur les attribue. Les
+   * recettes qui « inscrivent un agronome » reproduisent ce parcours :
+   * inscription en FARMER, puis attribution du rôle sur l'adhésion (ce que
+   * fait `POST /admin/users/:id/roles`, sans le second facteur du Super Admin).
+   * Le refus de l'inscription libre est lui-même prouvé par `auditLot2.test.mjs`.
+   */
+  const ROLES_ATTRIBUES_PAR_ADMIN = ['AGRONOMIST', 'SUPPORT_AGENT'];
+  const request = async (method, route, options = {}) => {
+    const typeDemande = options.body?.accountType;
+    if (method !== 'POST' || route !== '/auth/register' || !ROLES_ATTRIBUES_PAR_ADMIN.includes(typeDemande)) {
+      return requeteBrute(method, route, options);
+    }
+    const reponse = await requeteBrute(method, route, {
+      ...options,
+      body: { ...options.body, accountType: 'FARMER' },
+    });
+    const userId = reponse.body?.data?.user?.id;
+    if (reponse.status === 201 && userId) {
+      await prisma.membership.updateMany({ where: { userId }, data: { roles: [typeDemande] } });
+    }
+    return reponse;
   };
 
   return {

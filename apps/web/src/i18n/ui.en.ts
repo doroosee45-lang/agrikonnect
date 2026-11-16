@@ -75,7 +75,6 @@ export const uiEn: UiDictionary = {
   adresseEMail: 'Email address',
   adresseEMailAVerifier: 'Email address to verify',
   adresseVerifiee: '✓ Address verified',
-  agentDAppui: 'Support agent',
   agregationStricteDesMembresAyantConsenti: 'Strict aggregation of members who consented to share their data.',
   agregationTempsReelGetAdminDashboard: 'Real-time aggregation GET /admin/dashboard',
   agregatsAnonymisesSoumisAuSeuilDe: 'Anonymised aggregates subject to the k-anonymity threshold',
