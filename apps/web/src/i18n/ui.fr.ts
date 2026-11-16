@@ -1374,6 +1374,7 @@ export const uiFr = {
   lastName: 'Nom',
   lEtatMuetEstCalculeCote: 'L\'état « muet » est calculé côté serveur à partir du dernier relevé reçu.',
   lExportCsvAEchoue: 'L\'export CSV a échoué.',
+  lienDeVerificationRefuse: 'Ce lien de vérification a expiré ou a déjà été utilisé. Demandez-en un nouveau ci-dessous.',
   lInscriptionEstOuverteEnLibre: 'L\'inscription est ouverte en libre-service aux producteurs, coopératives, entreprises agricoles, acheteurs, fournisseurs, investisseurs et agents de support. Les rôles administrateur et vérificateur ne sont jamais auto-attribués.',
   laCarteEstVideTantQu: 'La carte est vide tant qu\'aucune exploitation n\'est publique.',
   laConfidentialiteParDefaut: 'La confidentialité par défaut',

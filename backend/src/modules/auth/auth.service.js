@@ -170,7 +170,24 @@ export const register = async (payload, req) => {
       newValue: { accountType, countryCode, organizationId: result.organization.id },
     });
 
-    // 4. Session immédiate si l'email est fourni (sinon vérification requise)
+    /*
+     * 4. Lien de vérification d'adresse. `admin.createUser` n'envoie aucun
+     * e-mail : sans cet appel, le lien ne partait que si l'utilisateur pensait
+     * à cliquer « Renvoyer ». L'adresse de retour est celle du site qui a fait
+     * la demande (`PUBLIC_WEB_URL`). Un échec d'envoi (quota du fournisseur)
+     * ne fait pas échouer l'inscription : l'écran de vérification propose le
+     * renvoi.
+     */
+    if (email) {
+      const envoi = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: lienVerificationEmail() },
+      });
+      if (envoi.error) logger.warn('Envoi du lien de vérification après inscription :', envoi.error.message);
+    }
+
+    // 5. Session immédiate si l'email est fourni (sinon vérification requise)
     let session = null;
     if (email) {
       const signIn = await supabase.auth.signInWithPassword({ email, password });
@@ -224,6 +241,20 @@ export const login = async ({ identifier, password, mfaCode }, req) => {
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({ ...credentials, password });
+
+  /*
+   * Adresse non confirmée (option « Confirm email » de Supabase Auth). GoTrue
+   * ne renvoie ce code qu'après avoir validé le mot de passe : le signaler ne
+   * révèle pas l'existence d'un compte à qui ne le possède pas. Ce n'est pas
+   * un échec d'identifiants : aucune tentative n'est décomptée, et l'écran
+   * peut proposer le renvoi du lien au lieu d'un « Identifiants incorrects ».
+   */
+  if (error?.code === 'email_not_confirmed') {
+    throw ApiError.forbidden(
+      'Adresse e-mail non vérifiée : ouvre le lien reçu par e-mail ou demandes-en un nouveau.',
+      { emailNotConfirmed: true },
+    );
+  }
 
   if (error || !data?.session) {
     if (existing) {
@@ -282,6 +313,19 @@ export const login = async ({ identifier, password, mfaCode }, req) => {
       });
       throw mfaError;
     }
+  }
+
+  /*
+   * Supabase Auth est la source de vérité de la confirmation d'adresse. Une
+   * adresse confirmée par un autre chemin que `POST /auth/verify-email` (lien
+   * au format par défaut de Supabase, confirmation par un administrateur dans
+   * le tableau de bord) est reportée sur le profil, une seule fois.
+   */
+  if (data.user?.email_confirmed_at) {
+    await prisma.profile.updateMany({
+      where: { id: userId, emailVerifiedAt: null },
+      data: { emailVerifiedAt: new Date(data.user.email_confirmed_at) },
+    });
   }
 
   const profile = await prisma.profile.update({

@@ -1376,6 +1376,7 @@ export const uiEn: UiDictionary = {
   lastName: 'Last name',
   lEtatMuetEstCalculeCote: 'The “silent” status is calculated by the server from the last reading received.',
   lExportCsvAEchoue: 'The CSV export failed.',
+  lienDeVerificationRefuse: 'This verification link has expired or has already been used. Request a new one below.',
   lInscriptionEstOuverteEnLibre: 'Self-service sign-up is open to farmers, cooperatives, agricultural companies, buyers, suppliers, investors and support agents. Administrator and verifier roles are never self-assigned.',
   laCarteEstVideTantQu: 'The map stays empty until a farm is made public.',
   laConfidentialiteParDefaut: 'Privacy by default',

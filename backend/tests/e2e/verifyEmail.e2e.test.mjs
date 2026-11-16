@@ -161,3 +161,65 @@ test("renvoi sans adresse — refus explicite (422) qui nomme le champ", async (
     'la réponse nomme le champ email : ' + JSON.stringify(sansEmail.body),
   );
 });
+
+/* ───────────── 4. option « Confirm email » de Supabase ───────────── */
+
+test('connexion — adresse non confirmée : message dédié, aucune tentative décomptée', async () => {
+  const email = 'non-confirmee@agrikonnect.test';
+  const inscrit = await h.request('POST', '/auth/register', {
+    body: { accountType: 'FARMER', firstName: 'Ada', lastName: 'Lufua', email, password: PASSWORD, countryCode: 'CD', locale: 'fr' },
+  });
+  assert.equal(inscrit.status, 201, JSON.stringify(inscrit.body));
+
+  h.gotrue.setRequireEmailConfirmation(true);
+  try {
+    const refus = await h.request('POST', '/auth/login', { body: { identifier: email, password: PASSWORD } });
+    assert.equal(refus.status, 403, JSON.stringify(refus.body));
+    assert.equal(refus.body.code, 'FORBIDDEN');
+    assert.match(refus.body.message, /non vérifiée/);
+    assert.equal(refus.body.details?.emailNotConfirmed, true);
+
+    // Ce n'est pas un échec d'identifiants : le compteur anti-force brute ne bouge pas.
+    const profil = await h.prisma.profile.findUnique({ where: { email } });
+    assert.equal(profil.failedLoginAttempts, 0);
+
+    // Un mauvais mot de passe reste « Identifiants incorrects » : rien n'est révélé.
+    const mauvais = await h.request('POST', '/auth/login', { body: { identifier: email, password: 'Faux!2026xx' } });
+    assert.equal(mauvais.status, 401, JSON.stringify(mauvais.body));
+  } finally {
+    h.gotrue.setRequireEmailConfirmation(false);
+  }
+});
+
+test('connexion — une adresse confirmée côté Supabase est reportée sur le profil', async () => {
+  const email = 'confirmee-par-supabase@agrikonnect.test';
+  const inscrit = await h.request('POST', '/auth/register', {
+    body: { accountType: 'FARMER', firstName: 'Bola', lastName: 'Mpia', email, password: PASSWORD, countryCode: 'CD', locale: 'fr' },
+  });
+  assert.equal(inscrit.status, 201, JSON.stringify(inscrit.body));
+  assert.equal((await h.prisma.profile.findUnique({ where: { email } })).emailVerifiedAt, null);
+
+  // Confirmation hors de POST /auth/verify-email (lien au format par défaut de Supabase).
+  h.gotrue.confirmEmail(email);
+
+  const connexion = await h.request('POST', '/auth/login', { body: { identifier: email, password: PASSWORD } });
+  assert.equal(connexion.status, 200, JSON.stringify(connexion.body));
+  const profil = await h.prisma.profile.findUnique({ where: { email } });
+  assert.ok(profil.emailVerifiedAt instanceof Date, 'emailVerifiedAt doit être posé à la connexion');
+});
+
+test('inscription — le lien de vérification part tout de suite, vers le site d’origine', async () => {
+  const email = 'lien-a-l-inscription@agrikonnect.test';
+  const inscrit = await h.request('POST', '/auth/register', {
+    body: { accountType: 'FARMER', firstName: 'Céline', lastName: 'Kasa', email, password: PASSWORD, countryCode: 'CD', locale: 'fr' },
+  });
+  assert.equal(inscrit.status, 201, JSON.stringify(inscrit.body));
+
+  // Sans clic sur « Renvoyer » : un jeton a déjà été émis pour cette adresse.
+  const jeton = await h.stubEmailToken(email);
+  assert.ok(jeton, 'un lien de vérification doit être envoyé dès l’inscription');
+  assert.match(String(h.stubEmailRedirectTo()), /\/auth\/verify-email$/);
+
+  const verifie = await h.request('POST', '/auth/verify-email', { body: { tokenHash: jeton } });
+  assert.equal(verifie.status, 200, JSON.stringify(verifie.body));
+});

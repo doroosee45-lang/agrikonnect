@@ -225,7 +225,8 @@ const probeSimulationAllowed = async (nodeEnv, extra = {}) => {
     // Windows : URL.pathname donne « /D:/...%20... » — fileURLToPath donne le
     // vrai chemin du dossier.
     cwd: fileURLToPath(new URL('..', import.meta.url)),
-    env: { ...envDeSonde, NODE_ENV: nodeEnv, ...extra },
+    // En production, env.js exige une adresse web publique en https (publicWebUrl.js).
+    env: { ...envDeSonde, NODE_ENV: nodeEnv, PUBLIC_WEB_URL: 'https://agrikonnectweb.onrender.com', ...extra },
     maxBuffer: 8 * 1024 * 1024,
   };
   /*

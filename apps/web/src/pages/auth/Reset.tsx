@@ -12,7 +12,8 @@ export default function Reset() {
   const { t } = useI18n();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const token = params.get('token') ?? '';
+  // `token_hash` : format du modèle d'e-mail Supabase ; `token` : ancien format.
+  const token = params.get('token_hash') ?? params.get('token') ?? '';
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);

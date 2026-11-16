@@ -53,8 +53,8 @@ export default function Register() {
 
     try {
       await register({ accountType, firstName, lastName, email, password, countryCode, locale }); // langue active (I18N-01)
-      // La vérification d'adresse est la prochaine étape : l'écran dédié se
-      // charge du renvoi du lien, l'adresse y est préremplie (?email=…).
+      // L'API a déjà envoyé le lien de vérification ; l'écran dédié permet de
+      // le renvoyer au besoin, l'adresse y est préremplie (?email=…).
       navigate('/auth/verify-email?email=' + encodeURIComponent(email));
     } catch (err) {
       setError(err instanceof Error ? err.message : t('ui.erreurLorsDeLInscription'));

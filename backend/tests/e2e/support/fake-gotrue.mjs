@@ -98,6 +98,8 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
    * La capturer permet de la confronter aux routes réelles du client web.
    */
   let dernierEmailRedirectTo = null;
+  /** Option « Confirm email » du projet Supabase — désactivée par défaut, comme avant. */
+  let exigerConfirmationEmail = false;
   /** Dernier corps reçu par `/resend` — sert au diagnostic en cas d'échec. */
   let dernierCorpsRenvoi = null;
 
@@ -218,6 +220,10 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
           error_code: 'invalid_credentials',
           msg: 'Invalid login credentials',
         });
+      }
+      // Option « Confirm email » de Supabase : refus APRÈS contrôle du mot de passe.
+      if (exigerConfirmationEmail && user.email && !user.emailConfirmedAt) {
+        return json(res, 400, { code: 400, error_code: 'email_not_confirmed', msg: 'Email not confirmed' });
       }
       return json(res, 200, issueSession(user));
     }
@@ -358,6 +364,16 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
      * peut donc la confronter aux routes réelles du client web.
      */
     lastEmailRedirectTo: () => dernierEmailRedirectTo,
+    /** Active l'option « Confirm email » : connexion refusée tant que l'adresse n'est pas confirmée. */
+    setRequireEmailConfirmation: (valeur) => {
+      exigerConfirmationEmail = Boolean(valeur);
+    },
+    /** Confirme l'adresse côté GoTrue seulement (lien au format par défaut, ou tableau de bord). */
+    confirmEmail: (email) => {
+      const user = byEmail.get(String(email).toLowerCase());
+      if (!user) throw new Error(`Utilisateur inconnu dans le stub : ${email}`);
+      user.emailConfirmedAt = new Date().toISOString();
+    },
     lastResendBody: () => dernierCorpsRenvoi,
     close: () =>
       new Promise((resolve) => {

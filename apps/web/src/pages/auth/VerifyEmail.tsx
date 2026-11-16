@@ -38,12 +38,35 @@ import { useI18n } from '@/i18n';
  *
  * Aucun secret n'est affiché ni journalisé : le jeton est une preuve à usage
  * unique, il n'est jamais écrit dans la console ni dans un log applicatif.
+ *
+ * **Lien au format par défaut de Supabase.** Si le modèle d'e-mail du projet
+ * Supabase utilise `{{ .ConfirmationURL }}`, Supabase confirme l'adresse lui-même
+ * puis renvoie ici avec le résultat dans le fragment (`#access_token=…&type=signup`
+ * ou `#error_code=otp_expired…`). Ce fragment est lu une fois, puis effacé de la
+ * barre d'adresse : il peut contenir des jetons de session, qui n'ont rien à
+ * faire dans l'historique du navigateur. Le profil applicatif est alors mis à
+ * jour à la connexion suivante (`login` reporte `email_confirmed_at`).
  */
+type RetourSupabase = 'confirme' | 'refuse' | null;
+
+function lireRetourSupabase(): RetourSupabase {
+  if (typeof window === 'undefined' || !window.location.hash) return null;
+  const fragment = new URLSearchParams(window.location.hash.slice(1));
+  let retour: RetourSupabase = null;
+  if (fragment.get('error') || fragment.get('error_code')) retour = 'refuse';
+  else if (fragment.get('access_token') && ['signup', 'email'].includes(fragment.get('type') ?? '')) retour = 'confirme';
+  if (retour) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+  return retour;
+}
+
 export default function AuthVerifyEmail() {
   const { t } = useI18n();
   const [params] = useSearchParams();
   const jetonUrl = params.get('token_hash') ?? params.get('token') ?? '';
   const emailUrl = params.get('email') ?? '';
+  const [retourSupabase] = useState<RetourSupabase>(lireRetourSupabase);
 
   const [email, setEmail] = useState(emailUrl);
   const [tokenHash, setTokenHash] = useState(jetonUrl);
@@ -58,7 +81,7 @@ export default function AuthVerifyEmail() {
     onSuccess: () => setRenvoye(true),
   });
 
-  const verifie = verifier.isSuccess;
+  const verifie = verifier.isSuccess || retourSupabase === 'confirme';
   const navigate = useNavigate();
 
   /*
@@ -102,6 +125,9 @@ export default function AuthVerifyEmail() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {retourSupabase === 'refuse' ? (
+                <Text preset="bodySm" color={COLORS.error} style={{ textAlign: 'center' }}>{t('ui.lienDeVerificationRefuse')}</Text>
+              ) : null}
               <Text preset="bodySm" color={COLORS.slateGray} style={{ textAlign: 'center' }}>
                 {jetonUrl
                   ? t('ui.leJetonContenuDansVotreLien')
