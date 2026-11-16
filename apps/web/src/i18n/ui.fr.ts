@@ -358,6 +358,7 @@ export const uiFr = {
   aucuneDonneeNEstTransmiseA: 'Aucune donnée n\'est transmise à un modèle d\'IA sans consentement explicite, daté et réversible.',
   aucuneEntiteGeolocaliseeEnregistree: 'Aucune entité géolocalisée enregistrée.',
   aucuneEntreeDAuditPourCes: 'Aucune entrée d\'audit pour ces critères.',
+  aucuneEntreeDeMenuNeCorrespond: 'Aucune entrée de menu ne correspond.',
   aucuneEscaladeIaOuverte: 'Aucune escalade IA ouverte',
   aucuneEstimationDeRendementNEst: 'Aucune estimation de rendement n\'est produite ici, ni ailleurs dans l\'application. Un rendement manquant reste manquant : il n\'est jamais complété par une moyenne.',
   aucuneEvaluation: 'Aucune évaluation',

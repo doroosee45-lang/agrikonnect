@@ -5,13 +5,21 @@ import { cn } from '../lib/utils';
 import { useI18n } from '@/i18n';
 
 /*
- * Sidebar Horizon (kit AgriKonnect v1.0) :
- * - En-tete : carre vert arrondi (28x28, r=8) + AgriKonnect + bouton repli ;
- * - Recherche instantanee sur fond blanc avec raccourci clavier Cmd/Ctrl+K ;
- * - Arborescence repliable epuree avec filet vertical de filiation + badges ;
- * - Pied de rail style Horizon : carte statut empilee + liens Parametres / Aide.
+ * Sidebar universelle d'AgriKonnect — un seul composant pour tous les espaces
+ * (agriculteur, organisation, marché, investissement, compte, relecteur,
+ * développeurs, administration).
  *
- * I3 : aucune couleur hexadecimale en dur, uniquement les jetons du theme.
+ * Le panneau ne gère que son contenu : c'est `AppLayout` qui décide où il
+ * apparaît (colonne poussant le contenu sur ordinateur, tiroir par-dessus la
+ * page sur mobile et tablette) et quand il s'ouvre (bouton hamburger).
+ *
+ * - En-tête : logo + nom + bouton de fermeture ;
+ * - Recherche instantanée (Ctrl/Cmd+K) ;
+ * - Groupes et sous-menus repliables, animés sans saut de mise en page ;
+ * - États distincts : actif (fond teinté + filet vert), survolé, focus clavier ;
+ * - Pied : carte d'état du dossier + Paramètres / Aide.
+ *
+ * I3 : aucune couleur hexadécimale en dur, uniquement les jetons du thème.
  */
 export interface SidebarItem {
   to: string;
@@ -37,11 +45,15 @@ export interface SidebarStatusCard {
 export interface SidebarProps {
   groupes: SidebarGroup[];
   actif: string;
-  replie: boolean;
-  variante?: 'rail' | 'drawer';
-  onBasculerRepli?: () => void;
+  /** Ferme le panneau (bouton ✕ de l'en-tête). */
+  onFermer?: () => void;
+  /** Appelé après un clic sur un lien (le tiroir mobile se referme). */
   onNaviguer?: () => void;
   statusCard?: SidebarStatusCard | null;
+  /** Active le raccourci Ctrl/Cmd+K (panneau visible uniquement). */
+  raccourciRecherche?: boolean;
+  /** Identifiant DOM, référencé par `aria-controls` du bouton hamburger. */
+  id?: string;
 }
 
 const ICONES: Record<string, string[]> = {
@@ -76,8 +88,8 @@ const ICONES: Record<string, string[]> = {
   panneau: ['M4 5 a2 2 0 0 1 2 -2 h12 a2 2 0 0 1 2 2 v14 a2 2 0 0 1 -2 2 H6 a2 2 0 0 1 -2 -2 Z', 'M9 3 V21'],
   aide: ['M12 21 a9 9 0 1 0 0 -18 a9 9 0 0 0 0 18 Z', 'M9.5 9.5 a2.5 2.5 0 1 1 3.5 2.3 c-0.7 0.3 -1 0.8 -1 1.7', 'M12 17 h0.01'],
   eclair: ['M13 2 L4 14 H11 L10 22 L20 10 H13 Z'],
+  croix: ['M6 6 L18 18', 'M18 6 L6 18'],
   'chevron-bas': ['M6 9 L12 15 L18 9'],
-  'chevron-haut': ['M6 15 L12 9 L18 15'],
 };
 
 function Puce({ nom, taille = 16 }: { nom?: string; taille?: number }) {
@@ -89,7 +101,7 @@ function Puce({ nom, taille = 16 }: { nom?: string; taille?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.7}
+      strokeWidth={1.75}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -116,14 +128,17 @@ function aplatirItems(groupes: SidebarGroup[]): SidebarItem[] {
   return resultat;
 }
 
+/** Anneau de focus clavier commun (jamais au clic souris). */
+const FOCUS = 'outline-none focus-visible:ring-2 focus-visible:ring-secondaire/60 focus-visible:ring-offset-1 focus-visible:ring-offset-fond';
+
 export function Sidebar({
   groupes,
   actif,
-  replie,
-  variante = 'rail',
-  onBasculerRepli,
+  onFermer,
   onNaviguer,
   statusCard,
+  raccourciRecherche = true,
+  id,
 }: SidebarProps) {
   const { t } = useI18n();
   const [recherche, setRecherche] = useState('');
@@ -132,26 +147,24 @@ export function Sidebar({
 
   const tous = useMemo(() => aplatirItems(groupes), [groupes]);
 
+  // L'entrée la plus précise gagne : « /organization » n'est pas actif sur « /organization/members ».
   const estExactOuMeilleur = (to: string) =>
     estActif(to, actif) &&
     !tous.some((autre) => autre.to !== to && autre.to.length > to.length && estActif(autre.to, actif));
 
-  // Deploie uniquement la branche contenant la route courante au changement d'URL
+  // Déploie la branche qui contient la page courante, à chaque changement d'URL.
   useEffect(() => {
     const prochain: Record<string, boolean> = {};
     for (const g of groupes) {
       for (const item of g.items) {
-        if (item.children?.some((c) => estActif(c.to, actif))) {
-          prochain[item.to] = true;
-        }
+        if (item.children?.some((c) => estActif(c.to, actif))) prochain[item.to] = true;
       }
     }
     setOuverts(prochain);
   }, [actif, groupes]);
 
-  // Raccourci clavier Cmd/Ctrl+K pour cibler la recherche de la sidebar
   useEffect(() => {
-    if (replie) return undefined;
+    if (!raccourciRecherche) return undefined;
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -160,7 +173,7 @@ export function Sidebar({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [replie]);
+  }, [raccourciRecherche]);
 
   const groupesFiltres = useMemo(() => {
     const q = recherche.trim().toLowerCase();
@@ -170,9 +183,8 @@ export function Sidebar({
         ...groupe,
         items: groupe.items
           .map((item) => {
-            const matchParent = item.label.toLowerCase().includes(q);
             const enfants = item.children?.filter((c) => c.label.toLowerCase().includes(q));
-            if (matchParent) return item;
+            if (item.label.toLowerCase().includes(q)) return item;
             if (enfants && enfants.length > 0) return { ...item, children: enfants };
             return null;
           })
@@ -181,141 +193,135 @@ export function Sidebar({
       .filter((g) => g.items.length > 0);
   }, [groupes, recherche]);
 
-  const basculerBranche = (cle: string) => {
-    setOuverts((prev) => ({ ...prev, [cle]: !prev[cle] }));
-  };
+  const basculerBranche = (cle: string) => setOuverts((prev) => ({ ...prev, [cle]: !prev[cle] }));
+
+  const lienPied = cn(
+    'flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13px] font-medium text-texte-doux transition-colors duration-150 hover:bg-surface hover:text-texte',
+    FOCUS,
+  );
 
   return (
     <aside
-      className={cn(
-        'flex h-full flex-col overflow-hidden border-r border-bordure select-none',
-        replie ? 'w-[72px]' : 'w-[256px]',
-      )}
-      style={{
-        backgroundColor: 'var(--creme-50)',
-        ...(variante === 'rail'
-          ? { height: '100vh', transition: 'width 220ms cubic-bezier(.22,.61,.36,1)' }
-          : {}),
-      }}
+      id={id}
+      className="flex h-full w-full flex-col overflow-hidden border-r border-bordure select-none"
+      style={{ backgroundColor: 'var(--creme-50)' }}
+      aria-label={t('ui.navigationDeLEspace')}
     >
-      {/* En-tete style Horizon : carre vert arrondi 28x28 + nom + bouton repli aligne a droite */}
-      <div
-        className={cn(
-          'flex shrink-0 items-center',
-          replie ? 'justify-center px-2' : 'justify-between px-4',
-        )}
-        style={{ height: 60 }}
-      >
+      {/* En-tête : logo + nom + fermeture */}
+      <div className="flex h-[60px] shrink-0 items-center justify-between gap-2 border-b border-bordure/70 px-4">
         <Link
           to="/"
-          className="flex min-w-0 items-center gap-2.5 text-texte"
+          onClick={onNaviguer}
+          className={cn('flex min-w-0 items-center gap-2.5 rounded-lg text-texte', FOCUS)}
           style={{ textDecoration: 'none' }}
           aria-label={t('ui.agrikonnectAfricaAccueil_258df')}
         >
-          <span
-            className="flex shrink-0 items-center justify-center bg-marque text-surface shadow-2xs"
-            style={{ width: 28, height: 28, borderRadius: 8 }}
-          >
-            <Puce nom="feuille" taille={15} />
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-marque text-surface shadow-2xs">
+            <Puce nom="feuille" taille={16} />
           </span>
-          {!replie ? (
-            <span className="truncate text-[15px] font-bold tracking-tight text-texte">{t('ui.agrikonnect')}</span>
-          ) : null}
+          <span className="truncate text-[15px] font-bold tracking-tight">{t('ui.agrikonnect')}</span>
         </Link>
 
-        {onBasculerRepli && !replie ? (
+        {onFermer ? (
           <button
             type="button"
-            onClick={onBasculerRepli}
-            className="ml-2 flex shrink-0 items-center justify-center rounded-md text-texte-doux transition-colors hover:bg-surface hover:text-texte"
-            style={{ width: 28, height: 28 }}
-            aria-label={t('ui.replierLaNavigation')}
-            title={t('ui.replierLaNavigation')}
+            onClick={onFermer}
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-texte-doux transition-colors hover:bg-surface hover:text-texte',
+              FOCUS,
+            )}
+            aria-label={t('ui.fermerLaNavigation')}
+            title={t('ui.fermerLaNavigation')}
           >
-            <Puce nom="panneau" taille={15} />
+            <Puce nom="croix" taille={17} />
           </button>
         ) : null}
       </div>
 
-      {/* Champ de recherche rapide style Horizon (boite blanche nette sur fond creme-50) */}
-      {!replie ? (
-        <div className="shrink-0 px-3.5 pb-3">
-          <div className="flex h-9 items-center gap-2 rounded-[10px] border border-bordure bg-surface px-2.5 shadow-2xs">
-            <span className="shrink-0 text-texte-doux">
-              <Puce nom="loupe" taille={14} />
-            </span>
-            <input
-              ref={champRef}
-              type="search"
-              value={recherche}
-              onChange={(e) => setRecherche(e.target.value)}
-              placeholder={t('ui.rechercher')}
-              aria-label={t('ui.rechercherDansLeMenu')}
-              className="w-full min-w-0 border-0 bg-transparent text-[12.5px] text-texte outline-none placeholder:text-texte-doux"
-            />
-            <kbd className="shrink-0 rounded-[5px] border border-bordure bg-fond px-1.5 py-0.5 font-mono text-[10px] font-medium text-texte-doux">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
-      ) : onBasculerRepli ? (
-        <div className="flex shrink-0 justify-center pb-2.5">
-          <button
-            type="button"
-            onClick={onBasculerRepli}
-            className="flex items-center justify-center rounded-[10px] border border-bordure bg-surface text-texte-doux shadow-2xs hover:text-texte"
-            style={{ width: 34, height: 34 }}
-            aria-label={t('ui.deployerLaNavigation')}
-            title={t('ui.deployerLaNavigation')}
-          >
-            <Puce nom="panneau" taille={15} />
-          </button>
-        </div>
-      ) : null}
+      {/* Recherche rapide */}
+      <div className="shrink-0 px-3.5 pb-2 pt-3.5">
+        <label
+          className="flex h-10 items-center gap-2 rounded-[11px] border border-bordure bg-surface px-3 shadow-2xs transition-shadow focus-within:border-secondaire/60 focus-within:ring-2 focus-within:ring-secondaire/20"
+        >
+          <span className="shrink-0 text-texte-doux">
+            <Puce nom="loupe" taille={15} />
+          </span>
+          <input
+            ref={champRef}
+            type="search"
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+            placeholder={t('ui.rechercher')}
+            aria-label={t('ui.rechercherDansLeMenu')}
+            className="w-full min-w-0 border-0 bg-transparent text-[13px] text-texte outline-none placeholder:text-texte-doux"
+          />
+          <kbd className="hidden shrink-0 rounded-[5px] border border-bordure bg-fond px-1.5 py-0.5 font-mono text-[10px] font-medium text-texte-doux sm:inline">
+            ⌘K
+          </kbd>
+        </label>
+      </div>
 
-      {/* Zone scrollable unique avec barre fine .ak-scroll */}
-      <nav className="ak-scroll flex-1 overflow-y-auto px-3 py-1" aria-label={t('ui.navigationDeLEspace')}>
-        {groupesFiltres.map((groupe, gIdx) => (
-          <div key={groupe.titre} className={cn(gIdx > 0 ? 'mt-5' : 'mt-1')}>
-            {!replie ? (
-              <p
-                className="mb-1.5 px-2.5 text-[10.5px] font-semibold uppercase tracking-[0.06em] text-texte-doux"
-              >
-                {groupe.titre}
-              </p>
-            ) : null}
+      {/* Menus */}
+      <nav className="ak-scroll flex-1 overflow-y-auto overscroll-contain px-3 pb-3">
+        {groupesFiltres.length === 0 ? (
+          <p className="px-3 py-6 text-center text-[12.5px] text-texte-doux">{t('ui.aucuneEntreeDeMenuNeCorrespond')}</p>
+        ) : null}
 
-            <ul className="flex flex-col gap-0.5" style={{ listStyle: 'none' }}>
+        {groupesFiltres.map((groupe) => (
+          <section key={groupe.titre} className="mt-4 first:mt-2">
+            <p className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-texte-doux/80">
+              {groupe.titre}
+            </p>
+
+            <ul className="flex flex-col gap-0.5" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
               {groupe.items.map((item) => {
                 const aEnfants = Boolean(item.children && item.children.length > 0);
-                const itemExact = estExactOuMeilleur(item.to);
                 const enfantActif = Boolean(item.children?.some((c) => estExactOuMeilleur(c.to)));
+                // Un parent qui partage l'adresse de son premier sous-menu ne se surligne pas en double.
+                const itemExact = estExactOuMeilleur(item.to) && !enfantActif;
                 const brancheActive = itemExact || enfantActif;
                 const estOuvert = Boolean(recherche.trim()) || Boolean(ouverts[item.to]);
 
-                if (!aEnfants || replie) {
+                const classeEntree = cn(
+                  'group relative flex h-10 w-full items-center gap-3 rounded-[11px] px-3 text-left text-[13.5px] transition-colors duration-150',
+                  FOCUS,
+                  itemExact
+                    ? 'bg-marque-clair font-semibold text-marque'
+                    : brancheActive
+                      ? 'font-semibold text-texte hover:bg-surface'
+                      : 'font-medium text-texte-doux hover:bg-surface hover:text-texte',
+                );
+
+                const icone = (
+                  <span
+                    className={cn(
+                      'shrink-0 transition-colors',
+                      brancheActive ? 'text-secondaire' : 'text-texte-doux group-hover:text-texte',
+                    )}
+                  >
+                    <Puce nom={item.icone} taille={18} />
+                  </span>
+                );
+
+                const filetActif = itemExact ? (
+                  <span aria-hidden="true" className="absolute inset-y-2 left-0 w-[3px] rounded-full bg-secondaire" />
+                ) : null;
+
+                if (!aEnfants) {
                   return (
                     <li key={item.to}>
                       <Link
                         to={item.to}
                         onClick={onNaviguer}
-                        aria-current={brancheActive ? 'page' : undefined}
-                        title={replie ? item.label : undefined}
-                        className={cn(
-                          'flex h-9 items-center gap-2.5 rounded-[10px] text-[13px] transition-colors',
-                          replie ? 'justify-center px-0' : 'px-2.5',
-                          brancheActive
-                            ? 'border border-bordure bg-surface font-semibold text-texte shadow-2xs'
-                            : 'font-medium text-texte-doux hover:bg-surface/75 hover:text-texte',
-                        )}
+                        aria-current={itemExact ? 'page' : undefined}
+                        className={classeEntree}
                         style={{ textDecoration: 'none' }}
                       >
-                        <span className={cn('shrink-0', brancheActive ? 'text-secondaire' : 'text-texte-doux')}>
-                          <Puce nom={item.icone} taille={16} />
-                        </span>
-                        {!replie ? <span className="truncate">{item.label}</span> : null}
-                        {!replie && item.badge !== undefined ? (
-                          <span className="ml-auto inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-texte px-1.5 text-[10.5px] font-semibold text-surface">
+                        {filetActif}
+                        {icone}
+                        <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                        {item.badge !== undefined ? (
+                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondaire px-1.5 text-[10.5px] font-semibold text-surface">
                             {item.badge}
                           </span>
                         ) : null}
@@ -324,136 +330,124 @@ export function Sidebar({
                   );
                 }
 
+                const idSousMenu = `sm-${item.to.replace(/[^a-z0-9]+/gi, '-')}`;
                 return (
-                  <li key={item.to} className="flex flex-col">
+                  <li key={item.to}>
                     <button
                       type="button"
                       onClick={() => basculerBranche(item.to)}
                       aria-expanded={estOuvert}
-                      className={cn(
-                        'flex h-9 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[13px] transition-colors',
-                        brancheActive
-                          ? 'font-semibold text-texte'
-                          : 'font-medium text-texte-doux hover:bg-surface/75 hover:text-texte',
-                      )}
+                      aria-controls={idSousMenu}
+                      className={classeEntree}
                     >
-                      <span className={cn('shrink-0', brancheActive ? 'text-secondaire' : 'text-texte-doux')}>
-                        <Puce nom={item.icone} taille={16} />
-                      </span>
-                      <span className="flex-1 truncate">{item.label}</span>
-                      <span className="shrink-0 text-texte-doux">
-                        <Puce nom={estOuvert ? 'chevron-haut' : 'chevron-bas'} taille={13} />
+                      {filetActif}
+                      {icone}
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                      <span
+                        className={cn(
+                          'shrink-0 text-texte-doux transition-transform duration-200 motion-reduce:transition-none',
+                          estOuvert ? 'rotate-180' : 'rotate-0',
+                        )}
+                      >
+                        <Puce nom="chevron-bas" taille={14} />
                       </span>
                     </button>
 
-                    {/* Sous-menu arborescent avec rail vertical et encoches horizontales style Horizon */}
-                    {estOuvert ? (
+                    {/* Sous-menu : hauteur animée par grid-rows (0fr → 1fr), sans mesurer le DOM. */}
+                    <div
+                      id={idSousMenu}
+                      className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
+                      style={{ gridTemplateRows: estOuvert ? '1fr' : '0fr' }}
+                    >
                       <ul
-                        className="mb-1 ml-[17px] mt-0.5 flex flex-col gap-0.5 border-l border-bordure py-0.5 pl-2.5"
-                        style={{ listStyle: 'none' }}
+                        className="min-h-0 overflow-hidden border-l border-bordure pl-3"
+                        style={{ listStyle: 'none', margin: 0, marginLeft: 21, paddingTop: 0, paddingBottom: 0 }}
+                        // Masqué = hors tabulation et hors lecteur d'écran.
+                        {...(!estOuvert ? { inert: true, 'aria-hidden': true } : {})}
                       >
                         {item.children?.map((child) => {
                           const childActif = estExactOuMeilleur(child.to);
                           return (
-                            <li key={child.to} className="relative flex items-center">
-                              <span
-                                aria-hidden="true"
-                                className="mr-1.5 inline-block h-px w-2 shrink-0 bg-bordure"
-                              />
+                            <li key={child.to} className="py-[1px] first:pt-1 last:pb-1">
                               <Link
                                 to={child.to}
                                 onClick={onNaviguer}
                                 aria-current={childActif ? 'page' : undefined}
                                 className={cn(
-                                  'flex h-8 min-w-0 flex-1 items-center justify-between rounded-[8px] px-2.5 text-[12.5px] transition-colors',
+                                  'flex h-9 min-w-0 items-center justify-between gap-2 rounded-[9px] px-3 text-[13px] transition-colors duration-150',
+                                  FOCUS,
                                   childActif
-                                    ? 'border border-bordure bg-surface font-semibold text-texte shadow-2xs'
-                                    : 'font-normal text-texte-doux hover:bg-surface/70 hover:text-texte',
+                                    ? 'bg-marque-clair font-semibold text-marque'
+                                    : 'font-normal text-texte-doux hover:bg-surface hover:text-texte',
                                 )}
                                 style={{ textDecoration: 'none' }}
                               >
                                 <span className="truncate">{child.label}</span>
                                 {child.badge !== undefined ? (
-                                  <span className="ml-2 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-texte px-1.5 text-[10px] font-semibold text-surface">
+                                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondaire px-1.5 text-[10px] font-semibold text-surface">
                                     {child.badge}
                                   </span>
                                 ) : childActif ? (
-                                  <span className="ml-2 h-1.5 w-1.5 shrink-0 rounded-full bg-secondaire" />
+                                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-secondaire" />
                                 ) : null}
                               </Link>
                             </li>
                           );
                         })}
                       </ul>
-                    ) : null}
+                    </div>
                   </li>
                 );
               })}
             </ul>
-          </div>
+          </section>
         ))}
       </nav>
 
-      {/* Pied de barre laterale style Horizon ("Premium plan" + Settings) */}
-      {!replie ? (
-        <div className="shrink-0 px-3.5 pb-3.5 pt-2">
-          {statusCard ? (
-            <div
-              className="rounded-[14px] border border-bordure p-3.5 shadow-2xs"
-              style={{
-                background: 'linear-gradient(135deg, var(--vert-100) 0%, var(--pure-white) 62%)',
-              }}
-            >
-              <span
-                className="mb-2.5 flex items-center justify-center bg-secondaire text-surface shadow-2xs"
-                style={{ width: 28, height: 28, borderRadius: 8 }}
-              >
-                <Puce nom={statusCard.verifie ? 'verification' : 'feuille'} taille={15} />
+      {/* Pied : état du dossier + Paramètres / Aide */}
+      <div className="shrink-0 border-t border-bordure/70 px-3.5 pb-3.5 pt-3">
+        {statusCard ? (
+          <div
+            className="mb-2 rounded-[14px] border border-bordure p-3 shadow-2xs"
+            style={{ background: 'linear-gradient(135deg, var(--vert-100) 0%, var(--pure-white) 70%)' }}
+          >
+            <div className="flex items-start gap-2.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] bg-secondaire text-surface shadow-2xs">
+                <Puce nom={statusCard.verifie ? 'verification' : 'feuille'} taille={14} />
               </span>
-
-              <div className="text-[12.5px] font-bold leading-snug text-texte">
-                {statusCard.titre}
+              <div className="min-w-0">
+                <div className="text-[12.5px] font-bold leading-snug text-texte">{statusCard.titre}</div>
+                <p className="mt-0.5 line-clamp-2 text-[11.5px] leading-[1.45] text-texte-doux">
+                  {statusCard.description}
+                </p>
               </div>
-              <p className="mt-1 line-clamp-2 text-[11.5px] leading-[1.45] text-texte-doux">
-                {statusCard.description}
-              </p>
-
-              <Link
-                to={statusCard.ctaTo}
-                onClick={onNaviguer}
-                className="mt-3 flex h-8 w-full items-center justify-center gap-1.5 rounded-[8px] border border-bordure bg-surface px-3 text-[12px] font-semibold text-texte shadow-2xs transition-colors hover:bg-fond"
-                style={{ textDecoration: 'none' }}
-              >
-                <span className="text-secondaire">
-                  <Puce nom="eclair" taille={13} />
-                </span>
-                <span className="truncate">{statusCard.ctaLabel}</span>
-              </Link>
             </div>
-          ) : null}
-
-          <div className="mt-2 flex flex-col gap-0.5">
             <Link
-              to="/app/profile"
+              to={statusCard.ctaTo}
               onClick={onNaviguer}
-              className="flex h-8 items-center gap-2.5 rounded-[8px] px-2 text-[12.5px] font-medium text-texte-doux transition-colors hover:bg-surface hover:text-texte"
+              className={cn(
+                'mt-2.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-[9px] border border-bordure bg-surface px-3 text-[12px] font-semibold text-texte shadow-2xs transition-colors hover:bg-fond',
+                FOCUS,
+              )}
               style={{ textDecoration: 'none' }}
             >
-              <Puce nom="reglages" taille={15} />
-              <span>{t('ui.parametres_ef8f0')}</span>
-            </Link>
-            <Link
-              to="/services"
-              onClick={onNaviguer}
-              className="flex h-8 items-center gap-2.5 rounded-[8px] px-2 text-[12.5px] font-medium text-texte-doux transition-colors hover:bg-surface hover:text-texte"
-              style={{ textDecoration: 'none' }}
-            >
-              <Puce nom="aide" taille={15} />
-              <span>{t('ui.aideSupport')}</span>
+              <span className="text-secondaire">
+                <Puce nom="eclair" taille={13} />
+              </span>
+              <span className="truncate">{statusCard.ctaLabel}</span>
             </Link>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+
+        <Link to="/app/profile" onClick={onNaviguer} className={lienPied} style={{ textDecoration: 'none' }}>
+          <Puce nom="reglages" taille={16} />
+          <span>{t('ui.parametres_ef8f0')}</span>
+        </Link>
+        <Link to="/services" onClick={onNaviguer} className={lienPied} style={{ textDecoration: 'none' }}>
+          <Puce nom="aide" taille={16} />
+          <span>{t('ui.aideSupport')}</span>
+        </Link>
+      </div>
     </aside>
   );
 }
