@@ -91,7 +91,7 @@ export default function Notifications() {
                       <Chip label={item.type} tone="neutral" size="sm" />
                     </div>
                     {item.body ? (
-                      <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.6, marginBottom: 6 }}>
+                      <Text preset="caption" color={COLORS.slateGray} style={{ lineHeight: 1.6, marginBottom: 6, whiteSpace: 'pre-line' }}>
                         {item.body}
                       </Text>
                     ) : null}

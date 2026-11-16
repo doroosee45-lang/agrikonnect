@@ -430,6 +430,7 @@ export const MESSAGES_EN = [
   ["Nouvelle commande {number}", "New order {number}", ["number"]],
   ["Nouvelle demande d'accès à votre data room", "New access request to your data room"],
   ["Nouvelle demande de mise en relation", "New connection request"],
+  ["Nouveau message d’un visiteur", "New message from a visitor"],
   ["Nouvelle offre de transport", "New transport offer"],
   ["Nouvelle offre sur votre demande d'achat", "New offer on your purchase request"],
   ["Nouvelle réponse à votre appel d'offres", "New response to your tender"],
