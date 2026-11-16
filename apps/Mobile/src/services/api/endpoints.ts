@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '@/lib/config';
 
 import { api, cleanQuery, http } from './http';
+import { sessionStore } from './session';
 import {
   type AiAnalysis,
   type ApiClient,
@@ -190,6 +191,12 @@ export const publicApi = {
 
 // ─── Auth ─────────────────────────────────────────────────────
 
+/** Audit C-03 — conserve la preuve de second facteur renvoyée par l'API. */
+function retenirPreuveMfa<T extends { data: { mfaProof?: string | null } }>(resultat: T): T {
+  sessionStore.setMfaProof(resultat.data?.mfaProof);
+  return resultat;
+}
+
 export const authApi = {
   login: (payload: LoginPayload) =>
     api.post<LoginResult>('/auth/login', payload, { anonymous: true, skipAuthRefresh: true, idempotent: true }),
@@ -207,7 +214,8 @@ export const authApi = {
   me: () => api.get<MeResult>('/me'),
   updateMe: (payload: Record<string, unknown>) => api.patch<MeResult>('/me', payload),
   permissions: () => api.get<PermissionsResult>('/me/permissions'),
-  changePassword: (payload: { currentPassword: string; newPassword: string }) =>
+  /** Audit H-04 : mot de passe actuel requis ; `mfaCode` si la double authentification est active. */
+  changePassword: (payload: { currentPassword: string; newPassword: string; mfaCode?: string }) =>
     api.post<{ updated: true }>('/me/password', payload, { idempotent: true }),
 
   forgotPassword: (identifier: string) =>
@@ -252,12 +260,18 @@ export const authApi = {
        */
       backupCodes: string[];
       warning: string;
-    }>('/auth/mfa/confirm', { code }),
+      /** Audit C-03 — preuve de second facteur pour la session courante. */
+      mfaProof?: string | null;
+    }>('/auth/mfa/confirm', { code }).then(retenirPreuveMfa),
   /**
    * Validation ponctuelle d'un code (point de contrôle NFR-01 réutilisé par les
    * opérations sensibles). Distinct de `mfaConfirm`, qui active la 2FA.
+   * Audit C-03 : délivre aussi la preuve de second facteur de la session.
    */
-  mfaVerify: (code: string) => api.post<{ verified: true; remaining?: number }>('/auth/mfa/verify', { code }),
+  mfaVerify: (code: string) =>
+    api
+      .post<{ verified: true; remaining?: number; mfaProof?: string | null }>('/auth/mfa/verify', { code })
+      .then(retenirPreuveMfa),
   mfaDisable: (code: string) => api.post<{ disabled: true }>('/auth/mfa/disable', { code }),
 
   // Téléphone / OTP

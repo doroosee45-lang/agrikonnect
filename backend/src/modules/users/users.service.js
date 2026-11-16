@@ -5,7 +5,8 @@
  * exécutable correspondante est référencée dans `tests/` (voir docs/TRACEABILITY.md).
  */
 import { prisma } from '../../config/prisma.js';
-import { supabaseAdmin } from '../../config/supabase.js';
+import { supabase, supabaseAdmin } from '../../config/supabase.js';
+import { logger } from '../../shared/http/logger.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 import { PERMISSIONS, can } from '../../shared/permissions.js';
 import { audit } from '../../shared/audit.js';
@@ -117,10 +118,41 @@ export const getMyPermissions = async (req) => {
   return { roles, permissions };
 };
 
-/** Changement de mot de passe (délégué à Supabase Auth). */
-export const changePassword = async ({ newPassword }, req) => {
+/**
+ * Audit H-04 — changement de mot de passe (délégué à Supabase Auth).
+ *
+ * 1. mot de passe actuel vérifié auprès de Supabase (session de contrôle
+ *    aussitôt fermée) ; refus en 422, pas en 401 : la session courante reste
+ *    valide, seul le champ est faux ;
+ * 2. code de double authentification exigé si elle est active ;
+ * 3. mise à jour du mot de passe ;
+ * 4. révocation des AUTRES sessions (un voleur de jeton est déconnecté),
+ *    la session courante est conservée.
+ */
+export const changePassword = async ({ currentPassword, newPassword, mfaCode }, req) => {
+  const identifiant = req.user.email ? { email: req.user.email } : { phone: req.user.phone };
+  const controle = await supabase.auth.signInWithPassword({ ...identifiant, password: currentPassword });
+  if (controle.error || !controle.data?.session) {
+    await audit({ actorId: req.user.id, action: 'auth.password.change_refused', resource: 'profiles', resourceId: req.user.id, req });
+    throw ApiError.badRequest('Mot de passe actuel incorrect', [{ field: 'currentPassword', code: 'invalid' }]);
+  }
+  // Portée `local` : seule la session de contrôle est fermée (`global`, le défaut, fermerait toutes les sessions).
+  await supabaseAdmin?.auth.admin.signOut(controle.data.session.access_token, 'local').catch(() => {});
+
+  if (req.user.profile?.mfaEnabled) {
+    const { assertMfa } = await import('../auth/mfa.service.js');
+    await assertMfa(req.user.id, mfaCode);
+  }
+
   const { error } = await supabaseAdmin.auth.admin.updateUserById(req.user.id, { password: newPassword });
   if (error) throw ApiError.badRequest(error.message);
+
+  let autresSessionsRevoquees = false;
+  if (req.token) {
+    const { error: revocation } = await supabaseAdmin.auth.admin.signOut(req.token, 'others');
+    autresSessionsRevoquees = !revocation;
+    if (revocation) logger.warn('Révocation des autres sessions après changement de mot de passe :', revocation.message);
+  }
 
   await audit({
     actorId: req.user.id,
@@ -128,9 +160,10 @@ export const changePassword = async ({ newPassword }, req) => {
     resource: 'profiles',
     resourceId: req.user.id,
     req,
+    newValue: { otherSessionsRevoked: autresSessionsRevoquees },
   });
 
-  return { updated: true };
+  return { updated: true, otherSessionsRevoked: autresSessionsRevoquees };
 };
 
 /** AUTH-05 / RGPD — suppression logique du compte (anonymisation à traiter en V2). */

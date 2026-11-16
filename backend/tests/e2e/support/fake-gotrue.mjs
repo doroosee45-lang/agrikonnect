@@ -31,11 +31,22 @@ import crypto from 'node:crypto';
 
 const b64url = (value) => Buffer.from(value).toString('base64url');
 
-const fakeJwt = (userId) => {
+/** `session_id` d'un jeton émis par ce stub (charge JSON en base64url). */
+const sessionIdDe = (jeton) => {
+  try {
+    return JSON.parse(Buffer.from(String(jeton).split('.')[1], 'base64url').toString('utf8')).session_id ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const fakeJwt = (userId, sessionId = crypto.randomUUID()) => {
   const header = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
   const payload = b64url(
     JSON.stringify({
       sub: userId,
+      // Comme Supabase : identifiant de session, stable au rafraîchissement (preuve MFA, audit C-03).
+      session_id: sessionId,
       role: 'authenticated',
       aud: 'authenticated',
       iat: Math.floor(Date.now() / 1000),
@@ -122,11 +133,13 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
     updated_at: new Date().toISOString(),
   });
 
-  const issueSession = (user) => {
-    const accessToken = fakeJwt(user.id);
+  const sessionIds = new Map(); // refreshToken → session_id
+  const issueSession = (user, sessionId = crypto.randomUUID()) => {
+    const accessToken = fakeJwt(user.id, sessionId);
     const refreshToken = `rt_${crypto.randomBytes(16).toString('hex')}`;
     sessions.set(accessToken, user.id);
     refreshTokens.set(refreshToken, user.id);
+    sessionIds.set(refreshToken, sessionId);
     user.lastSignInAt = new Date().toISOString();
     return {
       access_token: accessToken,
@@ -244,8 +257,10 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
       const userId = refreshTokens.get(body.refresh_token);
       const user = userId ? users.get(userId) : null;
       if (!user) return json(res, 400, { code: 400, error_code: 'refresh_token_not_found', msg: 'Invalid Refresh Token' });
+      const sessionId = sessionIds.get(body.refresh_token);
       refreshTokens.delete(body.refresh_token);
-      return json(res, 200, issueSession(user));
+      sessionIds.delete(body.refresh_token);
+      return json(res, 200, issueSession(user, sessionId));
     }
 
     // ── Lecture du porteur du jeton ────────────────────────────────
@@ -261,6 +276,27 @@ export const startFakeGoTrue = async ({ port = 0 } = {}) => {
 
     if (req.method === 'POST' && pathname === '/logout') {
       const token = (req.headers.authorization ?? '').replace(/^Bearer\s+/i, '');
+      /*
+       * `scope=others` (GoTrue) : révoque toutes les sessions de l'utilisateur
+       * SAUF celle du jeton présenté — utilisé après un changement de mot de
+       * passe (audit H-04). Sans portée : session du jeton seulement (historique du stub).
+       */
+      if (url.searchParams.get('scope') === 'others') {
+        const userId = sessions.get(token);
+        const sessionCourante = sessionIdDe(token);
+        if (userId) {
+          for (const [jeton, uid] of [...sessions]) {
+            if (uid === userId && sessionIdDe(jeton) !== sessionCourante) sessions.delete(jeton);
+          }
+          for (const [rt, uid] of [...refreshTokens]) {
+            if (uid === userId && sessionIds.get(rt) !== sessionCourante) {
+              refreshTokens.delete(rt);
+              sessionIds.delete(rt);
+            }
+          }
+        }
+        return json(res, 204, {});
+      }
       sessions.delete(token);
       return json(res, 204, {});
     }

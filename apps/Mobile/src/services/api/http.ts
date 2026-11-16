@@ -58,6 +58,9 @@ http.interceptors.request.use((raw) => {
   if (!config.anonymous) {
     const token = sessionStore.accessToken;
     if (token) config.headers.set('Authorization', `Bearer ${token}`);
+    // Audit C-03 — preuve de second facteur de la session (routes de gouvernance, data room).
+    const preuveMfa = sessionStore.mfaProof;
+    if (token && preuveMfa) config.headers.set('X-MFA-Proof', preuveMfa);
     const activeOrgId = getActiveOrganizationId();
     if (activeOrgId && !config.headers.get('X-Organization-Id')) {
       config.headers.set('X-Organization-Id', activeOrgId);

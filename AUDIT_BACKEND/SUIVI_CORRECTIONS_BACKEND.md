@@ -19,7 +19,8 @@ constat reste ouvert ; **Ouvert** = code inchangé depuis l'audit.
 |---|---|---|
 | Lot 1 — Correctifs rapides | **Appliqué** (16/11/2026), tests `tests/auditLot1.test.mjs` | `fix/audit-lot1-correctifs-rapides` |
 | Lot 2 — Autorisation et isolation | **Appliqué** (16/11/2026), tests `tests/auditLot2.test.mjs` | `fix/audit-lot2-autorisations` |
-| Lots 3 à 6 | À faire | — |
+| Lot 3 — Authentification forte | **Appliqué** (16/11/2026), tests `tests/auditLot3.test.mjs`, `tests/e2e/auditLot3.e2e.test.mjs` | `fix/audit-lot3-authentification` |
+| Lots 4 à 6 | À faire | — |
 
 Les tableaux du §2 décrivent l'état **avant** le Lot 1 ; le détail du Lot 1 est au §4.
 
@@ -179,7 +180,18 @@ Plan initial du lot :
    Prérequis rempli (vérification d'e-mail opérationnelle).
 5. **M-01** — idempotence par `(key, scope, userId)` (migration).
 
-### Lot 3 — Authentification forte (≈ 4-5 j/p) — **bloquant ouverture au public**
+### Lot 3 — Authentification forte (≈ 4-5 j/p) — ✅ appliqué
+
+| Point | Statut | Ce qui a été fait |
+|---|---|---|
+| C-03 | **Corrigé** | Option « jeton applicatif » du plan : après un code TOTP valide (connexion, `mfa/verify`, `mfa/confirm`), l'API délivre `mfaProof`, preuve HMAC liée à l'utilisateur, au `session_id` Supabase et à une échéance (12 h). `requireMfa` / `requireSuperAdmin` l'exigent en `X-MFA-Proof` ; sinon 403 `details.stepUp`. Un jeton obtenu directement auprès de Supabase est refusé (prouvé en e2e). Web et mobile conservent et renvoient la preuve. Ni migration, ni ré-enrôlement. **Reste** : activer la protection anti-force brute / CAPTCHA dans Supabase Auth (tableau de bord). |
+| H-04 | **Corrigé** | `POST /me/password` : mot de passe actuel vérifié (422 si faux, session conservée), code MFA si active, autres sessions révoquées (`scope=others`), audit. |
+| M-02 | **Partiel** | `authLimiter` sur `mfa/confirm`, `mfa/verify`, `mfa/disable`, `verify-phone`, `send-otp`. **Reporté au Lot 5** : mémoriser le dernier pas TOTP (anti-rejeu), qui impose de revoir 24 usages de codes dans 8 recettes. |
+| M-12 | **Sans changement** | Un code MFA faux est déjà décompté comme échec de connexion. La réponse « code requis » après un mot de passe correct est inhérente à la connexion en deux temps. |
+| H-05 | **Corrigé** | `mfaEnabled` n'est plus accepté du client (recopié du compte) ; `assertInvestorReady` lit la MFA réelle du compte et exige la preuve de session ; appliqué à la demande d'accès, à la liste et à l'ouverture des documents de data room (hors porteur, vérificateur, administrateur) et au tableau de bord investisseur. |
+| Correctif annexe | **Corrigé** | `admin.signOut(jeton)` utilise par défaut la portée `global` : la vérification du mot de passe courant (RG-G3) déconnectait l'acteur partout. Portée `local` désormais. |
+
+Plan initial du lot :
 
 1. **H-04** — changement de mot de passe : mot de passe actuel + MFA si active, révocation des
    autres sessions.

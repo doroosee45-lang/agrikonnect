@@ -356,6 +356,16 @@ export const login = async ({ identifier, password, mfaCode }, req) => {
     req,
   });
 
+  /*
+   * Audit C-03 — le second facteur vient d'être vérifié POUR CETTE SESSION :
+   * preuve liée à son `session_id`, à renvoyer en `X-MFA-Proof`.
+   */
+  let mfaProof = null;
+  if (enrolled?.confirmedAt) {
+    const { emettrePreuveMfa, sessionIdDuJeton } = await import('./mfaProof.js');
+    mfaProof = emettrePreuveMfa({ userId, sessionId: sessionIdDuJeton(data.session.access_token) });
+  }
+
   return {
     user: publicUser(profile, profile.memberships),
     session: {
@@ -363,6 +373,7 @@ export const login = async ({ identifier, password, mfaCode }, req) => {
       refreshToken: data.session.refresh_token,
       expiresIn: data.session.expires_in,
       tokenType: data.session.token_type,
+      ...(mfaProof ? { mfaProof } : {}),
     },
   };
 };

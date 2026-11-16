@@ -6,6 +6,7 @@
  */
 import { ApiError } from '../shared/errors/ApiError.js';
 import { can } from '../shared/permissions.js';
+import { sessionIdDuJeton, verifierPreuveMfa } from '../modules/auth/mfaProof.js';
 
 /**
  * Couche 2 du modèle d'autorisation : permission requise (CDC A.2).
@@ -56,6 +57,25 @@ export const requireMfa = (req, _res, next) => {
       ApiError.forbidden(
         'Second facteur (MFA) requis pour cette action — active la double authentification depuis ton profil.',
         { mfaRequired: true, method: 'totp' },
+      ),
+    );
+  }
+  /*
+   * Audit C-03 — le drapeau du profil ne suffit plus : la SESSION courante doit
+   * avoir franchi le second facteur auprès de l'API (preuve signée, liée au
+   * `session_id`). Un jeton obtenu directement auprès de Supabase n'en a pas.
+   * `stepUp: true` : le client redemande un code (`POST /auth/mfa/verify`).
+   */
+  const sessionValidee = verifierPreuveMfa({
+    preuve: req.headers?.['x-mfa-proof'],
+    userId: req.user?.id,
+    sessionId: sessionIdDuJeton(req.token),
+  });
+  if (!sessionValidee) {
+    return next(
+      ApiError.forbidden(
+        'Confirme ton code de double authentification pour cette session avant cette action.',
+        { mfaRequired: true, stepUp: true, method: 'totp' },
       ),
     );
   }

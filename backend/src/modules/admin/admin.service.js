@@ -705,7 +705,8 @@ const verifyCurrentPassword = async (email, password) => {
   if (error || !data?.session) {
     throw ApiError.unauthorized('Mot de passe courant incorrect (RG-G3)');
   }
-  await supabase.auth.admin.signOut(data.session.access_token).catch(() => {});
+  // Portée `local` : ne fermer QUE la session de contrôle (le défaut `global` déconnecterait l'acteur partout).
+  await supabase.auth.admin.signOut(data.session.access_token, 'local').catch(() => {});
 };
 
 /**

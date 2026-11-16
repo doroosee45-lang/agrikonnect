@@ -7,7 +7,7 @@ import { assertInvestorReady } from '../investors/investors.service.js';
  * aucun chiffre d'attractivité n'est inventé.
  */
 export const overview = async (req) => {
-  const profile = await assertInvestorReady(req.user.id);
+  const profile = await assertInvestorReady(req.user.id, req); // Audit H-05 / C-03
 
   const [published, grants, followUps, reports] = await Promise.all([
     prisma.project.findMany({
