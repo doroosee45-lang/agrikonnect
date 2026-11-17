@@ -115,7 +115,7 @@ export default function Marketplace() {
               />
               <Button
                 label={t('ui.demandesDAchat')}
-                onPress={() => router.push('/demandes')}
+                onPress={() => router.push('/requests')}
                 variant="ghost"
                 size="sm"
                 icon="pricetag-outline"

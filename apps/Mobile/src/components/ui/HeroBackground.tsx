@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
@@ -31,14 +32,16 @@ const ORBS: OrbConfig[] = [
 function Orb({ size, top, left, color, duration, drift }: OrbConfig) {
   const progress = useSharedValue(0);
 
-  progress.value = withRepeat(
-    withSequence(
-      withTiming(1, { duration, easing: Easing.inOut(Easing.quad) }),
-      withTiming(0, { duration, easing: Easing.inOut(Easing.quad) }),
-    ),
-    -1,
-    false,
-  );
+  useEffect(() => {
+    progress.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+  }, [duration, progress]);
 
   const style = useAnimatedStyle(() => ({
     transform: [
