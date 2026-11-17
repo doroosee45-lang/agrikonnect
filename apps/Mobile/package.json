@@ -4,11 +4,11 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start --go",
-    "start:dev-client": "expo start --dev-client",
     "android": "expo start --go --android",
     "ios": "expo start --go --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.mts",
     "bundle:android": "expo export --platform android",
     "bundle:web": "expo export --platform web",
     "verify": "npm run typecheck && npm run bundle:web"
