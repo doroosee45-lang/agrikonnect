@@ -14,6 +14,8 @@ import Animated, {
 import { DURATION, EASE, REVEAL, STAGGER } from '@/theme/motion';
 import { useMouvementReducit } from '@/hooks/useMouvementReducit';
 
+import { decisionReveal, estVisible } from './revealDecision';
+
 /**
  * Révélation au défilement.
  *
@@ -86,23 +88,39 @@ export function Reveal({
   const distanceReelle = mouvementReduit ? 0 : distance;
   const dureeReelle = mouvementReduit ? 150 : DURATION.reveal;
 
+  /*
+   * `misEnPage` est incrémenté par `onLayout` : il relance la mesure une fois
+   * la vue réellement mise en page. Sans lui, la mesure du montage échoue
+   * (vue pas encore calculée) et, sur une page qui ne défile pas, l'élément
+   * restait invisible pour toujours.
+   */
+  const misEnPage = useSharedValue(0);
+  // Animation d'apparition déjà lancée : ne pas la relancer à chaque image de défilement.
+  const lance = useSharedValue(false);
+
   useAnimatedReaction(
     () => {
       if (!scrollY) return null;
+      // Lues AVANT la mesure : défilement et mise en page relancent la réaction.
+      const scrollPosition = scrollY.value;
+      const layout = misEnPage.value;
+      if (layout === 0) return null; // pas encore mis en page : mesure impossible, sans avertissement
       const box = measure(ref);
       if (!box) return null;
-      // La valeur du scroll fait partie du résultat pour que la mesure soit
-      // recalculée à chaque défilement. Sans elle, seuls les éléments visibles
-      // au premier rendu déclenchent leur animation ; le reste reste invisible.
-      const scrollPosition = scrollY.value;
-      const visible = box.pageY < viewportHeight * (1 - threshold) && box.pageY + box.height > 0;
-      return { visible, scrollPosition };
+      return { visible: estVisible(box, viewportHeight, threshold), scrollPosition, layout };
     },
     (state, previous) => {
       if (state === null) return;
-      if (state.visible && progress.value !== 1) {
+      const action = decisionReveal(state.visible, {
+        lance: lance.value,
+        repeter: repeat,
+        etaitVisible: previous?.visible === true,
+      });
+      if (action === 'show') {
+        lance.value = true;
         progress.value = withDelay(stagger, withTiming(1, { duration: dureeReelle, easing: EASE.emphasize }));
-      } else if (!state.visible && repeat && previous?.visible) {
+      } else if (action === 'hide') {
+        lance.value = false;
         progress.value = withTiming(0, { duration: DURATION.fast, easing: EASE.standard });
       }
     },
@@ -137,7 +155,15 @@ export function Reveal({
   }
 
   return (
-    <Animated.View ref={ref} style={[style, animatedStyle]}>
+    <Animated.View
+      ref={ref}
+      style={[style, animatedStyle]}
+      // Android : sans cela la vue peut être aplatie et devenir impossible à mesurer.
+      collapsable={false}
+      onLayout={() => {
+        misEnPage.value = misEnPage.value + 1;
+      }}
+    >
       {children}
     </Animated.View>
   );

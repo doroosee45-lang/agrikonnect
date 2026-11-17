@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Platform, Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   interpolate,
@@ -68,7 +68,9 @@ export function PressableScale({
       transform: [{ scale }, { translateY: withTiming(hoverLift * -2, { duration: DURATION.fast }) }],
       opacity: disabled ? 0.5 : 1,
     };
-  }, [scaleTo, disabled, liftOnHover]);
+    // Pas de tableau de dépendances : sur iOS/Android, Reanimated les déduit
+    // de la fermeture (scaleTo, disabled, liftOnHover) et avertit si on en passe.
+  });
 
   const handlePressIn = useCallback(
     (event: Parameters<NonNullable<PressableProps['onPressIn']>>[0]) => {
@@ -120,7 +122,9 @@ export function PressableScale({
 /** Voile d'appui : à poser par-dessus le contenu d'une carte pressable. */
 export function PressOverlay({ pressed }: { pressed: boolean }) {
   const opacity = useSharedValue(0);
-  opacity.value = withTiming(pressed ? PRESS.dim : 0, { duration: DURATION.instant });
+  useEffect(() => {
+    opacity.value = withTiming(pressed ? PRESS.dim : 0, { duration: DURATION.instant });
+  }, [pressed, opacity]);
   const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
   return (
     <Animated.View
