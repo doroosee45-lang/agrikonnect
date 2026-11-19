@@ -18,7 +18,20 @@ import { publicUser } from '../auth/auth.service.js';
  */
 const ROLES_PRODUCTION = ['FARMER', 'COOPERATIVE_ADMIN', 'COOPERATIVE_MEMBER', 'AGRICULTURAL_COMPANY'];
 
-const completenessCriteria = ({ profile, farms, plots, productions, roles = [] }) => {
+/**
+ * Rôles dont le métier consiste à intervenir PERSONNELLEMENT auprès d'autres
+ * acteurs (recommandation, vérification, analyse, accompagnement de terrain) :
+ * leur profil professionnel (poste, domaine, biographie) fonde la confiance
+ * qu'on leur accorde. Pour eux seuls, il compte dans la complétude.
+ *
+ * Les autres rôles n'en dépendent pas : producteurs (critères d'exploitation),
+ * acheteurs, fournisseurs et transporteurs (identifiés par leur organisation),
+ * investisseurs (profil investisseur dédié). Leur complétude reste inchangée.
+ */
+export const ROLES_PROFIL_PROFESSIONNEL = ['AGRONOMIST', 'VERIFIER', 'LAB_PARTNER', 'SUPPORT_AGENT'];
+
+/** Exportée pour les tests : critères applicables selon les rôles réellement détenus. */
+export const completenessCriteria = ({ profile, farms, plots, productions, roles = [] }) => {
   const criteres = [
   { key: 'identity', label: 'Nom et prénom renseignés', done: Boolean(profile.firstName && profile.lastName) },
   { key: 'phone_verified', label: 'Téléphone vérifié', done: Boolean(profile.phoneVerifiedAt) },
@@ -38,9 +51,13 @@ const completenessCriteria = ({ profile, farms, plots, productions, roles = [] }
   { key: 'production', label: 'Au moins une production déclarée', done: productions > 0 },
   ];
   const horsProduction = new Set(['farm', 'plot', 'production']);
-  return roles.some((r) => ROLES_PRODUCTION.includes(r))
-    ? criteres
-    : criteres.filter((c) => !horsProduction.has(c.key));
+  const producteur = roles.some((r) => ROLES_PRODUCTION.includes(r));
+  const intervenant = roles.some((r) => ROLES_PROFIL_PROFESSIONNEL.includes(r));
+  return criteres.filter((c) => {
+    if (horsProduction.has(c.key)) return producteur;
+    if (c.key === 'professional') return intervenant;
+    return true;
+  });
 };
 
 export const getMe = async (req) => {
