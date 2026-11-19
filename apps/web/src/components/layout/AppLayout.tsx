@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { IconeCloche } from '@/components/Icons';
 import { Sidebar, useBreakpoint } from '@/design-system';
+import { cn } from '@/design-system/lib/utils';
 import type { SidebarGroup, SidebarItem, SidebarStatusCard } from '@/design-system';
 import { getActiveOrganizationId, setActiveOrganizationId } from '@/lib/redirects';
 import { resolveEspace } from '@/lib/space-nav';
@@ -37,6 +38,41 @@ const ADMIN_NAV_PERMISSIONS: Record<string, readonly AdminNavPermission[]> = {
 
 interface AppLayoutProps {
   children: ReactNode;
+}
+
+const LARGEUR_PANNEAU = 272;
+const LARGEUR_TIROIR = 300;
+const ID_NAVIGATION = 'ak-navigation';
+const ID_NAVIGATION_MOBILE = 'ak-navigation-mobile';
+const CLE_PREFERENCE_PANNEAU = 'ak.navigation.ouverte';
+
+/** Préférence d'affichage du panneau sur ordinateur (masqué par défaut). */
+function lirePreferencePanneau(): boolean {
+  try {
+    return window.localStorage.getItem(CLE_PREFERENCE_PANNEAU) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function ecrirePreferencePanneau(ouvert: boolean): void {
+  try {
+    window.localStorage.setItem(CLE_PREFERENCE_PANNEAU, ouvert ? '1' : '0');
+  } catch {
+    // Stockage indisponible (navigation privée…) : le choix vaut pour la session.
+  }
+}
+
+/** Trois traits qui se changent en croix à l'ouverture. */
+function IconeHamburger({ ouvert }: { ouvert: boolean }) {
+  const trait = 'absolute left-0 h-[1.8px] w-full rounded-full bg-current transition-all duration-300 ease-out motion-reduce:transition-none';
+  return (
+    <span className="relative block h-[14px] w-[18px]" aria-hidden="true">
+      <span className={cn(trait, ouvert ? 'top-[6px] rotate-45' : 'top-0')} />
+      <span className={cn(trait, 'top-[6px]', ouvert ? 'opacity-0' : 'opacity-100')} />
+      <span className={cn(trait, ouvert ? 'top-[6px] -rotate-45' : 'top-[12px]')} />
+    </span>
+  );
 }
 
 function filtrerItemsAdmin(
@@ -109,10 +145,24 @@ export function AppLayout({ children }: AppLayoutProps) {
     return espaceBrut;
   }, [espaceBrut, location.pathname, estInvestisseur, isAuthentifie]);
 
-  const isMd = useBreakpoint('md');
+  /*
+   * Navigation : un seul bouton hamburger, toujours en haut à gauche.
+   * - Ordinateur (≥ 1024 px) : panneau en colonne, masqué par défaut ; à
+   *   l'ouverture il pousse le contenu (aucun chevauchement). Le choix est
+   *   mémorisé pour ce navigateur.
+   * - Mobile et tablette : tiroir par-dessus la page, depuis la gauche, avec
+   *   fond assombri ; fermé par ✕, clic sur le fond, Échap ou navigation.
+   */
   const isLg = useBreakpoint('lg');
   const [drawerOuvert, setDrawerOuvert] = useState(false);
-  const [railReplie, setRailReplie] = useState(false);
+  const [panneauOuvert, setPanneauOuvert] = useState<boolean>(() => lirePreferencePanneau());
+
+  const basculerPanneau = (ouvert: boolean) => {
+    setPanneauOuvert(ouvert);
+    ecrirePreferencePanneau(ouvert);
+  };
+  const navigationOuverte = isLg ? panneauOuvert : drawerOuvert;
+  const basculerNavigation = () => (isLg ? basculerPanneau(!panneauOuvert) : setDrawerOuvert((v) => !v));
   const [orgActive, setOrgActive] = useState<string>(
     () => getActiveOrganizationId() ?? user?.organizations?.[0]?.id ?? '',
   );
@@ -180,15 +230,22 @@ export function AppLayout({ children }: AppLayoutProps) {
     };
   }, [isAuthentifie, user, completeness, espace?.id, t]);
 
-  useEffect(() => setDrawerOuvert(false), [location.pathname]);
+  // Le tiroir se referme après chaque navigation, et quand l'écran passe en mode ordinateur.
+  useEffect(() => setDrawerOuvert(false), [location.pathname, isLg]);
 
+  // Tiroir ouvert : Échap le ferme, et la page derrière ne défile plus.
   useEffect(() => {
     if (!drawerOuvert) return undefined;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setDrawerOuvert(false);
     };
+    const overflowAvant = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = overflowAvant;
+      window.removeEventListener('keydown', onKey);
+    };
   }, [drawerOuvert]);
 
   if (!espace) {
@@ -213,38 +270,45 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex min-h-screen bg-fond">
-      {isMd ? (
-        <div className="sticky top-0 h-screen shrink-0 self-start">
-          <Sidebar
-            groupes={groupesEspace}
-            actif={location.pathname}
-            replie={!isLg || railReplie}
-            onBasculerRepli={isLg ? () => setRailReplie((valeur) => !valeur) : undefined}
-            statusCard={statusCard}
-          />
+      {isLg ? (
+        /*
+         * Colonne ordinateur : la largeur s'anime de 0 à 272 px, le contenu
+         * intérieur garde sa largeur fixe (pas de texte qui se recompose pendant
+         * l'animation). Fermée, elle est hors tabulation (`inert`).
+         */
+        <div
+          className="sticky top-0 h-screen shrink-0 self-start overflow-hidden transition-[width] duration-300 ease-out motion-reduce:transition-none"
+          style={{ width: panneauOuvert ? LARGEUR_PANNEAU : 0 }}
+          {...(!panneauOuvert ? { inert: true, 'aria-hidden': true } : {})}
+        >
+          <div className="h-full" style={{ width: LARGEUR_PANNEAU }}>
+            <Sidebar
+              id={ID_NAVIGATION}
+              groupes={groupesEspace}
+              actif={location.pathname}
+              statusCard={statusCard}
+              raccourciRecherche={panneauOuvert}
+            />
+          </div>
         </div>
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col bg-fond">
         <header
-          className="sticky top-0 z-40 flex items-center gap-3 border-b border-bordure bg-surface px-4 lg:px-6"
+          className="sticky top-0 z-40 flex items-center gap-2 border-b border-bordure bg-surface/95 px-3 backdrop-blur-sm sm:gap-3 sm:px-4 lg:px-6"
           style={{ height: 60 }}
         >
-          {!isMd ? (
-            <button
-              type="button"
-              className="flex h-9 w-9 items-center justify-center rounded-[9px] border border-bordure bg-surface text-texte shadow-2xs"
-              aria-label={t('ui.ouvrirLaNavigation')}
-              aria-expanded={drawerOuvert}
-              onClick={() => setDrawerOuvert(true)}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" aria-hidden="true">
-                <path d="M4 7 H20" />
-                <path d="M4 12 H20" />
-                <path d="M4 17 H20" />
-              </svg>
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border border-bordure bg-surface text-texte shadow-2xs transition-colors hover:bg-fond focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondaire/60"
+            aria-label={navigationOuverte ? t('ui.fermerLaNavigation') : t('ui.ouvrirLaNavigation')}
+            title={navigationOuverte ? t('ui.fermerLaNavigation') : t('ui.ouvrirLaNavigation')}
+            aria-expanded={navigationOuverte}
+            aria-controls={isLg ? ID_NAVIGATION : ID_NAVIGATION_MOBILE}
+            onClick={basculerNavigation}
+          >
+            <IconeHamburger ouvert={navigationOuverte} />
+          </button>
 
           <div className="flex min-w-0 items-center gap-2">
             {libellePage && libellePage !== espace.titre ? (
@@ -361,24 +425,43 @@ export function AppLayout({ children }: AppLayoutProps) {
         </main>
       </div>
 
-      {!isMd && drawerOuvert ? (
-        <div className="fixed inset-0 z-50 flex">
-          <button
-            type="button"
-            className="flex-1 border-0 bg-texte/40"
-            aria-label={t('ui.fermerLaNavigation')}
+      {!isLg ? (
+        /*
+         * Tiroir mobile / tablette : toujours monté pour animer l'entrée et la
+         * sortie. Fermé, il ne capte ni clic, ni tabulation, ni lecteur d'écran.
+         */
+        <div
+          className={cn('fixed inset-0 z-50', drawerOuvert ? 'pointer-events-auto' : 'pointer-events-none')}
+          role="dialog"
+          aria-modal={drawerOuvert || undefined}
+          aria-label={t('ui.menu')}
+          {...(!drawerOuvert ? { inert: true, 'aria-hidden': true } : {})}
+        >
+          <div
+            className={cn(
+              'absolute inset-0 bg-texte/45 backdrop-blur-[2px] transition-opacity duration-300 motion-reduce:transition-none',
+              drawerOuvert ? 'opacity-100' : 'opacity-0',
+            )}
             onClick={() => setDrawerOuvert(false)}
+            aria-hidden="true"
           />
-          <aside className="h-full w-[256px] max-w-[84vw] overflow-hidden shadow-xl">
+          <div
+            className={cn(
+              'absolute inset-y-0 left-0 h-full shadow-2xl transition-transform duration-300 ease-out motion-reduce:transition-none',
+              drawerOuvert ? 'translate-x-0' : '-translate-x-full',
+            )}
+            style={{ width: `min(${LARGEUR_TIROIR}px, 86vw)` }}
+          >
             <Sidebar
+              id={ID_NAVIGATION_MOBILE}
               groupes={groupesEspace}
               actif={location.pathname}
-              replie={false}
-              variante="drawer"
+              onFermer={() => setDrawerOuvert(false)}
               onNaviguer={() => setDrawerOuvert(false)}
               statusCard={statusCard}
+              raccourciRecherche={drawerOuvert}
             />
-          </aside>
+          </div>
         </div>
       ) : null}
     </div>

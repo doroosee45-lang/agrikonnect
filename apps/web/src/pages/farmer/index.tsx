@@ -27,19 +27,34 @@ import {
 } from '@/services';
 import { useAuthStore } from '@/store/auth';
 
+interface OnboardingStep {
+  key: string;
+  label?: string;
+  done: boolean;
+}
+
 interface Completeness {
   done: number;
   total: number;
   missing?: string[];
+  criteria?: OnboardingStep[];
 }
 
+/** Une tuile arrive sous la forme `{ value, unit, source… }` (dashboard.service.js). */
+type TileValue = number | { value?: number | null } | null | undefined;
+
 interface DashboardTiles {
-  totalAreaHa?: number;
-  plots?: number;
-  activeCrops?: number;
-  productionKg?: number;
-  profileViews?: number;
+  totalAreaHa?: TileValue;
+  plots?: TileValue;
+  activeCrops?: TileValue;
+  productionKg?: TileValue;
+  profileViews?: TileValue;
   profileCompleteness?: Completeness;
+}
+
+function tileNumber(tile: TileValue): number | undefined {
+  const raw = typeof tile === 'object' && tile !== null ? tile.value : tile;
+  return typeof raw === 'number' && Number.isFinite(raw) ? raw : undefined;
 }
 
 interface FarmerDashboardPayload {
@@ -52,7 +67,8 @@ interface FarmerDashboardPayload {
     totalAreaHa?: number | null;
     verificationStatus?: string | null;
   }>;
-  onboarding?: Array<{ key: string; label?: string; done: boolean }>;
+  /** Objet d'états vides côté API (`hasFarm`, `nextAction`…), pas une liste d'étapes. */
+  onboarding?: unknown;
 }
 
 /** Espace Producteur (/farmer) — Tableau de bord Horizon 100 % branche sur l'API reelle. */
@@ -95,10 +111,22 @@ export default function FarmerHome() {
     retry: false,
   });
 
-  const tiles = dashboard.data?.tiles ?? {};
-  const farms = dashboard.data?.farms ?? [];
-  const onboarding = dashboard.data?.onboarding ?? [];
-  const completeness = tiles.profileCompleteness;
+  const rawTiles = dashboard.data?.tiles ?? {};
+  const tiles = {
+    totalAreaHa: tileNumber(rawTiles.totalAreaHa),
+    plots: tileNumber(rawTiles.plots),
+    activeCrops: tileNumber(rawTiles.activeCrops),
+    productionKg: tileNumber(rawTiles.productionKg),
+    profileViews: tileNumber(rawTiles.profileViews),
+  };
+  const farms = Array.isArray(dashboard.data?.farms) ? dashboard.data.farms : [];
+  const completeness = rawTiles.profileCompleteness;
+  // Les étapes du parcours viennent des critères de complétude (key, label, done).
+  const onboarding: OnboardingStep[] = Array.isArray(completeness?.criteria)
+    ? completeness.criteria
+    : Array.isArray(dashboard.data?.onboarding)
+      ? (dashboard.data.onboarding as OnboardingStep[])
+      : [];
   const plots = plotsQuery.data ?? [];
   const productions = productionsQuery.data ?? [];
   const openAlerts = alertsQuery.data?.items ?? [];

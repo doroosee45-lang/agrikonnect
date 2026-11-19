@@ -1,13 +1,46 @@
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { createServer } from 'node:net';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, type UserConfig } from 'vite';
 
-export default defineConfig({
+/** Le port est-il libre sur cette adresse ? */
+function portLibreSur(port: number, host: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const sonde = createServer();
+    sonde.once('error', () => resolve(false));
+    sonde.once('listening', () => sonde.close(() => resolve(true)));
+    sonde.listen({ port, host, exclusive: true });
+  });
+}
+
+/**
+ * Premier port libre à partir de `depart`.
+ *
+ * Sous Windows, une autre application peut écouter sur `127.0.0.1:5173` pendant
+ * que Vite réserve `0.0.0.0:5173` sans erreur : `http://localhost:5173` ouvre
+ * alors l'AUTRE application. On teste donc les deux adresses avant de choisir.
+ */
+async function premierPortLibre(depart: number): Promise<number> {
+  for (let port = depart; port < depart + 50; port += 1) {
+    if ((await portLibreSur(port, '127.0.0.1')) && (await portLibreSur(port, '0.0.0.0'))) return port;
+  }
+  return depart;
+}
+
+export default defineConfig(async ({ command, isPreview }): Promise<UserConfig> => {
+  // Uniquement pour `vite` (dev) et `vite preview` : le build n'ouvre aucun port.
+  const serveur = command === 'serve';
+  const portDev = serveur && !isPreview ? await premierPortLibre(5173) : 5173;
+  const portPreview = isPreview ? await premierPortLibre(4173) : 4173;
+
+  return {
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  server: { host: '0.0.0.0', port: 5173, strictPort: false, allowedHosts: true },
-  preview: { host: '0.0.0.0', port: 4173, allowedHosts: true },
+  // `strictPort` : le port vient d'être vérifié libre ; s'il est pris entre-temps,
+  // mieux vaut une erreur claire qu'un glissement silencieux vers un port occupé.
+  server: { host: '0.0.0.0', port: portDev, strictPort: true, allowedHosts: true },
+  preview: { host: '0.0.0.0', port: portPreview, strictPort: true, allowedHosts: true },
   build: {
     outDir: 'dist',
     sourcemap: false,
@@ -30,4 +63,5 @@ export default defineConfig({
       },
     },
   },
+  };
 });
