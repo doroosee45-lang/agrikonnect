@@ -15,6 +15,12 @@ export const API_BASE_URL = pick(
   'http://localhost:4000/api/v1',
 );
 
+/**
+ * Doit refléter `REALTIME_ENABLED` du backend : quand Socket.IO n'est pas
+ * monté côté serveur, toute tentative finit en 404 (boucle de reconnexions).
+ */
+export const REALTIME_ENABLED = import.meta.env.VITE_REALTIME_ENABLED?.trim() !== 'false';
+
 export const REALTIME_URL = pick(
   import.meta.env.VITE_REALTIME_URL,
   'http://localhost:4000',
