@@ -30,6 +30,9 @@ const INVEST = ['INVESTOR', 'VERIFIER', ...ADMIN_ROLES];
 /** V5 — gouvernance */
 const COUNTRY_SCOPE = ['COUNTRY_ADMIN', ...ADMIN_ROLES];
 
+/** ACADEMIA — administration du domaine (sans les privilèges SUPER_ADMIN). */
+const ACADEMIA_GOVERNANCE = ['ACADEMIA_ADMIN', ...ADMIN_ROLES];
+
 export const PERMISSIONS = {
   // ─── V1 — référentiels & identité ───────────────────────────
   'crops.read': EVERYONE,
@@ -254,6 +257,18 @@ export const PERMISSIONS = {
   'admin.flags': ['SUPER_ADMIN'],
   // Maintenance : purges, comptes orphelins, verrous (RG-G5).
   'admin.maintenance': ['SUPER_ADMIN'],
+
+  // ─── ACADEMIA (CDC-ACADEMIA-01) ─────────────────────────────
+  // Les rôles académiques sont CONTEXTUELS : `authorize` ne fait que filtrer
+  // l'entrée ; le service vérifie ensuite que le rôle est porté dans
+  // l'établissement concerné (voir academia.policy.js#rolesDans).
+  'academia.read': EVERYONE,
+  'academia.write': EVERYONE,
+  'affiliations.request': EVERYONE,
+  'affiliations.review': ['UNIVERSITY_ADMIN', ...ACADEMIA_GOVERNANCE],
+  'institutions.write': ['UNIVERSITY_ADMIN', ...ACADEMIA_GOVERNANCE],
+  'institutions.create': ACADEMIA_GOVERNANCE,
+  'academia.admin': ACADEMIA_GOVERNANCE,
 };
 
 /**
@@ -284,6 +299,7 @@ export const GOVERNANCE_ROLES = [
   'DATA_STEWARD',
   'VERIFIER',
   'LAB_PARTNER',
+  'ACADEMIA_ADMIN',
 ];
 
 /**
@@ -301,6 +317,12 @@ export const PLATFORM_ROLES = [...GOVERNANCE_ROLES, 'AGRONOMIST'];
  * (agronome, agent d'appui), attribués après vérification de la personne.
  */
 export const ASSIGNABLE_ROLES = [...GOVERNANCE_ROLES, 'AGRONOMIST', 'SUPPORT_AGENT'];
+
+/** ACADEMIA — rôles contextuels accordés par une affiliation VERIFIED. */
+export const ACADEMIC_AFFILIATION_ROLES = ['STUDENT', 'PROFESSOR', 'RESEARCHER', 'LIBRARIAN'];
+
+/** ACADEMIA — types d'organisation « établissement ». */
+export const ACADEMIC_ORG_TYPES = ['UNIVERSITY', 'RESEARCH_CENTER'];
 
 
 

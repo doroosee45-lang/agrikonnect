@@ -42,6 +42,15 @@ enum Role {
   // V5 — administration par pays et gouvernance des données
   COUNTRY_ADMIN
   DATA_STEWARD
+  // ACADEMIA (CDC-ACADEMIA-01 §2.3) — rôles CONTEXTUELS : portés par le
+  // Membership de l'établissement, accordés seulement par une affiliation VERIFIED.
+  STUDENT
+  PROFESSOR
+  RESEARCHER
+  UNIVERSITY_ADMIN
+  LIBRARIAN
+  // ACADEMIA §11.4 — rôle de plateforme, sans les privilèges SUPER_ADMIN.
+  ACADEMIA_ADMIN
 }
 
 /// Tenant = Organisation (CDC §3.4 / A.3)
@@ -49,6 +58,9 @@ enum OrgType {
   INDIVIDUAL
   COOPERATIVE
   COMPANY
+  // ACADEMIA — établissements (détails dans academic_institutions)
+  UNIVERSITY
+  RESEARCH_CENTER
 }
 
 /// CDC §2 P2 — provenance de la donnée
@@ -195,6 +207,10 @@ model Profile {
   callParticipations CallParticipant[]
   pushDevices        PushDevice[]
 
+  // ACADEMIA
+  academicProfile      AcademicProfile?
+  academicAffiliations AcademicAffiliation[]
+
   @@index([countryCode])
   @@map("profiles")
 }
@@ -235,6 +251,10 @@ model Organization {
   agronomicRanges  CropAgronomicRange[]
 
   callParticipants CallParticipant[]
+
+  // ACADEMIA — extension 1-1 (comme Cooperative) et affiliations reçues
+  academicInstitution  AcademicInstitution?
+  academicAffiliations AcademicAffiliation[]
 
   @@index([type])
   @@index([countryCode])
@@ -360,7 +380,7 @@ model SettingRevision {
   key           String
   previousValue Json?    @map("previous_value")
   newValue      Json?    @map("new_value")
-  changedBy     String?  @db.Uuid @map("changed_by")
+  changedBy     String?  @map("changed_by") @db.Uuid
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@index([key, createdAt])
@@ -3267,4 +3287,161 @@ model PushDevice {
   @@index([userId, revokedAt])
   @@index([installationId])
   @@map("push_devices")
+}
+
+// =============================================================
+// AGRIKONNECT ACADEMIA — lot L1 « Fondations » (CDC-ACADEMIA-01)
+// Une université EST une Organization (type UNIVERSITY / RESEARCH_CENTER) ;
+// une personne EST un Profile. Ces tables ne dupliquent ni l'une ni l'autre :
+// elles portent seulement ce qui est propre au domaine académique.
+// Les droits restent ceux de Membership.roles (rôles par organisation) ;
+// une affiliation VERIFIED est la SEULE voie qui y ajoute un rôle académique.
+// Voir backend/docs/ACADEMIA-01-AUDIT-ET-PLAN.md.
+// =============================================================
+
+enum AcademicInstitutionKind {
+  UNIVERSITY
+  INSTITUTE
+  SCHOOL
+  RESEARCH_CENTER
+}
+
+enum AcademicUnitKind {
+  FACULTY
+  DEPARTMENT
+  LABORATORY
+  RESEARCH_CENTER
+}
+
+/// CDC-ACADEMIA-01 §2.4
+enum AcademicAffiliationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  SUSPENDED
+  ENDED
+}
+
+enum AcademicProfileVisibility {
+  PUBLIC
+  MEMBERS
+  PRIVATE
+}
+
+enum AcademicContactPolicy {
+  EVERYONE
+  VERIFIED_MEMBERS
+  NOBODY
+}
+
+/// Fiche institutionnelle : extension 1-1 d'une Organization (nom, slug,
+/// description et pays restent sur l'organisation — aucun doublon).
+model AcademicInstitution {
+  id             String                  @id
+  organizationId String                  @unique @map("organization_id")
+  kind           AcademicInstitutionKind @default(UNIVERSITY)
+  shortName      String?                 @map("short_name")
+  website        String?
+  /// Coordonnées INSTITUTIONNELLES publiques (jamais celles d'une personne).
+  contactEmail   String?                 @map("contact_email")
+  contactPhone   String?                 @map("contact_phone")
+  address        String?
+  city           String?
+  latitude       Float?
+  longitude      Float?
+  logoUrl        String?                 @map("logo_url")
+  disciplines    String[]                @default([])
+  /// Fiche visible dans l'annuaire public.
+  isPublished    Boolean                 @default(true) @map("is_published")
+  createdBy      String?                 @map("created_by") @db.Uuid
+  createdAt      DateTime                @default(now()) @map("created_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
+  deletedAt      DateTime?               @map("deleted_at")
+
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  units        AcademicUnit[]
+
+  @@index([kind])
+  @@index([city])
+  @@index([latitude, longitude])
+  @@map("academic_institutions")
+}
+
+/// Facultés, départements, laboratoires internes à un établissement.
+model AcademicUnit {
+  id            String           @id
+  institutionId String           @map("institution_id")
+  parentId      String?          @map("parent_id")
+  kind          AcademicUnitKind
+  name          String
+  code          String?
+  description   String?
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  deletedAt     DateTime?        @map("deleted_at")
+
+  institution  AcademicInstitution   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  parent       AcademicUnit?         @relation("AcademicUnitTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     AcademicUnit[]        @relation("AcademicUnitTree")
+  affiliations AcademicAffiliation[]
+
+  @@index([institutionId, kind])
+  @@index([parentId])
+  @@map("academic_units")
+}
+
+/// Profil académique d'un compte (un seul compte par personne).
+model AcademicProfile {
+  id            String                    @id
+  userId        String                    @unique @map("user_id") @db.Uuid
+  headline      String?
+  bio           String?
+  disciplines   String[]                  @default([])
+  researchAreas String[]                  @default([]) @map("research_areas")
+  interests     String[]                  @default([])
+  /// [{ label, url }] — liens académiques externes déclarés (non vérifiés).
+  externalLinks Json?                     @map("external_links")
+  visibility    AcademicProfileVisibility @default(PUBLIC)
+  contactPolicy AcademicContactPolicy     @default(VERIFIED_MEMBERS) @map("contact_policy")
+  createdAt     DateTime                  @default(now()) @map("created_at")
+  updatedAt     DateTime                  @updatedAt @map("updated_at")
+  deletedAt     DateTime?                 @map("deleted_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([visibility])
+  @@map("academic_profiles")
+}
+
+/// Affiliation personne ↔ établissement (CDC §2.4). Seul le passage à
+/// VERIFIED ajoute `role` au Membership de l'établissement ; SUSPENDED et
+/// ENDED le retirent.
+model AcademicAffiliation {
+  id             String                    @id
+  userId         String                    @map("user_id") @db.Uuid
+  organizationId String                    @map("organization_id")
+  unitId         String?                   @map("unit_id")
+  /// Rôle demandé : STUDENT, PROFESSOR, RESEARCHER ou LIBRARIAN.
+  role           Role
+  status         AcademicAffiliationStatus @default(PENDING)
+  studyLevel     String?                   @map("study_level")
+  program        String?
+  academicYear   String?                   @map("academic_year")
+  /// Fonction déclarée (enseignant, chercheur…) — non vérifiée.
+  position       String?
+  message        String?
+  decisionReason String?                   @map("decision_reason")
+  decidedBy      String?                   @map("decided_by") @db.Uuid
+  decidedAt      DateTime?                 @map("decided_at")
+  createdAt      DateTime                  @default(now()) @map("created_at")
+  updatedAt      DateTime                  @updatedAt @map("updated_at")
+
+  user         Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  unit         AcademicUnit? @relation(fields: [unitId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, createdAt])
+  @@index([userId, status])
+  @@index([unitId])
+  @@map("academic_affiliations")
 }

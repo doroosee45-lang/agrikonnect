@@ -121,6 +121,11 @@ export const SETTINGS_CATALOG = {
       'Appels audio — coupure rapide sans redéploiement. Sans effet si CALLS_ENABLED=false ou si LiveKit '
       + 'n\'est pas configuré : le module n\'est actif que si les trois conditions sont réunies.',
   },
+  'modules.academia': {
+    section: 'modules', type: 'boolean', default: false,
+    requiresRestart: false,
+    description: 'Module AGRIKONNECT ACADEMIA (universités, affiliations, bibliothèque) — désactivé jusqu\'à la recette',
+  },
 
   // ── limits (palier 1) ─────────────────────────────────────────────────
   'limits.apiQuotaPerDay': {
