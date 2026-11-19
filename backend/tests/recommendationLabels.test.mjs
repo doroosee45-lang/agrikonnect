@@ -88,7 +88,8 @@ test('écran 2 — le texte du rappel n’est recopié sur aucun client', async 
    * texte qui empêche de lire un score comme une promesse de rendement.
    */
   const service = await lire('backend/src/modules/recommendation/recommendation.service.js');
-  const notice = service.match(/export const SCORE_NOTICE =\s*([\s\S]*?);\n/);
+  // `\r?\n` : sous Windows, git extrait le fichier en CRLF (core.autocrlf).
+  const notice = service.match(/export const SCORE_NOTICE =\s*([\s\S]*?);\r?\n/);
   assert.ok(notice, 'SCORE_NOTICE introuvable dans le service');
 
   // Un fragment stable du rappel, suffisant pour détecter une recopie.
