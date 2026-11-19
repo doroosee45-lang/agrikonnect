@@ -126,6 +126,11 @@ services:
         value: https://agrikonnect-api.onrender.com/api/v1
       - key: VITE_REALTIME_URL
         value: https://agrikonnect-api.onrender.com
+      # Miroir de REALTIME_ENABLED de l'API (ci-dessus, "false") : sans Socket.IO
+      # côté serveur, le site ne tente aucune connexion (évite les 404 en boucle).
+      # Repasser les DEUX à "true" ensemble.
+      - key: VITE_REALTIME_ENABLED
+        value: "false"
     routes:
       # Application monopage : toute route inconnue sert index.html.
       - type: rewrite

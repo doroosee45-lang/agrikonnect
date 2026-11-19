@@ -28,6 +28,12 @@ function origineDe(url: string): string {
   }
 }
 
+/**
+ * Doit refléter `REALTIME_ENABLED` du backend : quand Socket.IO n'est pas
+ * monté côté serveur, toute tentative finit en 404 (boucle de reconnexions).
+ */
+export const REALTIME_ENABLED = import.meta.env.VITE_REALTIME_ENABLED?.trim() !== 'false';
+
 export const REALTIME_URL = pick(
   import.meta.env.VITE_REALTIME_URL,
   origineDe(API_BASE_URL),

@@ -1,6 +1,6 @@
 import { io, type Socket } from 'socket.io-client';
 
-import { REALTIME_URL } from '@/lib/config';
+import { REALTIME_ENABLED, REALTIME_PATH, REALTIME_URL } from '@/lib/config';
 import { queryClient, queryKeys } from '@/services/query';
 
 import { sessionStore } from './session';
@@ -27,6 +27,13 @@ type Listener = (payload: RealtimeEvent) => void;
 
 let socket: Socket | null = null;
 const listeners = new Map<string, Set<Listener>>();
+
+/**
+ * Serveur temps réel injoignable (toutes les reconnexions ont échoué, ex. 404
+ * quand Socket.IO n'est pas monté) : on n'insiste plus jusqu'au rechargement
+ * de la page. L'application continue de fonctionner via l'API (React Query).
+ */
+let indisponible = false;
 
 export const REALTIME_EVENTS = [
   'ready',
@@ -55,6 +62,7 @@ export const realtime = {
 
   /** Connexion idempotente : appelée après le login et au retour au premier plan. */
   connect(): void {
+    if (!REALTIME_ENABLED || indisponible) return;
     const token = sessionStore.accessToken;
     if (!token || socket?.connected) return;
 
@@ -65,13 +73,18 @@ export const realtime = {
     }
 
     socket = io(REALTIME_URL, {
-      path: '/realtime',
+      path: REALTIME_PATH,
       auth: { token },
       transports: ['websocket'],
       reconnection: true,
-      reconnectionAttempts: 8,
+      reconnectionAttempts: 4,
       reconnectionDelay: 1_500,
       reconnectionDelayMax: 15_000,
+    });
+
+    socket.io.on('reconnect_failed', () => {
+      indisponible = true;
+      realtime.disconnect();
     });
 
     // Un événement serveur invalide le cache concerné : l'UI recharge la donnée

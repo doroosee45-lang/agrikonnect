@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 import { env } from './config/env.js';
+import { isOriginAllowed } from './config/cors.js';
 import routes from './routes/index.js';
 import { settingsEffects } from './middleware/settingsEffects.js';
 
@@ -44,8 +45,9 @@ export const createApp = () => {
   app.use(
     cors({
       origin(origin, callback) {
-        // Requêtes sans Origin (Postman, server-to-server) : autorisées.
-        if (!origin || env.corsOrigins.includes('*') || env.corsOrigins.includes(origin)) {
+        // Sans Origin (Postman, server-to-server), liste CORS_ORIGIN, ou — en
+        // développement seulement — origine locale sur n'importe quel port.
+        if (isOriginAllowed(origin)) {
           return callback(null, true);
         }
         // F-11 : un refus CORS est un 403, pas une erreur serveur (500).

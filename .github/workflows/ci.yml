@@ -1,0 +1,137 @@
+name: CI — tests complets (backend, web, mobile)
+
+# Exécute la suite complète sur une base PostgreSQL ÉPHÉMÈRE démarrée par les
+# tests eux-mêmes (embedded-postgres). Aucun secret n'est utilisé : ce
+# workflow ne peut atteindre ni la base de production ni Supabase.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — migrations, npm test, sécurité
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # Valeurs factices : uniquement des adresses locales. Les tests
+      # d'intégration démarrent leur propre PostgreSQL (tests/e2e/support/harness.mjs).
+      DATABASE_URL: postgresql://agrikon:test@127.0.0.1:54321/test
+      DIRECT_URL: postgresql://agrikon:test@127.0.0.1:54321/test
+      SUPABASE_URL: http://127.0.0.1:54321
+      SUPABASE_ANON_KEY: cle-anon-de-test
+      # Factice : certains tests (adminUsers) exigent sa PRÉSENCE ; le GoTrue
+      # simulé ne la vérifie pas. Ce n'est pas une clé Supabase réelle.
+      SUPABASE_SERVICE_ROLE_KEY: cle-service-de-test
+      SETTINGS_SECRET_KEY: cle-de-chiffrement-de-test-ci-0123456789abcdef
+      SMS_PROVIDER: console
+      EMAIL_PROVIDER: console
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Garde-fou — aucune base distante
+        run: |
+          for var in DATABASE_URL DIRECT_URL SUPABASE_URL; do
+            valeur="${!var}"
+            case "$valeur" in
+              *127.0.0.1*|*localhost*) echo "$var : locale" ;;
+              *) echo "::error::$var ne pointe pas vers une base locale"; exit 1 ;;
+            esac
+          done
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Générer le client Prisma
+        run: npx prisma generate
+
+      - name: Migrations — chaîne complète, RLS, privilèges, drift
+        run: npm run check:migrations
+
+      - name: Suite complète (npm test — unitaires et intégration PostgreSQL)
+        run: npm test
+
+      - name: Sécurité et isolation (e2e absents de npm test)
+        run: >
+          node --test --test-concurrency=1 --test-force-exit --test-timeout=600000
+          tests/e2e/auditLot3.e2e.test.mjs
+          tests/e2e/calls.e2e.test.mjs
+          tests/e2e/push.e2e.test.mjs
+
+  web:
+    name: Web — typecheck, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests (Vitest)
+        run: npm test
+
+      - name: Build de production
+        run: npx vite build
+
+  mobile:
+    name: Mobile — typecheck et tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/Mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/Mobile/package-lock.json
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
