@@ -74,6 +74,7 @@ const AppMessages = lazy(() => import('@/pages/app/Messages'));
 const AppConversation = lazy(() => import('@/pages/app/Conversation'));
 const AppNotifications = lazy(() => import('@/pages/app/Notifications'));
 const AppSmsConsent = lazy(() => import('@/pages/app/SmsConsent'));
+const AppNotificationPreferences = lazy(() => import('@/pages/app/NotificationPreferences'));
 const AppSeasonFeedback = lazy(() => import('@/pages/app/SeasonFeedback'));
 const AppProfile = lazy(() => import('@/pages/app/Profile'));
 const AppVerification = lazy(() => import('@/pages/app/Verification'));
@@ -147,6 +148,7 @@ const InternationalDocuments = lazy(() => import('@/pages/international/Document
 
 const InvestmentHome = lazy(() => import('@/pages/investment/index'));
 const InvestmentProfile = lazy(() => import('@/pages/investment/Profile'));
+const InvestmentSettings = lazy(() => import('@/pages/investment/Settings'));
 const InvestmentFollowedProjects = lazy(() => import('@/pages/investment/FollowedProjects'));
 const InvestmentRequests = lazy(() => import('@/pages/investment/Requests'));
 const InvestmentProjectDetail = lazy(() => import('@/pages/investment/ProjectDetail'));
@@ -164,6 +166,7 @@ const MarketApp = lazy(() => import('@/pages/market/MarketApp'));
 const OrganizationHome = lazy(() => import('@/pages/organization/index'));
 const OrganizationOverview = lazy(() => import('@/pages/organization/Overview'));
 const OrganizationProfile = lazy(() => import('@/pages/organization/Profile'));
+const OrganizationSettings = lazy(() => import('@/pages/organization/Settings'));
 const OrganizationMembers = lazy(() => import('@/pages/organization/Members'));
 const OrganizationInvitations = lazy(() => import('@/pages/organization/Invitations'));
 const OrganizationMemberImport = lazy(() => import('@/pages/organization/MemberImport'));
@@ -193,6 +196,8 @@ const PublicLegal = lazy(() => import('@/pages/public/Legal'));
 
 const ReviewerMissions = lazy(() => import('@/pages/reviewer/Missions'));
 const ReviewerChecklist = lazy(() => import('@/pages/reviewer/Checklist'));
+const ProfessionalProfile = lazy(() => import('@/pages/professional/Profile'));
+const ProfessionalSettings = lazy(() => import('@/pages/professional/Settings'));
 
 const CropPrices = lazy(() => import('@/pages/CropPrices'));
 const Prices = lazy(() => import('@/pages/Prices'));
@@ -322,6 +327,8 @@ function App() {
             <Route path="/app/messages/:id" element={<AppConversation />} />
             <Route path="/app/notifications" element={<AppNotifications />} />
             <Route path="/app/sms-consent" element={<AppSmsConsent />} />
+            <Route path="/notifications/preferences" element={<AppNotificationPreferences />} />
+            <Route path="/notifications/sms-consent" element={<Navigate to="/app/sms-consent" replace />} />
             <Route path="/app/season-feedback" element={<AppSeasonFeedback />} />
             <Route path="/app/profile" element={<AppProfile />} />
             <Route path="/app/verification" element={<AppVerification />} />
@@ -391,6 +398,7 @@ function App() {
             {/* Investment routes */}
             <Route path="/investment" element={<InvestmentHome />} />
             <Route path="/investment/profile" element={<InvestmentProfile />} />
+            <Route path="/investment/settings" element={<InvestmentSettings />} />
             <Route path="/investment/projects" element={<InvestmentFollowedProjects />} />
             <Route path="/investment/projects/:id" element={<InvestmentProjectDetail />} />
             <Route path="/investment/requests" element={<InvestmentRequests />} />
@@ -411,6 +419,9 @@ function App() {
             <Route path="/organization" element={<OrganizationHome />} />
             <Route path="/organization/overview" element={<OrganizationOverview />} />
             <Route path="/organization/profile" element={<OrganizationProfile />} />
+            <Route path="/organization/:id/profile" element={<OrganizationProfile />} />
+            <Route path="/organization/settings" element={<OrganizationSettings />} />
+            <Route path="/organization/:id/settings" element={<OrganizationSettings />} />
             <Route path="/organization/members" element={<OrganizationMembers />} />
             <Route path="/organization/invitations" element={<OrganizationInvitations />} />
             <Route path="/organization/import" element={<OrganizationMemberImport />} />
@@ -421,6 +432,8 @@ function App() {
             {/* Reviewer routes */}
             <Route path="/reviewer/missions" element={<ReviewerMissions />} />
             <Route path="/reviewer/missions/:id" element={<ReviewerChecklist />} />
+            <Route path="/professional/profile" element={<ProfessionalProfile />} />
+            <Route path="/professional/settings" element={<ProfessionalSettings />} />
 
             {/* Standalone data routes */}
             <Route path="/prices" element={<Prices />} />

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { IconeCarte, IconeCloche, IconeFeuille, IconeHorloge, IconePlant, IconeSonde } from '@/components/Icons';
 import { COLORS, DURATION, EASE, LAYOUT } from '@/theme';
 import { useAuthStore } from '@/store/auth';
-import { getUserInitialRoute } from '@/lib/redirects';
+import { getProfileRoute, getUserInitialRoute } from '@/lib/redirects';
 import { useI18n, tr } from '@/i18n';
 
 const NAV = [
@@ -39,6 +39,7 @@ export function Header() {
   const destinationEspace = user
     ? getUserInitialRoute({ user, permissions }).route
     : '/app/profile';
+  const profileRoute = getProfileRoute(user);
 
   useEffect(() => setMenuOpen(false), [location.pathname]);
 
@@ -153,7 +154,7 @@ export function Header() {
                 <IconeCloche />
               </Link>
               <Link
-                to="/app/profile"
+                to={profileRoute}
                 style={{
                   fontSize: 13,
                   fontWeight: 600,
@@ -216,7 +217,7 @@ export function Header() {
                 <Link to={dansEspace ? '/' : destinationEspace} onClick={() => setMenuOpen(false)}>
                   {dansEspace ? t('ui.visiterLeSitePublic') : t('ui.retourAMonEspace')}
                 </Link>
-                <Link to="/app/profile" onClick={() => setMenuOpen(false)}>{user?.firstName ?? t('ui.monProfil')}</Link>
+                <Link to={profileRoute} onClick={() => setMenuOpen(false)}>{user?.firstName ?? t('ui.monProfil')}</Link>
               </>
             ) : (
               <>

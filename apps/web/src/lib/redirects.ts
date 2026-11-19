@@ -162,6 +162,20 @@ export function resolveActiveContext(
   return { organizationId: meilleure.id, roles: [...(meilleure.roles ?? [])] };
 }
 
+/** Destination de profil propre au contexte actif, avec repli compatible. */
+export function getProfileRoute(user: UserLike | null, activeOrganizationId?: string | null): string {
+  const roles = resolveActiveContext(user, activeOrganizationId).roles;
+  if (roles.includes('INVESTOR')) return '/investment/profile';
+  if (roles.some((role) => ['COOPERATIVE_ADMIN', 'COOPERATIVE_MEMBER', 'AGRICULTURAL_COMPANY'].includes(role))) {
+    return '/organization/profile';
+  }
+  if (roles.includes('FARMER')) return '/farmer/profile';
+  if (roles.some((role) => ['AGRONOMIST', 'LAB_PARTNER', 'BUYER', 'SUPPLIER', 'TRANSPORTER'].includes(role))) {
+    return '/professional/profile';
+  }
+  return '/app/profile';
+}
+
 /**
  * Decision unique de destination initiale.
  *

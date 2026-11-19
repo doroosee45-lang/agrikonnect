@@ -20,6 +20,7 @@ router.use(authenticate, resolveTenant);
 router.get('/', asyncHandler(controller.getMe));
 router.patch('/', validate(schema.updateMeSchema), asyncHandler(controller.updateMe));
 router.get('/permissions', asyncHandler(controller.getMyPermissions));
+router.get('/export', asyncHandler(controller.exportMe));
 router.post('/password', validate(schema.changePasswordSchema), asyncHandler(controller.changePassword));
 router.delete('/', asyncHandler(controller.deleteMe));
 

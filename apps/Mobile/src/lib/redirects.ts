@@ -177,6 +177,26 @@ export function resolveActiveContext(
   return { organizationId: meilleure.id, roles: [...(meilleure.roles ?? [])] };
 }
 
+/** Destination du profil individuel (distincte du profil de l’organisation). */
+export function getUserProfileRoute(roles: readonly string[]): string {
+  if (roles.includes('INVESTOR')) return '/investment/profile';
+  if (roles.includes('FARMER')) return '/farmer/profile';
+  return '/professional/profile';
+}
+
+/** Paramètres personnels; la configuration plateforme exige sa permission dédiée. */
+export function getUserSettingsRoute(roles: readonly string[], permissions: readonly string[] = []): string {
+  if (roles.some((role) => ['SUPER_ADMIN', 'ADMIN'].includes(role)) && permissions.includes('admin.settings')) {
+    return '/admin/settings';
+  }
+  if (roles.includes('INVESTOR')) return '/investment/settings';
+  if (roles.includes('FARMER')) return '/farmer/settings';
+  if (roles.some((role) => ['AGRONOMIST', 'LAB_PARTNER', 'BUYER', 'SUPPLIER', 'TRANSPORTER'].includes(role))) {
+    return '/professional/settings';
+  }
+  return '/settings';
+}
+
 /**
  * Decision unique de destination initiale.
  *

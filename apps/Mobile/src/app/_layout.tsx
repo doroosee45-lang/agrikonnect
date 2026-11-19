@@ -118,6 +118,8 @@ function SessionGate() {
       'ai',
       'messages',
       'notifications',
+      'settings',
+      'professional',
       'requests',
       'ventes',
       'cooperatives',

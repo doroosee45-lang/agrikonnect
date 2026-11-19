@@ -17,7 +17,10 @@ const profileSchema = z.object({
   currency: z.string().trim().length(3).toUpperCase().default('USD'),
   preferences: z.record(z.any()).optional(),
   // Audit H-05 : `mfaEnabled` n'est plus accepté — il dérive de l'enrôlement TOTP réel.
-});
+}).refine(
+  (profile) => profile.ticketMin === undefined || profile.ticketMax === undefined || profile.ticketMax >= profile.ticketMin,
+  { message: 'Le ticket maximum doit être supérieur ou égal au minimum', path: ['ticketMax'] },
+);
 
 const verifySchema = z.object({
   decision: z.enum(['VERIFIED', 'REJECTED']),

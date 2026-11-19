@@ -8,6 +8,9 @@ export const updateMe = async (req, res) =>
 
 export const getMyPermissions = async (req, res) => success(res, await service.getMyPermissions(req));
 
+export const exportMe = async (req, res) =>
+  success(res, await service.exportMe(req), { message: 'Export des données généré' });
+
 export const changePassword = async (req, res) =>
   success(res, await service.changePassword(req.body, req), { message: 'Mot de passe modifié' });
 

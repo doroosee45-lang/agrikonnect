@@ -50,6 +50,8 @@ export const publicUser = (profile, memberships = []) => ({
   countryCode: profile.countryCode,
   status: profile.status,
   avatarUrl: profile.avatarUrl,
+  professionalProfile: profile.professionalProfile ?? null,
+  accountPreferences: profile.accountPreferences ?? null,
   emailVerified: Boolean(profile.emailVerifiedAt),
   phoneVerified: Boolean(profile.phoneVerifiedAt),
   organizations: memberships.map((m) => ({

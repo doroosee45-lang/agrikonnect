@@ -8,6 +8,8 @@ import { CREME, RAYON, TACTILE, VERT } from '@/theme/agrikonnect';
 import { COLORS } from '@/theme/colors';
 import { LAYOUT, SPACING } from '@/theme/space';
 import { useI18n } from '@/i18n';
+import { getUserProfileRoute, getUserSettingsRoute, resolveActiveContext } from '@/lib/redirects';
+import { useAuthStore } from '@/store/auth';
 
 /**
  * En-tête Horizon des écrans applicatifs authentifiés (Mobile) :
@@ -30,6 +32,12 @@ export function AppHeader({
   onCtaPress?: () => void;
 }) {
   const { t } = useI18n();
+  const user = useAuthStore((state) => state.user);
+  const permissions = useAuthStore((state) => state.permissions);
+  const context = resolveActiveContext(user);
+  const roles = context.roles;
+  const profileRoute = getUserProfileRoute(roles);
+  const settingsRoute = getUserSettingsRoute(roles, permissions);
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       <View style={styles.header}>
@@ -63,7 +71,8 @@ export function AppHeader({
             {showNotifications ? (
               <IconButton icon="notifications-outline" onPress={() => router.push('/notifications')} accessibilityLabel={t('ui.notifications')} />
             ) : null}
-            <IconButton icon="person-outline" onPress={() => router.push('/profil')} accessibilityLabel={t('ui.profil')} />
+            <IconButton icon="person-outline" onPress={() => router.push(profileRoute as never)} accessibilityLabel={t('ui.profil')} />
+            <IconButton icon="settings-outline" onPress={() => router.push(settingsRoute as never)} accessibilityLabel={t('ui.parametres_ef8f0')} />
           </View>
         </View>
       </View>
