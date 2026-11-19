@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import { supabase } from '../config/supabase.js';
 import { prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
+import { isOriginAllowed } from '../config/cors.js';
 import { logger } from '../shared/http/logger.js';
 import {
   setIo,
@@ -70,7 +71,8 @@ export const attachRealtime = (httpServer) => {
   const io = new Server(httpServer, {
     path: '/realtime',
     cors: {
-      origin: env.CORS_ORIGIN?.split(',').map((o) => o.trim()) ?? '*',
+      // Même règle que l'API (src/config/cors.js) : ports locaux libres en dev.
+      origin: (origin, callback) => callback(null, isOriginAllowed(origin)),
       credentials: true,
     },
     // Payloads courts : on ne transporte que des identifiants et statuts.
