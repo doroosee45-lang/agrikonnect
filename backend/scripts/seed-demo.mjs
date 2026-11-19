@@ -69,7 +69,13 @@ const COMPTES = [
   },
   {
     role: 'agronome',
-    accountType: 'AGRONOMIST',
+    /*
+     * Audit H-01 : le rôle AGRONOMIST ne s'obtient plus à l'inscription. Le
+     * compte s'inscrit en FARMER, puis le script lui attribue le rôle — ce que
+     * fait un Super Admin depuis l'administration en conditions réelles.
+     */
+    accountType: 'FARMER',
+    roleAttribue: 'AGRONOMIST',
     firstName: 'Naomi',
     lastName: 'Kalala',
     email: 'agronome.demo@agrikonnect.test',
@@ -218,11 +224,29 @@ const banner = () => {
   console.log('');
 };
 
+/**
+ * Attribution d'un rôle réservé (ex. AGRONOMIST) sur l'appartenance du compte.
+ * Équivalent local de `POST /admin/users/:id/roles` (qui exige le second
+ * facteur d'un Super Admin, indisponible pour un script). Idempotent.
+ */
+const attribuerRole = async (email, role) => {
+  const { prisma } = await import('../src/config/prisma.js');
+  const profil = await prisma.profile.findFirst({ where: { email }, include: { memberships: true } });
+  if (!profil?.memberships?.length) throw new Error(`${email} : aucune appartenance pour attribuer ${role}`);
+  for (const adhesion of profil.memberships) {
+    if (!adhesion.roles.includes(role)) {
+      await prisma.membership.update({ where: { id: adhesion.id }, data: { roles: [...adhesion.roles, role] } });
+    }
+  }
+};
+
 const creerOuRejoindre = async (compte, baseUrl = BASE_URL) => {
+  // `role` et `roleAttribue` sont des informations du script, pas des champs d'inscription.
+  const { role: _libelle, roleAttribue: _roleAttribue, ...champsInscription } = compte;
   const inscrit = await appel(
     'POST',
     '/auth/register',
-    { corps: { ...compte, password: MOT_DE_PASSE, countryCode: 'CD', locale: 'fr' } },
+    { corps: { ...champsInscription, password: MOT_DE_PASSE, countryCode: 'CD', locale: 'fr' } },
     baseUrl,
   );
 
@@ -291,6 +315,7 @@ export const executerDemo = async ({ baseUrl = BASE_URL, log = console.log } = {
   const sessions = [];
   for (const compte of COMPTES) {
     const resultat = await creerOuRejoindre(compte, baseUrl);
+    if (compte.roleAttribue) await attribuerRole(compte.email, compte.roleAttribue);
     sessions.push(resultat);
     dire(
       `  ${resultat.cree ? '+' : '='} compte ${resultat.compte.role.padEnd(12)} `

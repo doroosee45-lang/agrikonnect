@@ -16,6 +16,19 @@ export const API_BASE_URL = pick(
 );
 
 /**
+ * Serveur temps réel (Socket.IO, chemin `/realtime`) : par défaut l'ORIGINE de
+ * l'API — sans `VITE_REALTIME_URL`, viser `localhost` en production casserait
+ * la sonnerie des appels.
+ */
+function origineDe(url: string): string {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return 'http://localhost:4000';
+  }
+}
+
+/**
  * Doit refléter `REALTIME_ENABLED` du backend : quand Socket.IO n'est pas
  * monté côté serveur, toute tentative finit en 404 (boucle de reconnexions).
  */
@@ -23,7 +36,7 @@ export const REALTIME_ENABLED = import.meta.env.VITE_REALTIME_ENABLED?.trim() !=
 
 export const REALTIME_URL = pick(
   import.meta.env.VITE_REALTIME_URL,
-  'http://localhost:4000',
+  origineDe(API_BASE_URL),
 );
 
 export const APP = {

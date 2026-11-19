@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -114,10 +115,12 @@ export interface HeroStats {
 function HeroLine({ index, text, highlight = false }: { index: number; text: string; highlight?: boolean }) {
   const underline = useSharedValue(0);
 
-  underline.value = withTiming(1, {
-    duration: DURATION.reveal * 1.4,
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
+  useEffect(() => {
+    underline.value = withTiming(1, {
+      duration: DURATION.reveal * 1.4,
+      easing: Easing.bezier(0.16, 1, 0.3, 1),
+    });
+  }, [underline]);
 
   const lineStyle = useAnimatedStyle(() => ({
     transform: [{ scaleX: highlight ? underline.value : 1 }],
@@ -139,11 +142,13 @@ function HeroLine({ index, text, highlight = false }: { index: number; text: str
 
 function LiveDot() {
   const pulse = useSharedValue(0);
-  pulse.value = withRepeat(
-    withSequence(withTiming(1, { duration: 1_400 }), withTiming(0, { duration: 1_400 })),
-    -1,
-    false,
-  );
+  useEffect(() => {
+    pulse.value = withRepeat(
+      withSequence(withTiming(1, { duration: 1_400 }), withTiming(0, { duration: 1_400 })),
+      -1,
+      false,
+    );
+  }, [pulse]);
   const style = useAnimatedStyle(() => ({ opacity: 0.35 + pulse.value * 0.65 }));
   return <Animated.View style={[styles.dot, style]} />;
 }
@@ -169,14 +174,16 @@ function TrustItem({ symbol, label }: { symbol: string; label: string }) {
 function FloatingDataCard({ stats, locale }: { stats: HeroStats; locale: Locale }) {
   const { t } = useI18n();
   const float = useSharedValue(0);
-  float.value = withRepeat(
-    withSequence(
-      withTiming(1, { duration: 5_200, easing: Easing.inOut(Easing.quad) }),
-      withTiming(0, { duration: 5_200, easing: Easing.inOut(Easing.quad) }),
-    ),
-    -1,
-    false,
-  );
+  useEffect(() => {
+    float.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 5_200, easing: Easing.inOut(Easing.quad) }),
+        withTiming(0, { duration: 5_200, easing: Easing.inOut(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+  }, [float]);
 
   const floatStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: float.value * -10 }],
@@ -286,11 +293,13 @@ function DataStat({
 function ScrollHint() {
   const { t } = useI18n();
   const bounce = useSharedValue(0);
-  bounce.value = withRepeat(
-    withSequence(withTiming(1, { duration: 900 }), withTiming(0, { duration: 900 })),
-    -1,
-    false,
-  );
+  useEffect(() => {
+    bounce.value = withRepeat(
+      withSequence(withTiming(1, { duration: 900 }), withTiming(0, { duration: 900 })),
+      -1,
+      false,
+    );
+  }, [bounce]);
   const style = useAnimatedStyle(() => ({
     transform: [{ translateY: bounce.value * 6 }],
     opacity: 0.4 + bounce.value * 0.4,

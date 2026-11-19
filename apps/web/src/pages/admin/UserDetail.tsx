@@ -27,9 +27,11 @@ import { useI18n } from '@/i18n';
  * qui tranche : chaque route porte sa propre garde.
  */
 
+// Rôles attribuables par un Super Admin (backend : ASSIGNABLE_ROLES). Agronome
+// et agent d'appui ne s'obtiennent plus à l'inscription (audit H-01).
 const ROLES_GOUVERNANCE = [
   'ADMIN', 'SUPER_ADMIN', 'MODERATOR', 'COUNTRY_ADMIN', 'DATA_STEWARD',
-  'VERIFIER', 'LAB_PARTNER',
+  'VERIFIER', 'LAB_PARTNER', 'AGRONOMIST', 'SUPPORT_AGENT',
 ] as const;
 
 type Rapport = { ton: 'succes' | 'erreur'; texte: string } | null;

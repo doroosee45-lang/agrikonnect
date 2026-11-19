@@ -342,7 +342,8 @@ const styles = StyleSheet.create({
   },
   langItem: { paddingHorizontal: SPACING.sm, paddingVertical: 4, borderRadius: RADIUS.pill },
   langItemActive: { backgroundColor: COLORS.forestGreen },
-  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(12, 30, 21, 0.45)', zIndex: 60 },
+  // Au-dessus de la barre fixe (zIndex 1000 / elevation 20) : sinon la barre se dessine sur le menu ouvert.
+  overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(12, 30, 21, 0.45)', zIndex: 1100, elevation: 30 },
   sheet: {
     flex: 1,
     backgroundColor: COLORS.naturalWhite,

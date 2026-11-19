@@ -114,6 +114,13 @@ export const SETTINGS_CATALOG = {
     requiresRestart: false,
     description: 'Module intelligence artificielle',
   },
+  'modules.appels': {
+    section: 'modules', type: 'boolean', default: true,
+    requiresRestart: false,
+    description:
+      'Appels audio — coupure rapide sans redéploiement. Sans effet si CALLS_ENABLED=false ou si LiveKit '
+      + 'n\'est pas configuré : le module n\'est actif que si les trois conditions sont réunies.',
+  },
 
   // ── limits (palier 1) ─────────────────────────────────────────────────
   'limits.apiQuotaPerDay': {

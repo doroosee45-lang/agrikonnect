@@ -15,6 +15,11 @@ import type { PublicUser, Session } from './types';
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
 let expiresAt: number | null = null;
+/**
+ * Audit C-03 — preuve de second facteur délivrée par l'API après un code
+ * valide, liée à la session (`session_id`, stable au refresh).
+ */
+let mfaProof: string | null = null;
 let pendingRefresh: Promise<string | null> | null = null;
 let refreshHandler: ((token: string) => Promise<Session | null>) | null = null;
 
@@ -27,6 +32,16 @@ export const sessionStore = {
   },
   get expiresAt() {
     return expiresAt;
+  },
+  get mfaProof() {
+    return mfaProof;
+  },
+
+  /** Enregistre la preuve délivrée par la connexion, `mfa/confirm` ou `mfa/verify`. */
+  setMfaProof(proof: string | null | undefined): void {
+    if (!proof) return;
+    mfaProof = proof;
+    void secureStorage.set(STORAGE_KEYS.mfaProof, proof);
   },
 
   /** Jeton encore valable avec une marge de 30 s (l'accès dure ≤ 15 min côté serveur). */
@@ -41,15 +56,19 @@ export const sessionStore = {
     expiresAt = Date.now() + Number(session.expiresIn ?? 900) * 1000;
     void secureStorage.set(STORAGE_KEYS.accessToken, session.accessToken);
     if (session.refreshToken) void secureStorage.set(STORAGE_KEYS.refreshToken, session.refreshToken);
+    // Connexion à second facteur : nouvelle preuve ; un refresh n'en porte pas, l'actuelle est conservée.
+    if (session.mfaProof) sessionStore.setMfaProof(session.mfaProof);
   },
 
   async restore(): Promise<{ accessToken: string | null; refreshToken: string | null }> {
-    const [storedAccess, storedRefresh] = await Promise.all([
+    const [storedAccess, storedRefresh, storedProof] = await Promise.all([
       secureStorage.get(STORAGE_KEYS.accessToken),
       secureStorage.get(STORAGE_KEYS.refreshToken),
+      secureStorage.get(STORAGE_KEYS.mfaProof),
     ]);
     accessToken = storedAccess;
     refreshToken = storedRefresh;
+    mfaProof = storedProof;
     expiresAt = storedAccess ? null : null; // inconnu jusqu'au premier refresh
     return { accessToken: storedAccess, refreshToken: storedRefresh };
   },
@@ -59,9 +78,11 @@ export const sessionStore = {
     refreshToken = null;
     expiresAt = null;
     pendingRefresh = null;
+    mfaProof = null;
     await Promise.all([
       secureStorage.remove(STORAGE_KEYS.accessToken),
       secureStorage.remove(STORAGE_KEYS.refreshToken),
+      secureStorage.remove(STORAGE_KEYS.mfaProof),
     ]);
   },
 

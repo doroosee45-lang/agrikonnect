@@ -15,7 +15,8 @@ import { sessionStore } from './api/session';
  *   toujours rechargé via l'API (d'où les invalidations ci-dessous) ;
  * - événements réellement émis : `ready`, `typing`, `message:new`,
  *   `message:read`, `conversation:new`, `conversation:blocked`, `order:new`,
- *   `order:updated`, `order:disputed`.
+ *   `order:updated`, `order:disputed`, `call:incoming`, `call:updated` (appels
+ *   audio : seulement des identifiants et statuts, l'état est relu via l'API).
  */
 
 export interface RealtimeEvent {
@@ -40,6 +41,8 @@ export const REALTIME_EVENTS = [
   'order:disputed',
   'notification:new',
   'alert:new',
+  'call:incoming',
+  'call:updated',
 ] as const;
 
 export type RealtimeEventName = (typeof REALTIME_EVENTS)[number];
@@ -117,6 +120,9 @@ export const realtime = {
       queryClient.invalidateQueries({ queryKey: queryKeys.alerts.all });
       emitLocal('alert:new', payload);
     });
+
+    socket.on('call:incoming', (payload: RealtimeEvent) => emitLocal('call:incoming', payload));
+    socket.on('call:updated', (payload: RealtimeEvent) => emitLocal('call:updated', payload));
 
     socket.on('ready', (payload: RealtimeEvent) => emitLocal('ready', payload));
     socket.on('typing', (payload: RealtimeEvent) => emitLocal('typing', payload));

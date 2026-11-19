@@ -54,6 +54,15 @@ const weatherLine = async (countryCode) => {
     .join(' | ');
 };
 
+/**
+ * F-05 — `Crop` n'a pas de champ `name` : les libellés sont dans `names`
+ * (objet par langue). Le canal USSD/SMS est en français, repli anglais puis slug.
+ */
+export const nomCulture = (crop) => {
+  const names = crop?.names && typeof crop.names === 'object' ? crop.names : {};
+  return names.fr ?? names.en ?? Object.values(names)[0] ?? crop?.slug ?? null;
+};
+
 const priceLines = async (countryCode) => {
   const prices = await prisma.marketPrice.findMany({
     where: { ...(countryCode ? { countryCode } : {}) },
@@ -63,7 +72,7 @@ const priceLines = async (countryCode) => {
   if (!prices.length) return 'Aucun prix publie pour votre pays.';
 
   const crops = await prisma.crop.findMany({ where: { id: { in: prices.map((p) => p.cropId) } } });
-  const names = Object.fromEntries(crops.map((c) => [c.id, c.name ?? c.slug]));
+  const names = Object.fromEntries(crops.map((c) => [c.id, nomCulture(c)]));
 
   return prices
     .map(
@@ -87,7 +96,8 @@ const myListings = async (phone) => {
   });
   if (!listings.length) return 'Aucune annonce publiee.';
   return listings
-    .map((l) => `${l.title}: ${l.quantity ?? ''}${l.unit ?? ''} a ${l.pricePerUnit ?? l.price ?? ''} ${l.currency ?? ''}`)
+    // F-05 : le prix d'une annonce est `indicativePrice` (pas `pricePerUnit`/`price`).
+    .map((l) => `${l.title}: ${l.quantity ?? ''}${l.unit ?? ''} a ${l.indicativePrice ?? 'prix a negocier'} ${l.indicativePrice != null ? l.currency ?? '' : ''}`.trimEnd())
     .join('\n');
 };
 
@@ -96,7 +106,7 @@ const verifyLot = async (code) => {
   if (!lot) return 'Lot inconnu. Verifiez le code figure sur l etiquette.';
   const crop = await prisma.crop.findUnique({ where: { id: lot.cropId } });
   const publicFields = lot.publicFields ?? {};
-  return `Lot ${lot.code}: ${crop?.name ?? 'produit'} | ${lot.status} | ${publicFields.origin ?? 'origine non publiee'}`;
+  return `Lot ${lot.code}: ${nomCulture(crop) ?? 'produit'} | ${lot.status} | ${publicFields.origin ?? 'origine non publiee'}`;
 };
 
 /** V3:NFR-07 — profondeur maximale d'un menu USSD (4 niveaux). */

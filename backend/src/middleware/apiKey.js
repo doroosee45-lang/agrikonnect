@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../shared/errors/ApiError.js';
 import { sha256 } from '../shared/crypto.js';
@@ -13,6 +14,13 @@ import { logger } from '../shared/http/logger.js';
  */
 const DAILY_QUOTA = Number(process.env.API_DAILY_QUOTA ?? 1000);
 
+/** M-14 — comparaison d'empreintes en temps constant (pas d'oracle de durée). */
+export const empreintesEgales = (attendue, calculee) => {
+  const a = Buffer.from(String(attendue ?? ''), 'utf8');
+  const b = Buffer.from(String(calculee ?? ''), 'utf8');
+  return a.length === b.length && a.length > 0 && timingSafeEqual(a, b);
+};
+
 export const apiKeyAuth = (requiredScope = 'data:read') => async (req, _res, next) => {
   try {
     const raw = req.headers['x-api-key'];
@@ -26,7 +34,7 @@ export const apiKeyAuth = (requiredScope = 'data:read') => async (req, _res, nex
       include: { client: true },
     });
 
-    if (!key || key.keyHash !== sha256(raw)) throw ApiError.unauthorized('Clé d\'API invalide');
+    if (!key || !empreintesEgales(key.keyHash, sha256(raw))) throw ApiError.unauthorized('Clé d\'API invalide');
     if (key.status !== 'ACTIVE' || key.revokedAt) throw ApiError.unauthorized('Clé d\'API révoquée');
     if (key.expiresAt && key.expiresAt < new Date()) throw ApiError.unauthorized('Clé d\'API expirée');
     if (key.client.status !== 'ACTIVE') throw ApiError.forbidden('Client API désactivé');

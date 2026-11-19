@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { requireVerifiedForWrites } from '../middleware/auth.js';
 
 import authRoutes from '../modules/auth/auth.routes.js';
 import usersRoutes from '../modules/users/users.routes.js';
@@ -74,6 +75,11 @@ import dataProductsRoutes from '../modules/dataproducts/dataproducts.routes.js';
 import insightsRoutes from '../modules/insights/insights.routes.js';
 import publicApiRoutes, { dataAliasRouter } from '../modules/publicapi/publicapi.routes.js';
 
+// ─── Appels audio ─────────────────────────────────────────────
+import callsRoutes from '../modules/calls/calls.routes.js';
+import livekitWebhookRoutes from '../modules/calls/calls.webhook.js';
+import pushDevicesRoutes from '../modules/push/push.routes.js';
+
 const router = Router();
 
 /** Healthcheck — monitoring et tests de disponibilité (NFR-07). */
@@ -101,6 +107,8 @@ router.use('/public-api/v1', publicApiRoutes);
 router.use('/auth', authRoutes);
 
 // ─── Espace connecté — V1 FARM ────────────────────────────────
+// Appareils push (FCM / APNs) : monté AVANT `/me` (chemin plus spécifique).
+router.use('/me/push-devices', pushDevicesRoutes);
 router.use('/me', usersRoutes);
 router.use('/organizations', organizationsRoutes);
 router.use('/crops', cropsRoutes);
@@ -143,6 +151,25 @@ router.use('/anomalies', anomalyRoutes); // anomalies de mesure et revue agronom
 router.use('/geospatial', geospatialRoutes); // moteur géospatial & pédologique (Python)
 router.use('/verifications', verificationRoutes);
 router.use('/reports', reportsRoutes);
+
+/**
+ * H-07 — écritures métier réservées aux comptes vérifiés (e-mail ou téléphone).
+ * Lectures inchangées. Monté AVANT les modules concernés (annexe A du plan
+ * de correction) : marché, transport, messagerie, investissement, export.
+ */
+router.use(
+  [
+    '/listings', '/purchase-requests', '/market', '/orders', '/reviews', '/transport',
+    '/messaging', '/prices', '/projects', '/dataroom', '/investment', '/tenders', '/exports',
+    '/calls',
+  ],
+  requireVerifiedForWrites,
+);
+
+// ─── Appels audio (LiveKit) — désactivés par défaut (callsConfig.js) ─────────
+router.use('/calls', callsRoutes);
+// Webhook LiveKit : hors authentification par jeton ; signature vérifiée sur le corps brut.
+router.use('/webhooks/livekit', livekitWebhookRoutes);
 
 // ─── V2 MARKET ────────────────────────────────────────────────
 router.use('/listings', listingsRoutes);

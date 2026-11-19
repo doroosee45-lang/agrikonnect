@@ -1,6 +1,8 @@
 import { createApp } from './app.js';
 import { attachRealtime } from './realtime/index.js';
 import { startScheduler, stopScheduler } from './jobs/index.js';
+import { avertissementDemarrage } from './modules/calls/callsConfig.js';
+import { avertissementPush } from './integrations/push.js';
 import { env } from './config/env.js';
 import { prisma } from './config/prisma.js';
 import { logger } from './shared/http/logger.js';
@@ -96,6 +98,20 @@ const server = app.listen(env.PORT, '0.0.0.0', () => {
  * `/realtime`. La clé est un jeton Supabase passé dans `auth.token`.
  */
 const io = env.REALTIME_ENABLED === 'false' ? null : attachRealtime(server);
+
+/*
+ * Appels audio : contradiction visible au démarrage (demandés mais LiveKit
+ * absent), et rappel que la sonnerie temps réel dépend de Socket.IO.
+ */
+{
+  const avertissementAppels = avertissementDemarrage();
+  if (avertissementAppels) logger.warn(`[appels] ${avertissementAppels}`);
+  const avertissementNotifPush = avertissementPush();
+  if (avertissementNotifPush) logger.warn(`[push] ${avertissementNotifPush}`);
+  if (env.CALLS_ENABLED === 'true' && env.REALTIME_ENABLED === 'false') {
+    logger.warn('[appels] REALTIME_ENABLED=false : les invitations ne seront pas poussées en temps réel (notifications seulement).');
+  }
+}
 
 /** Tâches planifiées (expirations, SLO, purges) — voir `src/jobs/index.js`. */
 startScheduler();

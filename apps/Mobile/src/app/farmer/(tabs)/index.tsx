@@ -127,7 +127,7 @@ export default function FarmerHome() {
             <Card tone="white" style={styles.actions}>
               <Text preset="h3" color={COLORS.textPrimary}>{t('ui.operationsRapides')}</Text>
               <View style={styles.actionRow}>
-                <Button label={t('farmer.newPlot')} onPress={() => router.push('/farmer/plots')} variant="primary" size="sm" icon="add" />
+                <Button label={t('farmer.newPlot')} onPress={() => router.push('/farmer/plots/create')} variant="primary" size="sm" icon="add" />
                 <Button label={t('ui.declarerRecolte')} onPress={() => router.push('/farmer/productions')} variant="outline" size="sm" icon="leaf-outline" />
                 <Button label={t('ui.diagnosticSol')} onPress={() => router.push('/farmer/soil')} variant="outline" size="sm" icon="flask-outline" />
                 <Button label={t('ui.rendementsReels')} onPress={() => router.push('/farmer/season-feedback')} variant="ghost" size="sm" icon="stats-chart-outline" />
@@ -143,7 +143,7 @@ export default function FarmerHome() {
                 title={t('farmer.noPlots')}
                 description={t('ui.uneParcelleLocaliseeActiveLaMeteo')}
                 icon="map-outline"
-                action={{ label: t('farmer.newPlot'), onPress: () => router.push('/farmer/plots') }}
+                action={{ label: t('farmer.newPlot'), onPress: () => router.push('/farmer/plots/create') }}
               />
             ) : (
               <MobileHorizonTrackCard

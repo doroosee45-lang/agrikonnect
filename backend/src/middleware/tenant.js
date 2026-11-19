@@ -5,6 +5,15 @@
  * exécutable correspondante est référencée dans `tests/` (voir docs/TRACEABILITY.md).
  */
 import { ApiError } from '../shared/errors/ApiError.js';
+import { PLATFORM_ROLES } from '../shared/permissions.js';
+
+/** H-03 — fonction pure (testée) : rôles applicables dans l'organisation active. */
+export const rolesEffectifs = (rolesOrganisationActive = [], rolesTousTenants = []) => [
+  ...new Set([
+    ...rolesOrganisationActive,
+    ...rolesTousTenants.filter((role) => PLATFORM_ROLES.includes(role)),
+  ]),
+];
 
 /**
  * Isolation tenant (CDC §3.4 / A.3, couche 4 du modèle d'autorisation).
@@ -43,8 +52,12 @@ export const resolveTenant = (req, _res, next) => {
     organizationId: membership.organizationId,
     organization: membership.organization,
     roles: membership.roles,
-    /** Rôles effectifs = rôles de l'organisation active + rôles portés ailleurs */
-    effectiveRoles: [...new Set([...membership.roles, ...(req.user.roles ?? [])])],
+    /**
+     * H-03 — rôles effectifs = rôles de l'organisation active + rôles de
+     * plateforme portés ailleurs. Les rôles métier d'une AUTRE organisation ne
+     * s'appliquent jamais ici (isolation des rôles par tenant).
+     */
+    effectiveRoles: rolesEffectifs(membership.roles, req.user.roles),
   };
 
   next();

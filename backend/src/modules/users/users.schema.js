@@ -15,6 +15,18 @@ export const updateMeSchema = z
   })
   .strict();
 
-export const changePasswordSchema = z.object({
-  newPassword: z.string().min(8, '8 caractères minimum').max(128),
-});
+/**
+ * Audit H-04 — changer de mot de passe exige le mot de passe ACTUEL (et le
+ * code de double authentification si elle est active) : un jeton volé ne
+ * suffit plus à s'approprier définitivement le compte.
+ */
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Mot de passe actuel requis').max(128),
+    newPassword: z.string().min(8, '8 caractères minimum').max(128),
+    mfaCode: z.string().trim().min(6).max(14).optional(),
+  })
+  .refine((v) => v.newPassword !== v.currentPassword, {
+    message: 'Le nouveau mot de passe doit être différent de l’actuel',
+    path: ['newPassword'],
+  });

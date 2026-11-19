@@ -132,9 +132,8 @@ export const SELF_SERVICE_ROLES = [
   { id: 'BUYER', get label() { return tr('ui.acheteur'); } },
   { id: 'SUPPLIER', get label() { return tr('ui.fournisseur'); } },
   { id: 'TRANSPORTER', get label() { return tr('ui.transporteur'); } },
-  { id: 'AGRONOMIST', get label() { return tr('ui.agronome'); } },
   { id: 'INVESTOR', get label() { return tr('ui.investisseur'); } },
-  { id: 'SUPPORT_AGENT', get label() { return tr('ui.agentDAppui'); } },
+  // Agronome et agent d'appui : attribués par un administrateur (audit H-01).
 ] as const;
 
 /** Calendrier fonctionnel V1 → V5 (périmètre livré). */

@@ -45,6 +45,35 @@ services:
         value: "false"
       - key: REALTIME_ENABLED
         value: "false"
+      # Appels audio (LiveKit) : désactivés tant que le pilote n'est pas validé.
+      # Voir backend/docs/APPELS_AUDIO.md (priorité CALLS_ENABLED / modules.appels).
+      - key: CALLS_ENABLED
+        value: "false"
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      # Notifications push (sonnerie hors application) : désactivées par défaut.
+      - key: PUSH_ENABLED
+        value: "false"
+      - key: FCM_PROJECT_ID
+        sync: false
+      - key: FCM_CLIENT_EMAIL
+        sync: false
+      - key: FCM_PRIVATE_KEY
+        sync: false
+      - key: APNS_TEAM_ID
+        sync: false
+      - key: APNS_KEY_ID
+        sync: false
+      - key: APNS_PRIVATE_KEY
+        sync: false
+      - key: APNS_BUNDLE_ID
+        sync: false
+      - key: APNS_ENVIRONMENT
+        sync: false
       - key: LOG_LEVEL
         value: info
       # Origine du site web ci-dessous ; à corriger si Render attribue une autre adresse.

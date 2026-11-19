@@ -16,6 +16,7 @@ import { queryClient } from '@/services/query';
 import { realtime } from '@/services/realtime';
 import { useAuthStore } from '@/store/auth';
 import { useLocaleSync } from '@/hooks/useLocaleSync';
+import { CallOverlay } from '@/features/calls/CallOverlay';
 
 // L'écran de démarrage reste affiché jusqu'à ce que les polices soient prêtes :
 // sans cela le premier rendu s'affiche en police système puis saute.
@@ -81,6 +82,7 @@ export default function RootLayout() {
             <Stack.Screen name="auth" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             <Stack.Screen name="farmer" options={{ animation: 'slide_from_right' }} />
           </Stack>
+          <CallOverlay />
         </QueryClientProvider>
       </SafeAreaProvider>
       </GestureHandlerRootView>

@@ -57,6 +57,8 @@ export default defineConfig(async ({ command, isPreview }): Promise<UserConfig> 
             { name: 'vendor-realtime', test: /[\\/]node_modules[\\/](?:socket\.io-client|socket\.io-parser|engine\.io-client|engine\.io-parser|@socket\.io[\\/]component-emitter)[\\/]/, priority: 60 },
             { name: 'vendor-http', test: /[\\/]node_modules[\\/](?:axios|follow-redirects|proxy-from-env)[\\/]/, priority: 50 },
             { name: 'vendor-ui-state', test: /[\\/]node_modules[\\/](?:zustand|class-variance-authority|clsx|tailwind-merge)[\\/]/, priority: 40 },
+            // SDK audio des appels : chargé seulement quand on rejoint un appel.
+            { name: 'vendor-livekit', test: /[\\/]node_modules[\\/](?:livekit-client|@livekit[\\/][^\\/]+)[\\/]/, priority: 65 },
             { name: 'vendor-misc', test: /[\\/]node_modules[\\/]/, priority: 0 },
           ],
         },

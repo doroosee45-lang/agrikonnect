@@ -10,6 +10,7 @@ import { ApiError } from '../../shared/errors/ApiError.js';
 import { resolveId } from '../../shared/ids.js';
 import { audit } from '../../shared/audit.js';
 import { notify } from '../../shared/events.js';
+import { assertAccesInvestisseur } from '../investors/investors.service.js';
 
 /**
  * DR-01 → DR-05 — Data room d'investissement.
@@ -64,6 +65,8 @@ export const requestAccess = async (projectId, { scope, justification, requested
   if (project.organizationId === req.tenant.organizationId) {
     throw ApiError.badRequest('Le propriétaire du projet a déjà accès à sa data room');
   }
+  // Audit H-05 — investisseur vérifié + MFA réelle + session à second facteur.
+  await assertAccesInvestisseur(req);
 
   const existing = await prisma.dataRoomAccessRequest.findFirst({
     where: { projectId, granteeUserId: req.user.id, status: { in: ['PENDING', 'GRANTED'] } },
@@ -166,6 +169,7 @@ export const listDocuments = async (projectId, req) => {
   if (!project || project.deletedAt) throw ApiError.notFound('Projet introuvable');
 
   const isOwner = project.organizationId === req.tenant.organizationId;
+  if (!isOwner) await assertAccesInvestisseur(req); // Audit H-05
   const grant = isOwner ? null : await activeGrant(projectId, req.user.id);
 
   if (!isOwner && !grant) {
@@ -218,6 +222,7 @@ export const openDocument = async (documentId, req) => {
 
   const project = await prisma.project.findUnique({ where: { id: document.projectId } });
   const isOwner = project?.organizationId === req.tenant.organizationId;
+  if (!isOwner) await assertAccesInvestisseur(req); // Audit H-05
   const grant = isOwner ? null : await activeGrant(document.projectId, req.user.id);
 
   if (!isOwner && !grant) {

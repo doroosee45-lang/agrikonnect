@@ -437,8 +437,9 @@ export function MobileHorizonDonutCard({
                       fill="none"
                       strokeDasharray={`${Math.max(0, arc.length - 2)} ${C}`}
                       strokeDashoffset={arc.offset}
-                      rotation="-90"
-                      origin="68, 68"
+                      // Rotation SVG standard (centre inclus) : identique sur iOS, Android et web.
+                      // `rotation` + `origin` produisait sur le web l'attribut invalide `transform-origin`.
+                      transform="rotate(-90 68 68)"
                     />
                   ) : null,
                 )

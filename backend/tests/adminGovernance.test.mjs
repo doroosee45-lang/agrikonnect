@@ -17,6 +17,8 @@ import assert from 'node:assert/strict';
 
 import { requireMfa, requireSuperAdmin } from '../src/middleware/authorize.js';
 import { can, PERMISSIONS, GOVERNANCE_ROLES } from '../src/shared/permissions.js';
+import { emettrePreuveMfa } from '../src/modules/auth/mfaProof.js';
+import { jetonDeSession } from './helpers/investisseurPret.mjs';
 
 /** Exécute un middleware et résout l'erreur éventuelle passée à `next`. */
 const executer = (middleware, req) =>
@@ -24,8 +26,19 @@ const executer = (middleware, req) =>
     middleware(req, {}, (erreur) => resolve(erreur ?? null));
   });
 
+/**
+ * Audit C-03 — une session « avec MFA » est une session qui a FRANCHI le second
+ * facteur auprès de l'API : jeton portant un `session_id` + preuve `X-MFA-Proof`.
+ * Le drapeau `mfaEnabled` seul ne suffit plus (voir tests/auditLot3.test.mjs).
+ */
+const sessionMfa = (userId = 'u1') => ({
+  token: jetonDeSession(userId, 'sess_gouvernance'),
+  headers: { 'x-mfa-proof': emettrePreuveMfa({ userId, sessionId: 'sess_gouvernance' }) },
+});
+
 const profilAvecMfa = (roles, mfaEnabled = true) => ({
   user: { id: 'u1', roles, profile: { id: 'u1', mfaEnabled } },
+  ...sessionMfa('u1'),
 });
 
 // ─── requireMfa (NFR-01 / RG-S1) ────────────────────────────────────────────
@@ -80,6 +93,7 @@ test('requireSuperAdmin : lit aussi les rôles du tenant', async () => {
   const requete = {
     tenant: { effectiveRoles: ['SUPER_ADMIN'] },
     user: { id: 'u1', roles: [], profile: { id: 'u1', mfaEnabled: true } },
+    ...sessionMfa('u1'),
   };
   const erreur = await executer(requireSuperAdmin, requete);
   assert.equal(erreur, null);

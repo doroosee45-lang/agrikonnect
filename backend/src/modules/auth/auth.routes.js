@@ -6,6 +6,7 @@ import { validate } from '../../middleware/validate.js';
 import { authLimiter } from '../../middleware/rateLimit.js';
 import * as controller from './auth.controller.js';
 import * as mfa from './mfa.service.js';
+import { preuvePourRequete } from './mfaProof.js';
 import * as schema from './auth.schema.js';
 import { success } from '../../shared/http/response.js';
 
@@ -20,18 +21,30 @@ router.get('/mfa/status', authenticate, asyncHandler(async (req, res) =>
 router.post('/mfa/setup', authenticate, asyncHandler(async (req, res) =>
   success(res, await mfa.setup(req), { message: 'Secret TOTP généré — confirmation requise' })));
 
+/*
+ * Audit M-02 — les points d'entrée qui vérifient un code (TOTP, OTP) portent
+ * le limiteur strict : sans lui, seul le limiteur global (300 req / 15 min)
+ * freinait la recherche d'un code à 6 chiffres.
+ * Audit C-03 — un code vérifié ici délivre une preuve liée à la session
+ * (`mfaProof`), à renvoyer en `X-MFA-Proof` sur les routes protégées.
+ */
 router.post(
   '/mfa/confirm',
+  authLimiter,
   authenticate,
   validate(z.object({ code: z.string().trim().regex(/^\d{6}$/, 'Code à 6 chiffres requis') })),
   asyncHandler(async (req, res) =>
-    success(res, await mfa.confirm(req.body, req), { message: 'Double authentification activée' })),
+    success(
+      res,
+      { ...(await mfa.confirm(req.body, req)), mfaProof: preuvePourRequete(req) },
+      { message: 'Double authentification activée' },
+    )),
 );
 
-router.post('/mfa/verify', authenticate, validate(z.object({ code: z.string().trim().min(6).max(14) })), asyncHandler(async (req, res) =>
-  success(res, await mfa.verify(req.body, req), { message: 'Code vérifié' })));
+router.post('/mfa/verify', authLimiter, authenticate, validate(z.object({ code: z.string().trim().min(6).max(14) })), asyncHandler(async (req, res) =>
+  success(res, { ...(await mfa.verify(req.body, req)), mfaProof: preuvePourRequete(req) }, { message: 'Code vérifié' })));
 
-router.post('/mfa/disable', authenticate, validate(z.object({ code: z.string().trim().min(6).max(14) })), asyncHandler(async (req, res) =>
+router.post('/mfa/disable', authLimiter, authenticate, validate(z.object({ code: z.string().trim().min(6).max(14) })), asyncHandler(async (req, res) =>
   success(res, await mfa.disable(req.body, req), { message: 'Double authentification désactivée' })));
 
 router.post('/login', authLimiter, validate(schema.loginSchema), asyncHandler(controller.login));
@@ -43,8 +56,8 @@ router.post('/reset-password', authLimiter, validate(schema.resetPasswordSchema)
 
 // ─── Authentifié ───────────────────────────────────────────────
 router.post('/logout', authenticate, asyncHandler(controller.logout));
-router.post('/verify-phone', authenticate, validate(schema.verifyPhoneSchema), asyncHandler(controller.verifyPhone));
-router.post('/send-otp', authenticate, validate(schema.sendOtpSchema), asyncHandler(controller.sendPhoneOtp));
+router.post('/verify-phone', authLimiter, authenticate, validate(schema.verifyPhoneSchema), asyncHandler(controller.verifyPhone));
+router.post('/send-otp', authLimiter, authenticate, validate(schema.sendOtpSchema), asyncHandler(controller.sendPhoneOtp));
 router.post('/sync-profile', authenticate, asyncHandler(controller.syncProfile));
 
 export default router;

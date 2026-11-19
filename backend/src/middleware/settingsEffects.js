@@ -34,6 +34,12 @@ export const MODULE_PREFIXES = [
   { module: 'satellite', prefixes: ['/satellite'] },
   { module: 'sms', prefixes: ['/sms'] },
   { module: 'ia', prefixes: ['/ai'] },
+  /*
+   * Appels audio : ce réglage est le second interrupteur. L'interrupteur
+   * d'infrastructure `CALLS_ENABLED` (désactivé par défaut) prime toujours —
+   * voir src/modules/calls/callsConfig.js.
+   */
+  { module: 'appels', prefixes: ['/calls'] },
 ];
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -77,6 +83,9 @@ const matchModule = (path) => {
   }
   return null;
 };
+
+/** Lecture des drapeaux surveillés (cache partagé), pour les modules qui en dépendent hors middleware. */
+export const lireDrapeaux = () => loadFlags();
 
 export const settingsEffects = async (req, _res, next) => {
   try {

@@ -157,6 +157,21 @@ export const JOBS = {
     },
   },
 
+  /**
+   * Appels audio — sonneries échues → appels / invitations manqués.
+   * Complément du mode paresseux (chaque lecture d'appel expire déjà ce qui
+   * doit l'être, y compris quand les tâches sont désactivées en production).
+   */
+  'calls.expireRinging': {
+    description: 'Marque comme manqués les appels audio dont la sonnerie a expiré',
+    intervalMs: 60 * 1000,
+    run: async () => {
+      if (env.CALLS_ENABLED !== 'true') return { skipped: 'CALLS_ENABLED=false' };
+      const { expirerSonneries } = await import('../modules/calls/calls.service.js');
+      return expirerSonneries();
+    },
+  },
+
   /** V2 DISP-02 — alerte SLA sur les litiges ouverts trop longtemps. */
   'disputes.sla': {
     description: 'Alerte les modérateurs sur les litiges ouverts au-delà du SLA',
@@ -291,6 +306,24 @@ const running = new Set();
  */
 const paused = new Set();
 
+/**
+ * File d'exécution unique : une seule tâche à la fois dans ce processus.
+ *
+ * Chaque tâche garde une connexion pour la transaction qui porte son verrou
+ * consultatif, et `job.run()` en demande d'autres au même pool. Lancées
+ * ensemble (11 au démarrage), elles prenaient toutes les connexions du pool
+ * (`connection_limit`) puis attendaient chacune une connexion libre : blocage
+ * mutuel, « Timed out fetching a new connection from the connection pool ».
+ * En file, une tâche occupe au plus 2 connexions et les requêtes HTTP gardent
+ * le reste. Le verrou consultatif protège toujours contre un autre processus.
+ */
+let fileTaches = Promise.resolve();
+const enFileUnique = (executer) => {
+  const tour = fileTaches.then(executer, executer);
+  fileTaches = tour.catch(() => {});
+  return tour;
+};
+
 /** Seuil d'alerte : après N échecs consécutifs, les administrateurs sont notifiés (U-M5-4). */
 const JOB_ALERT_FAILURES = Number(process.env.JOB_ALERT_FAILURES ?? 3);
 
@@ -337,7 +370,7 @@ export const runJob = async (name, { actorId = null, req = null, reason = null }
   running.add(name);
   const startedAt = Date.now();
   try {
-    const execution = await prisma.$transaction(
+    const execution = await enFileUnique(() => prisma.$transaction(
       async (tx) => {
         const [lock] = await tx.$queryRaw`
           SELECT pg_try_advisory_lock(hashtext(${name})) AS locked
@@ -353,7 +386,7 @@ export const runJob = async (name, { actorId = null, req = null, reason = null }
         }
       },
       { maxWait: 10_000, timeout: 30 * 60 * 1000 },
-    );
+    ));
     if (!execution.acquired) {
       return { skipped: true, reason: 'déjà en cours sur un autre processus' };
     }

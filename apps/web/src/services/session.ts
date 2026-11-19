@@ -13,6 +13,14 @@ import type { PublicUser, Session } from './types';
 const ACCESS_KEY = 'agrikonnect.accessToken';
 const REFRESH_KEY = 'agrikonnect.refreshToken';
 const PROFILE_KEY = 'agrikonnect.profile';
+const MFA_PROOF_KEY = 'agrikonnect.mfaProof';
+
+/**
+ * Audit C-03 — preuve de second facteur délivrée par l'API après un code
+ * valide. Liée à la session Supabase (`session_id`, stable au refresh) : elle
+ * survit au rafraîchissement des jetons et disparaît à la déconnexion.
+ */
+let mfaProof: string | null = null;
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
@@ -56,6 +64,16 @@ export const sessionStore = {
   get expiresAt() {
     return expiresAt;
   },
+  get mfaProof() {
+    return mfaProof;
+  },
+
+  /** Enregistre la preuve délivrée par `mfa/confirm` ou `mfa/verify`. */
+  setMfaProof(proof: string | null | undefined): void {
+    if (!proof) return;
+    mfaProof = proof;
+    writeStorage(MFA_PROOF_KEY, proof);
+  },
 
   /** Jeton encore valable avec une marge de 30 s (l'accès dure ≤ 15 min côté serveur). */
   isFresh(): boolean {
@@ -69,6 +87,8 @@ export const sessionStore = {
     expiresAt = Date.now() + Number(session.expiresIn ?? 900) * 1000;
     writeStorage(ACCESS_KEY, session.accessToken);
     if (session.refreshToken) writeStorage(REFRESH_KEY, session.refreshToken);
+    // Connexion à second facteur : nouvelle preuve. Un refresh n'en porte pas : on garde l'actuelle.
+    if (session.mfaProof) sessionStore.setMfaProof(session.mfaProof);
   },
 
   async restore(): Promise<{ accessToken: string | null; refreshToken: string | null }> {
@@ -76,6 +96,7 @@ export const sessionStore = {
     const storedRefresh = readStorage(REFRESH_KEY);
     accessToken = storedAccess;
     refreshToken = storedRefresh;
+    mfaProof = readStorage(MFA_PROOF_KEY);
     expiresAt = null; // inconnu jusqu'au premier refresh
     return { accessToken: storedAccess, refreshToken: storedRefresh };
   },
@@ -85,8 +106,10 @@ export const sessionStore = {
     refreshToken = null;
     expiresAt = null;
     pendingRefresh = null;
+    mfaProof = null;
     removeStorage(ACCESS_KEY);
     removeStorage(REFRESH_KEY);
+    removeStorage(MFA_PROOF_KEY);
   },
 
   /** Enregistré par le store d'authentification : appelé au premier 401. */

@@ -106,6 +106,8 @@ export interface Session {
   /** Secondes. */
   expiresIn: number;
   tokenType?: string;
+  /** Audit C-03 — preuve de second facteur liée à la session, renvoyée en `X-MFA-Proof`. */
+  mfaProof?: string;
 }
 
 export interface OrganizationRef {
@@ -1764,7 +1766,8 @@ export interface OrganizationDetail {
   id: string;
   type: string;
   name: string;
-  slug: string;
+  /** `null` pour les organisations créées à l'inscription (colonne facultative). */
+  slug: string | null;
   description: string | null;
   countryCode: string;
   /** Rôles de l'utilisateur courant dans cette organisation. */

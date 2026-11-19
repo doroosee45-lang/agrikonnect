@@ -9,7 +9,7 @@ import { env } from '../../config/env.js';
 import { lienProfilFerme } from '../../shared/links.js';
 import { ApiError } from '../../shared/errors/ApiError.js';
 import { approximate, isValidCoordinate, parseBbox } from '../../shared/geo.js';
-import { sendEmail } from '../../integrations/email.js';
+import { notify } from '../../shared/events.js';
 import { translateMessage } from '../../shared/i18n/index.js';
 
 /**
@@ -161,17 +161,23 @@ export const contactFarm = async (slug, payload) => {
 
   const ownerId = farm.organization.memberships[0]?.userId;
   const owner = ownerId
-    ? await prisma.profile.findUnique({ where: { id: ownerId }, select: { email: true, locale: true } })
+    ? await prisma.profile.findUnique({ where: { id: ownerId }, select: { locale: true } })
     : null;
 
-  if (owner?.email) {
-    // I18N-01 — l'e-mail est rédigé dans la langue du destinataire (Profile.locale).
-    const L = (message) => translateMessage(message, owner.locale);
+  /*
+   * Le message passe par l'API : il est déposé dans les notifications du
+   * producteur (page Notifications de son espace), sans aucun envoi d'e-mail.
+   * Rédigé dans la langue du destinataire (I18N-01).
+   */
+  if (ownerId) {
+    const L = (message) => translateMessage(message, owner?.locale);
     const nonRenseigne = L('non renseigné');
-    await sendEmail({
-      to: owner.email,
-      subject: L(`AGRIKONNECT — Nouveau message concernant ${farm.name}`),
-      text: [
+    await notify({
+      userId: ownerId,
+      type: 'FARM_CONTACT',
+      channels: ['IN_APP'],
+      title: 'Nouveau message d’un visiteur',
+      body: [
         L('Un visiteur souhaite te contacter via ton profil public.'),
         '',
         `${L('Nom :')} ${payload.name ?? nonRenseigne}`,
@@ -182,6 +188,7 @@ export const contactFarm = async (slug, payload) => {
         '',
         L('— Réponds directement à ce visiteur depuis tes coordonnées. AGRIKONNECT n\'a pas transmis les tiennes.'),
       ].join('\n'),
+      payload: { farmId: farm.id, farmSlug: farm.slug, farmName: farm.name },
     });
   }
 

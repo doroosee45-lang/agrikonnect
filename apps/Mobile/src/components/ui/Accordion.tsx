@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -78,10 +78,12 @@ function AccordionRow({
   const [height, setHeight] = useState(0);
   const progress = useSharedValue(open ? 1 : 0);
 
-  progress.value = withTiming(open ? 1 : 0, {
-    duration: DURATION.slow,
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
+  useEffect(() => {
+    progress.value = withTiming(open ? 1 : 0, {
+      duration: DURATION.slow,
+      easing: Easing.bezier(0.16, 1, 0.3, 1),
+    });
+  }, [open, progress]);
 
   const bodyStyle = useAnimatedStyle(() => ({
     height: height * progress.value,

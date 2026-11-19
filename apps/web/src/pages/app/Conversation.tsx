@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/auth';
 import { formatRelative } from '@/lib/format';
 import { useI18n } from '@/i18n';
 import { COLORS, DURATION, EASE } from '@/theme';
+import { CallButton } from '@/features/calls/CallButton';
 
 /** APP — fil d'une conversation rattachée à un objet métier. */
 export default function AppConversation() {
@@ -43,8 +44,9 @@ export default function AppConversation() {
   return (
     <Section>
       <AuthGate isAuthenticated={isAuthenticated} title={t('ui.conversation')} description={t('ui.filDeDiscussion')} icon="💬">
-        <div style={{ marginBottom: 24 }}>
+        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           <Link to="/app/messages" style={{ fontSize: 13, color: COLORS.slateGray, textDecoration: 'none' }}>{t('ui.retourALaMessagerie')}</Link>
+          {id ? <CallButton conversationId={id} /> : null}
         </div>
 
         <Card tone="white" style={{ display: 'flex', flexDirection: 'column', minHeight: 480 }}>

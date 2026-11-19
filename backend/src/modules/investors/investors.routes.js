@@ -16,7 +16,7 @@ const profileSchema = z.object({
   ticketMax: z.coerce.number().min(0).optional(),
   currency: z.string().trim().length(3).toUpperCase().default('USD'),
   preferences: z.record(z.any()).optional(),
-  mfaEnabled: z.boolean().optional(),
+  // Audit H-05 : `mfaEnabled` n'est plus accepté — il dérive de l'enrôlement TOTP réel.
 });
 
 const verifySchema = z.object({

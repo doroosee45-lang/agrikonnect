@@ -11,6 +11,7 @@ import { messagingApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
 import { COLORS } from '@/theme/colors';
+import { CallButton } from '@/features/calls/CallButton';
 import { SPACING } from '@/theme/space';
 
 export default function ConversationDetail() {
@@ -42,6 +43,7 @@ export default function ConversationDetail() {
       <AppHeader title={t('ui.conversation')} subtitle={t('ui.filDeDiscussion')} />
       <Section bare contentStyle={styles.section}>
         <AuthGate isAuthenticated={isAuthenticated} title={t('ui.conversation')} icon="chatbubbles-outline">
+          {conversationId ? <CallButton conversationId={conversationId} /> : null}
           {query.isLoading ? <LoadingState count={3} height={80} /> : query.isError ? <ErrorState error={query.error} onRetry={() => void query.refetch()} /> : (
             <>
               <FlatList

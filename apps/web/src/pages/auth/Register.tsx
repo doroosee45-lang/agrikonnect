@@ -15,9 +15,8 @@ const ACCOUNT_TYPES = [
   { value: 'BUYER', get label() { return tr('ui.acheteur'); } },
   { value: 'SUPPLIER', get label() { return tr('ui.fournisseur'); } },
   { value: 'TRANSPORTER', get label() { return tr('ui.transporteur'); } },
-  { value: 'AGRONOMIST', get label() { return tr('ui.agronome'); } },
   { value: 'INVESTOR', get label() { return tr('ui.investisseur'); } },
-  { value: 'SUPPORT_AGENT', get label() { return tr('ui.agentDAppui'); } },
+  // Agronome et agent d'appui : attribués par un administrateur (audit H-01).
 ] as const;
 
 export default function Register() {

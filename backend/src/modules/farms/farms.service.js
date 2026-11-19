@@ -188,7 +188,11 @@ export const update = async (id, payload, req) => {
 
   const updateData = {
     ...data,
-    ...(lat !== null ? { publicLatitude: lat, publicLongitude: lng } : {}),
+    // H-06 : la position publique est TOUJOURS recalculée. En mode `private`
+    // (ou sans coordonnée valide) elle est effacée : l'ancienne position ne doit
+    // plus être servie par /public/map ni /public/farms/:slug.
+    publicLatitude: lat,
+    publicLongitude: lng,
     ...(visibility ? { visibility } : {}),
     ...(data.latitude !== undefined || data.longitude !== undefined
       ? {

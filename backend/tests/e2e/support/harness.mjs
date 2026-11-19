@@ -249,7 +249,7 @@ export const startHarness = async ({ fresh = true } = {}) => {
    *   de remise en formulaire, et la signature porte sur ces paramètres. Les
    *   tester en JSON ne prouverait rien sur le chemin réellement utilisé.
    */
-  const request = async (
+  const requeteBrute = async (
     method,
     route,
     { body, token, headers = {}, raw = false, form = false, rawBody = false } = {},
@@ -296,6 +296,52 @@ export const startHarness = async ({ fresh = true } = {}) => {
       payload = { __raw: text };
     }
     return { status: response.status, body: payload };
+  };
+
+  /**
+   * Audit H-01 — AGRONOMIST et SUPPORT_AGENT ne s'obtiennent plus à
+   * l'inscription : en production, un administrateur les attribue. Les
+   * recettes qui « inscrivent un agronome » reproduisent ce parcours :
+   * inscription en FARMER, puis attribution du rôle sur l'adhésion (ce que
+   * fait `POST /admin/users/:id/roles`, sans le second facteur du Super Admin).
+   * Le refus de l'inscription libre est lui-même prouvé par `auditLot2.test.mjs`.
+   */
+  const ROLES_ATTRIBUES_PAR_ADMIN = ['AGRONOMIST', 'SUPPORT_AGENT'];
+
+  /**
+   * Audit C-03 — preuve de second facteur par jeton d'accès, comme le client
+   * web : mémorisée quand l'API la délivre (connexion avec code, `mfa/verify`,
+   * `mfa/confirm`) et renvoyée en `X-MFA-Proof`. Une recette qui veut éprouver
+   * l'absence de preuve passe `headers: { 'x-mfa-proof': '' }`.
+   */
+  const preuvesMfa = new Map();
+  const avecPreuveMfa = async (method, route, options) => {
+    const entetes = { ...(options.headers ?? {}) };
+    const preuve = options.token ? preuvesMfa.get(options.token) : null;
+    if (preuve && !Object.keys(entetes).some((cle) => cle.toLowerCase() === 'x-mfa-proof')) {
+      entetes['x-mfa-proof'] = preuve;
+    }
+    const reponse = await requeteBrute(method, route, { ...options, headers: entetes });
+    const session = reponse.body?.data?.session;
+    if (session?.accessToken && session.mfaProof) preuvesMfa.set(session.accessToken, session.mfaProof);
+    if (options.token && reponse.body?.data?.mfaProof) preuvesMfa.set(options.token, reponse.body.data.mfaProof);
+    return reponse;
+  };
+
+  const request = async (method, route, options = {}) => {
+    const typeDemande = options.body?.accountType;
+    if (method !== 'POST' || route !== '/auth/register' || !ROLES_ATTRIBUES_PAR_ADMIN.includes(typeDemande)) {
+      return avecPreuveMfa(method, route, options);
+    }
+    const reponse = await requeteBrute(method, route, {
+      ...options,
+      body: { ...options.body, accountType: 'FARMER' },
+    });
+    const userId = reponse.body?.data?.user?.id;
+    if (reponse.status === 201 && userId) {
+      await prisma.membership.updateMany({ where: { userId }, data: { roles: [typeDemande] } });
+    }
+    return reponse;
   };
 
   return {

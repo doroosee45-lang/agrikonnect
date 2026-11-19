@@ -46,6 +46,8 @@ export const secureStorage = {
 export const STORAGE_KEYS = {
   accessToken: 'ak.access_token',
   refreshToken: 'ak.refresh_token',
+  /** Audit C-03 — preuve de second facteur de la session. */
+  mfaProof: 'ak.mfa_proof',
   profile: 'ak.profile',
   locale: 'ak.locale',
   onboarding: 'ak.onboarding_seen',

@@ -1,6 +1,7 @@
 import axios, {
   AxiosError,
   type AxiosRequestConfig,
+  type AxiosResponse,
   type InternalAxiosRequestConfig,
   type Method,
 } from 'axios';
@@ -58,6 +59,9 @@ http.interceptors.request.use((raw) => {
   if (!config.anonymous) {
     const token = sessionStore.accessToken;
     if (token) config.headers.set('Authorization', `Bearer ${token}`);
+    // Audit C-03 — preuve de second facteur de la session (routes de gouvernance, data room).
+    const preuveMfa = sessionStore.mfaProof;
+    if (token && preuveMfa) config.headers.set('X-MFA-Proof', preuveMfa);
     const activeOrgId = getActiveOrganizationId();
     if (activeOrgId && !config.headers.get('X-Organization-Id')) {
       config.headers.set('X-Organization-Id', activeOrgId);
@@ -90,19 +94,25 @@ function toRequestError(error: AxiosError): RequestError {
   });
 }
 
-/** Rejoue une requête après refresh, en conservant méthode, corps et options. */
-async function replay(config: InterceptedConfig): Promise<unknown> {
+/**
+ * Rejoue une requête après refresh, en conservant méthode, corps et options.
+ *
+ * Renvoie la RÉPONSE axios complète, comme le chemin normal de l'intercepteur :
+ * `request()` lit ensuite `response.data` (l'enveloppe) puis `.data`. Renvoyer
+ * `response.data` ici faisait lire `enveloppe.data.data` → `undefined` pour
+ * toute requête rejouée après expiration du jeton (écrans vides ou en erreur).
+ */
+async function replay(config: InterceptedConfig): Promise<AxiosResponse> {
   const headers = { ...(config.headers as object) } as Record<string, unknown>;
   const token = sessionStore.accessToken;
   if (token) headers.Authorization = `Bearer ${token}`;
-  const response = await axios.request({
+  return axios.request({
     ...config,
     headers: headers as InternalAxiosRequestConfig['headers'],
     baseURL: config.baseURL,
     transformRequest: undefined,
     transformResponse: undefined,
   });
-  return response.data;
 }
 
 http.interceptors.response.use(

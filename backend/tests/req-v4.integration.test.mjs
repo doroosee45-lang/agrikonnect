@@ -8,6 +8,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { prisma } from '../src/config/prisma.js';
 import { withFakePrisma } from './helpers/fakePrisma.mjs';
+import { investisseurPret } from './helpers/investisseurPret.mjs';
+
+/** Audit H-05 / C-03 — l'investisseur des tests data room est vérifié, avec MFA réelle et session à second facteur. */
+const INVESTISSEUR = investisseurPret('user_inv');
 
 import * as projectsService from '../src/modules/projects/projects.service.js';
 import * as dataroomService from '../src/modules/dataroom/dataroom.service.js';
@@ -153,6 +157,8 @@ const drStore = () =>
       },
     ],
     dataRoomAccessLog: [],
+    investorProfile: [INVESTISSEUR.investorProfile],
+    profile: [INVESTISSEUR.profile],
   });
 
 test('DR-03 : l’accès est décidé par le porteur, avec expiration', async () => {
@@ -190,7 +196,7 @@ test('DR-04 : le téléchargement est désactivé par défaut et journalisé', a
   const { fake, restore } = await withFakePrisma(prisma, drStore());
   try {
     await expectStatus(
-      dataroomService.openDocument('doc_1', { ...reqAs(INVESTOR, ['INVESTOR'], 'user_inv'), query: { download: 'true' } }),
+      dataroomService.openDocument('doc_1', INVESTISSEUR.requete({ ...reqAs(INVESTOR, ['INVESTOR'], 'user_inv'), query: { download: 'true' } })),
       403,
       /téléchargement|download/i,
     );
@@ -206,7 +212,7 @@ test('DR-04 : le téléchargement est désactivé par défaut et journalisé', a
 test('DR-05 : le journal d’accès est append-only et complet', async () => {
   const { fake, restore } = await withFakePrisma(prisma, drStore());
   try {
-    await dataroomService.openDocument('doc_1', reqAs(INVESTOR, ['INVESTOR'], 'user_inv'));
+    await dataroomService.openDocument('doc_1', INVESTISSEUR.requete(reqAs(INVESTOR, ['INVESTOR'], 'user_inv')));
 
     const entries = fake._store.dataRoomAccessLog;
     assert.equal(entries.length, 1, 'chaque ouverture est journalisée');
@@ -457,7 +463,11 @@ test('INV-01 : seul un profil investisseur vérifié accède aux projets', async
 
     // … puis la MFA est exigée même une fois la vérification faite (V4).
     await expectStatus(investorsService.assertInvestorReady('user_inv'), 403, /multifacteur|MFA/i);
+    // Audit H-05 : l'auto-déclaration (`investorProfile.mfaEnabled`) ne suffit plus…
     fake._store.investorProfile[0].mfaEnabled = true;
+    await expectStatus(investorsService.assertInvestorReady('user_inv'), 403, /multifacteur|MFA/i);
+    // … seule la MFA réelle du compte (enrôlement TOTP confirmé) ouvre l'accès.
+    fake._store.profile[0].mfaEnabled = true;
     const ready = await investorsService.assertInvestorReady('user_inv');
     assert.ok(ready.verifiedAt instanceof Date, 'accès ouvert seulement après vérification + MFA');
   } finally {

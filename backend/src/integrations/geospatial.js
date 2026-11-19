@@ -126,11 +126,11 @@ export const engineHealth = async () => {
       engine: body?.service ?? ENGINE_NAME,
       version: body?.version ?? null,
       latencyMs: Date.now() - started,
-      url: baseUrl(),
+      // M-09 : l'adresse interne du moteur n'est jamais renvoyée au client.
     };
   } catch (error) {
     logger.warn(`[geoai] indisponible : ${error.message}`);
-    return { available: false, engine: ENGINE_NAME, version: null, latencyMs: Date.now() - started, url: baseUrl(), error: error.message };
+    return { available: false, engine: ENGINE_NAME, version: null, latencyMs: Date.now() - started, error: error.message };
   }
 };
 

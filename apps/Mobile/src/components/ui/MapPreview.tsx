@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, Defs, Line, Pattern, Rect } from 'react-native-svg';
 import Animated, {
@@ -41,14 +41,16 @@ export const AFRICA_BOUNDS: MapBounds = { minLng: -20, minLat: -36, maxLng: 54, 
 function Pulse({ color, delay }: { color: string; delay: number }) {
   const progress = useSharedValue(0);
 
-  progress.value = withRepeat(
-    withSequence(
-      withTiming(0, { duration: delay }),
-      withTiming(1, { duration: 2_400, easing: Easing.out(Easing.quad) }),
-    ),
-    -1,
-    false,
-  );
+  useEffect(() => {
+    progress.value = withRepeat(
+      withSequence(
+        withTiming(0, { duration: delay }),
+        withTiming(1, { duration: 2_400, easing: Easing.out(Easing.quad) }),
+      ),
+      -1,
+      false,
+    );
+  }, [delay, progress]);
 
   const style = useAnimatedStyle(() => ({
     opacity: 0.5 * (1 - progress.value),

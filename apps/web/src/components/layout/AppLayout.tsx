@@ -15,6 +15,7 @@ import { Header } from './Header';
 import { useI18n } from '@/i18n';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { bcpLocale } from '@/lib/format';
+import { CallOverlay } from '@/features/calls/CallOverlay';
 
 type AdminNavPermission =
   | 'admin.dashboard'
@@ -256,6 +257,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div key={location.pathname} className="page-enter">{children}</div>
         </main>
         <Footer />
+        <CallOverlay />
       </div>
     );
   }
@@ -423,6 +425,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className="flex-1 pb-8">
           <div key={location.pathname} className="page-enter">{children}</div>
         </main>
+        <CallOverlay />
       </div>
 
       {!isLg ? (

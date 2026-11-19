@@ -1093,6 +1093,7 @@ test('SEC-07 : le CORS n’ouvre que les origines déclarées', async () => {
   try {
     const hostile = await fetch(`${base}/health`, { headers: { origin: 'https://evil.example' } });
     assert.equal(hostile.headers.get('access-control-allow-origin'), null, 'origine inconnue non autorisée');
+    assert.equal(hostile.status, 403, 'F-11 : refus CORS = 403, jamais 500');
 
     const allowed = await fetch(`${base}/health`, { headers: { origin: env.corsOrigins[0] } });
     assert.ok(allowed.headers.get('access-control-allow-origin'), 'origine déclarée autorisée');

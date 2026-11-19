@@ -498,6 +498,34 @@ test('E2E DR-01/02 : accès fermé par défaut, ouvert après décision du porte
   const denied = await h.request('GET', `/dataroom/documents/${documentId}`, { token: investorToken });
   assert.ok([403, 404].includes(denied.status), `accès refusé sans autorisation (${denied.status})`);
 
+  /*
+   * Audit H-05 / C-03 — la data room exige un investisseur vérifié par
+   * l'administration, avec une double authentification RÉELLE et une session
+   * qui l'a franchie. Enrôlement TOTP par l'API (la confirmation délivre la
+   * preuve de session, mémorisée par le harnais) ; vérification administrative
+   * simulée en base (le circuit `PATCH /investors/:userId/verify` a ses tests).
+   */
+  const { currentCode } = await import('../../src/modules/auth/mfa.service.js');
+  const enrolement = await h.request('POST', '/auth/mfa/setup', { token: investorToken, body: {} });
+  assert.equal(enrolement.status, 200, JSON.stringify(enrolement.body));
+  const activation = await h.request('POST', '/auth/mfa/confirm', {
+    token: investorToken,
+    body: { code: currentCode(enrolement.body.data.secret) },
+  });
+  assert.equal(activation.status, 200, JSON.stringify(activation.body));
+  assert.ok(activation.body.data.mfaProof, 'la confirmation délivre une preuve de session');
+
+  const profilInvestisseur = await h.request('PUT', '/investors/me', {
+    token: investorToken,
+    body: { displayName: 'Fonds Sahel', sectors: ['AGRICULTURE'], countries: ['CD'], mfaEnabled: false },
+  });
+  assert.equal(profilInvestisseur.status, 200, JSON.stringify(profilInvestisseur.body));
+  assert.equal(profilInvestisseur.body.data.profile.mfaEnabled, true, 'MFA recopiée du compte, jamais déclarée');
+  await h.prisma.investorProfile.update({
+    where: { userId: profilInvestisseur.body.data.profile.userId },
+    data: { verifiedAt: new Date() },
+  });
+
   const request = await h.request('POST', `/dataroom/projects/${projectId}/access-requests`, {
     token: investorToken,
     body: {

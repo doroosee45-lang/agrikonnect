@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { prisma } from '../src/config/prisma.js';
 import { withFakePrisma } from './helpers/fakePrisma.mjs';
+import { investisseurPret } from './helpers/investisseurPret.mjs';
 import * as ai from '../src/modules/ai/ai.service.js';
 import * as dataroom from '../src/modules/dataroom/dataroom.service.js';
 import * as apiclients from '../src/modules/apiclients/apiclients.service.js';
@@ -123,8 +124,11 @@ test('DR-01 : une data room non publiée est fermée par défaut', async () => {
 });
 
 test('DR-02 : l\'accès par défaut est en lecture seule, sans téléchargement', async () => {
+  const investisseur = investisseurPret('user_1');
   const { fake, restore } = await withFakePrisma(prisma, {
     ...emptyStore(),
+    investorProfile: [investisseur.investorProfile],
+    profile: [investisseur.profile],
     project: [
       {
         id: 'prj_1',
@@ -140,7 +144,7 @@ test('DR-02 : l\'accès par défaut est en lecture seule, sans téléchargement'
     const request = await dataroom.requestAccess(
       'prj_1',
       { scope: { documents: ['business_plan'] }, justification: 'Analyse préalable à un investissement' },
-      reqAs(INVESTOR, ['INVESTOR']),
+      investisseur.requete(reqAs(INVESTOR, ['INVESTOR'])),
     );
 
     assert.equal(request.status, 'PENDING', 'aucun accès sans décision du propriétaire');
