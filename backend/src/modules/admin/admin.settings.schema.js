@@ -114,6 +114,11 @@ export const SETTINGS_CATALOG = {
     requiresRestart: false,
     description: 'Module intelligence artificielle',
   },
+  'modules.academia': {
+    section: 'modules', type: 'boolean', default: false,
+    requiresRestart: false,
+    description: 'Module AGRIKONNECT ACADEMIA (universités, affiliations, bibliothèque) — désactivé jusqu\'à la recette',
+  },
 
   // ── limits (palier 1) ─────────────────────────────────────────────────
   'limits.apiQuotaPerDay': {

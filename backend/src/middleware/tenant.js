@@ -5,6 +5,31 @@
  * exécutable correspondante est référencée dans `tests/` (voir docs/TRACEABILITY.md).
  */
 import { ApiError } from '../shared/errors/ApiError.js';
+import { ACADEMIC_ORG_TYPES, GOVERNANCE_ROLES } from '../shared/permissions.js';
+
+/**
+ * Rôles effectifs dans l'organisation active (fonction pure, testée).
+ *
+ * Cas général (inchangé) : rôles de l'organisation + rôles portés ailleurs.
+ *
+ * ACADEMIA : dans un établissement (UNIVERSITY, RESEARCH_CENTER), seuls
+ * comptent les rôles QUE LA PERSONNE Y DÉTIENT, plus ses rôles de
+ * gouvernance. Sans cela, un étudiant également producteur pourrait choisir
+ * l'université comme organisation active et y exercer ses droits de
+ * producteur (messagerie, données de l'établissement…).
+ */
+export const rolesEffectifs = (membership, rolesTousTenants = []) => {
+  const rolesOrganisation = membership?.roles ?? [];
+  if (ACADEMIC_ORG_TYPES.includes(membership?.organization?.type)) {
+    return [
+      ...new Set([
+        ...rolesOrganisation,
+        ...rolesTousTenants.filter((role) => GOVERNANCE_ROLES.includes(role)),
+      ]),
+    ];
+  }
+  return [...new Set([...rolesOrganisation, ...rolesTousTenants])];
+};
 
 /**
  * Isolation tenant (CDC §3.4 / A.3, couche 4 du modèle d'autorisation).
@@ -43,8 +68,8 @@ export const resolveTenant = (req, _res, next) => {
     organizationId: membership.organizationId,
     organization: membership.organization,
     roles: membership.roles,
-    /** Rôles effectifs = rôles de l'organisation active + rôles portés ailleurs */
-    effectiveRoles: [...new Set([...membership.roles, ...(req.user.roles ?? [])])],
+    /** Rôles effectifs = rôles de l'organisation active + rôles portés ailleurs (voir rolesEffectifs) */
+    effectiveRoles: rolesEffectifs(membership, req.user.roles ?? []),
   };
 
   next();
