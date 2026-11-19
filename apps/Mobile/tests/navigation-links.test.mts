@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getUserProfileRoute, getUserSettingsRoute } from '../src/lib/redirects.ts';
 
 /**
  * Chaque chemin STATIQUE passé à router.push / replace / navigate, `href` ou
@@ -30,6 +31,24 @@ const existe = (url: string) => {
 };
 
 describe('navigation — liens statiques', () => {
+  it('sépare le profil personnel du profil et des paramètres de l’organisation', () => {
+    const roles = ['COOPERATIVE_ADMIN'];
+    assert.equal(getUserProfileRoute(roles), '/professional/profile');
+    assert.equal(getUserSettingsRoute(roles), '/settings');
+  });
+
+  it('oriente les profils et paramètres individuels selon le métier', () => {
+    assert.equal(getUserProfileRoute(['FARMER']), '/farmer/profile');
+    assert.equal(getUserSettingsRoute(['FARMER']), '/farmer/settings');
+    assert.equal(getUserProfileRoute(['AGRONOMIST']), '/professional/profile');
+    assert.equal(getUserSettingsRoute(['AGRONOMIST']), '/professional/settings');
+  });
+
+  it('n’ouvre les paramètres plateforme qu’avec la permission admin dédiée', () => {
+    assert.equal(getUserSettingsRoute(['ADMIN']), '/settings');
+    assert.equal(getUserSettingsRoute(['ADMIN'], ['admin.settings']), '/admin/settings');
+  });
+
   it('chaque lien statique mène à un écran existant', () => {
     const casses: string[] = [];
     const motif = /(?:router\.(?:push|replace|navigate)\(\s*|href[:=]\s*\{?\s*|pathname:\s*)(['"`])(\/[^'"`$]*)\1/g;

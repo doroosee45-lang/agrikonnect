@@ -188,6 +188,8 @@ model Profile {
   countryCode         String    @map("country_code") @db.Char(2)
   status              String    @default("ACTIVE")
   avatarUrl           String?   @map("avatar_url")
+  professionalProfile Json?     @map("professional_profile")
+  accountPreferences  Json?     @map("account_preferences")
   lastLoginAt         DateTime? @map("last_login_at")
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime? @map("locked_until")
@@ -214,17 +216,19 @@ model Profile {
 }
 
 model Organization {
-  id          String    @id
-  type        OrgType   @default(INDIVIDUAL)
-  name        String
-  slug        String?   @unique
-  description String?
-  countryCode String    @map("country_code") @db.Char(2)
-  createdBy   String?   @map("created_by")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
-  version     Int       @default(1)
+  id             String    @id
+  type           OrgType   @default(INDIVIDUAL)
+  name           String
+  slug           String?   @unique
+  description    String?
+  profileDetails Json?     @map("profile_details")
+  settings       Json?
+  countryCode    String    @map("country_code") @db.Char(2)
+  createdBy      String?   @map("created_by")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  version        Int       @default(1)
 
   memberships     Membership[]
   farms           Farm[]

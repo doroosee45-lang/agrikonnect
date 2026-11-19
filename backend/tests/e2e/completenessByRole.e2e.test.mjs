@@ -90,3 +90,50 @@ test('E2E COMPLETE-04 : INVESTOR → critères universels, complétude non bloqu
   assert.ok(data.completeness.missing.includes('avatar'));
   assert.equal(data.completeness.percent, Math.round((data.completeness.done / data.completeness.total) * 100));
 });
+
+/** Rôle attribué par l'administration (non ouvert à l'inscription) : semis direct. */
+const attribuerRoles = async (email, roles) => {
+  const profil = await h.prisma.profile.findUnique({ where: { email } });
+  await h.prisma.membership.updateMany({ where: { userId: profil.id }, data: { roles } });
+};
+
+test('E2E COMPLETE-05 : AGRONOMIST → profil professionnel exigé, coché une fois renseigné', async () => {
+  const email = 'complete-agronome@agrikonnect.test';
+  const token = await registerAndToken({ email, accountType: 'BUYER' });
+  await attribuerRoles(email, ['AGRONOMIST']);
+  const avant = await me(token);
+  assert.deepEqual(
+    avant.completeness.criteria.map((c) => c.key),
+    ['identity', 'phone_verified', 'email_verified', 'avatar', 'professional'],
+  );
+  assert.ok(avant.completeness.missing.includes('professional'));
+
+  const maj = await h.request('PATCH', '/me', {
+    token,
+    body: {
+      professionalProfile: {
+        jobTitle: 'Agronome conseil',
+        activityDomain: 'Fertilité des sols',
+        biography: 'Accompagnement des producteurs du Kongo-Central depuis 2018.',
+      },
+    },
+  });
+  assert.equal(maj.status, 200, JSON.stringify(maj.body));
+  const apres = await me(token);
+  assert.equal(apres.completeness.missing.includes('professional'), false);
+  assert.equal(apres.completeness.criteria.find((c) => c.key === 'professional').done, true);
+});
+
+test('E2E COMPLETE-06 : TRANSPORTER → aucun profil professionnel réclamé', async () => {
+  const token = await registerAndToken({ email: 'complete-transport@agrikonnect.test', accountType: 'TRANSPORTER' });
+  const keys = (await me(token)).completeness.criteria.map((c) => c.key);
+  assert.deepEqual(keys, ['identity', 'phone_verified', 'email_verified', 'avatar']);
+});
+
+test('E2E COMPLETE-07 : producteur ET agronome → trio de production + profil professionnel', async () => {
+  const email = 'complete-farmer-agronome@agrikonnect.test';
+  const token = await registerAndToken({ email, accountType: 'FARMER' });
+  await attribuerRoles(email, ['FARMER', 'AGRONOMIST']);
+  const keys = (await me(token)).completeness.criteria.map((c) => c.key);
+  assert.deepEqual(keys, ['identity', 'phone_verified', 'email_verified', 'avatar', 'professional', 'farm', 'plot', 'production']);
+});

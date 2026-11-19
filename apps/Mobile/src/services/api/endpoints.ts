@@ -8,6 +8,7 @@ import {
   type ApiKeyCreated,
   type ApiKeyItem,
   type ApiUsageResult,
+  type AccountExport,
   type Certification,
   type Conversation,
   type ConversationListResult,
@@ -25,6 +26,7 @@ import {
   type ImpactReport,
   type InventoryItem,
   type InventoryMovement,
+  type InvestorProfileResult,
   type Listing,
   type Membership,
   type MessageItem,
@@ -85,6 +87,7 @@ import {
   type PublicFarmListItem,
   type PublicFarmPage,
   type PublicLot,
+  type PublicUser,
   type RegisterPayload,
   type RegisterResult,
   type Session,
@@ -212,11 +215,13 @@ export const authApi = {
 
   /** PROF-01 — renvoie `{ user, completeness, counts, activeOrganizationId }`. */
   me: () => api.get<MeResult>('/me'),
-  updateMe: (payload: Record<string, unknown>) => api.patch<MeResult>('/me', payload),
+  updateMe: (payload: Record<string, unknown>) => api.patch<{ user: PublicUser }>('/me', payload),
   permissions: () => api.get<PermissionsResult>('/me/permissions'),
   /** Audit H-04 : mot de passe actuel requis ; `mfaCode` si la double authentification est active. */
   changePassword: (payload: { currentPassword: string; newPassword: string; mfaCode?: string }) =>
     api.post<{ updated: true }>('/me/password', payload, { idempotent: true }),
+  exportData: () => api.get<AccountExport>('/me/export'),
+  deleteAccount: () => api.delete<void>('/me'),
 
   forgotPassword: (identifier: string) =>
     api.post<{ sent: boolean }>('/auth/forgot-password', { identifier }, { anonymous: true, skipAuthRefresh: true }),
@@ -691,7 +696,10 @@ export const organizationApi = {
   list: (params: PageQuery & { type?: string } = {}) =>
     api.get<OrganizationSummary[]>('/organizations', { params: cleanQuery(params) }),
   create: (payload: Record<string, unknown>) => api.post<OrganizationSummary>('/organizations', payload, { idempotent: true }),
-  get: (id: string) => api.get<OrganizationSummary & { memberships?: Membership[] }>(`/organizations/${id}`),
+  get: (id: string) =>
+    api.get<OrganizationSummary & { roles: string[]; cooperative?: Record<string, unknown> | null; memberships?: Membership[] }>(
+      `/organizations/${id}`,
+    ),
   update: (id: string, payload: Record<string, unknown>) => api.patch<OrganizationSummary>(`/organizations/${id}`, payload),
 };
 
@@ -795,8 +803,8 @@ export const investApi = {
   decideContact: (id: string, requestId: string, payload: { decision: 'ACCEPTED' | 'REJECTED' }) =>
     api.post<Record<string, unknown>>(`/investment/projects/${id}/contacts/${requestId}/decide`, payload),
   contactRequests: () => api.get<Array<Record<string, unknown>>>('/investment/contact-requests'),
-  profile: () => api.get<Record<string, unknown>>('/investors/me'),
-  updateProfile: (payload: Record<string, unknown>) => api.put<Record<string, unknown>>('/investors/me', payload),
+  profile: () => api.get<InvestorProfileResult>('/investors/me'),
+  updateProfile: (payload: Record<string, unknown>) => api.put<InvestorProfileResult>('/investors/me', payload),
   dashboard: () => api.get<Record<string, unknown>>('/invest'),
 };
 
