@@ -70,9 +70,20 @@ jobs:
         run: npm run check:migrations
 
       - name: Suite complète (npm test — unitaires et intégration PostgreSQL)
+        # Rapporteur supplémentaire : chaque échec devient une annotation
+        # lisible dans la PR (nom du test, fichier, ligne, message).
+        env:
+          NODE_OPTIONS: >-
+            --test-reporter=spec --test-reporter-destination=stdout
+            --test-reporter=./tests/helpers/reporter-annotations-github.mjs --test-reporter-destination=stdout
         run: npm test
 
       - name: Sécurité et isolation (e2e absents de npm test)
+        if: ${{ !cancelled() }}
+        env:
+          NODE_OPTIONS: >-
+            --test-reporter=spec --test-reporter-destination=stdout
+            --test-reporter=./tests/helpers/reporter-annotations-github.mjs --test-reporter-destination=stdout
         run: >
           node --test --test-concurrency=1 --test-force-exit --test-timeout=600000
           tests/e2e/auditLot3.e2e.test.mjs
