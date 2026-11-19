@@ -129,6 +129,7 @@
   "GET /market-prices": 401,
   "GET /market/purchase-requests/:id/offers": 401,
   "GET /me": 401,
+  "GET /me/export": 401,
   "GET /me/permissions": 401,
   "GET /me/push-devices": 401,
   "GET /media": 401,

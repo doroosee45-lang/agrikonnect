@@ -7,7 +7,7 @@ import { IconeCloche } from '@/components/Icons';
 import { Sidebar, useBreakpoint } from '@/design-system';
 import { cn } from '@/design-system/lib/utils';
 import type { SidebarGroup, SidebarItem, SidebarStatusCard } from '@/design-system';
-import { getActiveOrganizationId, setActiveOrganizationId } from '@/lib/redirects';
+import { getActiveOrganizationId, getProfileRoute, setActiveOrganizationId } from '@/lib/redirects';
 import { resolveEspace } from '@/lib/space-nav';
 import { useAuthStore } from '@/store/auth';
 import { Footer } from './Footer';
@@ -167,6 +167,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [orgActive, setOrgActive] = useState<string>(
     () => getActiveOrganizationId() ?? user?.organizations?.[0]?.id ?? '',
   );
+  const profileRoute = getProfileRoute(user, orgActive || undefined);
 
   useEffect(() => {
     const saved = getActiveOrganizationId();
@@ -382,7 +383,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </Link>
 
                 <Link
-                  to="/app/profile"
+                  to={profileRoute}
                   aria-label={t('ui.profil')}
                   title={user?.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : t('ui.profil')}
                   className="flex h-[34px] items-center gap-2 rounded-[9px] border border-bordure bg-surface px-2.5 text-xs font-semibold text-texte shadow-2xs transition-colors hover:bg-fond"

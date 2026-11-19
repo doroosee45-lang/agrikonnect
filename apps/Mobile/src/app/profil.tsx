@@ -12,7 +12,6 @@ import {
   ErrorState,
   LoadingState,
   Progress,
-  ProvenanceTag,
   Reveal,
   Section,
   Text,
@@ -21,6 +20,7 @@ import { useI18n } from '@/i18n';
 import { authApi } from '@/services/api/endpoints';
 import { queryKeys } from '@/services/query';
 import { useAuthStore } from '@/store/auth';
+import { getUserProfileRoute, getUserSettingsRoute, resolveActiveContext } from '@/lib/redirects';
 import { COLORS, DARK, TINTS } from '@/theme/colors';
 import { RADIUS, SPACING } from '@/theme/space';
 
@@ -30,23 +30,15 @@ export default function Profil() {
   const { width } = useWindowDimensions();
   const wide = width >= 900;
   const isAuthenticated = useAuthStore((state) => state.status === 'authenticated');
-  const logout = useAuthStore((state) => state.logout);
+  const authUser = useAuthStore((state) => state.user);
+  const permissions = useAuthStore((state) => state.permissions);
+  const roles = resolveActiveContext(authUser).roles;
+  const profileRoute = getUserProfileRoute(roles);
+  const settingsRoute = getUserSettingsRoute(roles, permissions);
 
   const me = useQuery({
     queryKey: queryKeys.me,
     queryFn: () => authApi.me().then((result) => result.data),
-    enabled: isAuthenticated,
-  });
-
-  const permissions = useQuery({
-    queryKey: queryKeys.permissions,
-    queryFn: () => authApi.permissions().then((result) => result.data),
-    enabled: isAuthenticated,
-  });
-
-  const mfa = useQuery({
-    queryKey: ['auth', 'mfa', 'status'],
-    queryFn: () => authApi.mfaStatus().then((result) => result.data),
     enabled: isAuthenticated,
   });
 
@@ -185,53 +177,30 @@ export default function Profil() {
                   )}
                 </Card>
 
-                <Card tone="white" style={styles.sideCard}>
-                  <Text preset="overline" color={COLORS.livingGreen}>{t('ui.securite_33e96')}</Text>
-                  <View style={styles.securityRow}>
-                    <Ionicons
-                      name={mfa.data?.enabled ? 'shield-checkmark' : 'shield-outline'}
-                      size={16}
-                      color={mfa.data?.enabled ? COLORS.success : COLORS.warning}
-                    />
-                    <View style={styles.securityBody}>
-                      <Text preset="bodyMedium" color={COLORS.textPrimary}>{t('ui.doubleAuthentification')}</Text>
-                      <Text preset="caption" color={COLORS.slateGray}>
-                        {mfa.isLoading
-                          ? t('ui.verification')
-                          : mfa.data?.enabled
-                            ? t('ui.activee_a9ccb', { value: mfa.data.method ?? 'TOTP' })
-                            : t('ui.desactiveeRecommandeePourLesComptesQui')}
-                      </Text>
-                    </View>
-                  </View>
-                  <ProvenanceTag kind="verified" label={t('ui.sessionGereeParJetonRotatif15')} />
-                </Card>
-
-                {permissions.data ? (
-                  <Card tone="white" style={styles.sideCard}>
-                    <Text preset="overline" color={COLORS.livingGreen}>{t('ui.permissionsEffectives')}</Text>
-                    <View style={styles.permissionList}>
-                      {permissions.data.roles.map((role) => (
-                        <Chip key={role} label={role} tone="forest" size="sm" />
-                      ))}
-                    </View>
-                    <Text preset="caption" color={COLORS.slateGray} style={styles.lineHeight}>{t('ui.permissionsAccordeesSurCeRole', { length: permissions.data.permissions.length })}</Text>
-                  </Card>
-                ) : null}
-
                 <View style={styles.actions}>
+                  {profileRoute !== '/profil' ? (
+                    <Button
+                      label={t('ui.monProfil')}
+                      onPress={() => router.push(profileRoute as never)}
+                      variant="primary"
+                      icon="person-outline"
+                      fullWidth
+                    />
+                  ) : null}
+                  {roles.some((role) => ['COOPERATIVE_ADMIN', 'COOPERATIVE_MEMBER', 'AGRICULTURAL_COMPANY'].includes(role)) ? (
+                    <Button
+                      label={t('ui.profilOrganisation')}
+                      onPress={() => router.push('/organization/profile')}
+                      variant="outline"
+                      icon="business-outline"
+                      fullWidth
+                    />
+                  ) : null}
                   <Button
-                    label={t('farmer.title')}
-                    onPress={() => router.push('/farmer')}
-                    variant="primary"
-                    icon="leaf"
-                    fullWidth
-                  />
-                  <Button
-                    label={t('auth.logout')}
-                    onPress={() => void logout()}
+                    label={t('ui.parametres_ef8f0')}
+                    onPress={() => router.push(settingsRoute as never)}
                     variant="outline"
-                    icon="log-out-outline"
+                    icon="settings-outline"
                     fullWidth
                   />
                 </View>
@@ -276,8 +245,5 @@ const styles = StyleSheet.create({
   orgRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flexWrap: 'wrap' },
   orgBody: { flex: 1, gap: 1 },
   orgRoles: { flexDirection: 'row', gap: SPACING.xs, flexWrap: 'wrap' },
-  securityRow: { flexDirection: 'row', gap: SPACING.md, alignItems: 'flex-start' },
-  securityBody: { flex: 1, gap: 1 },
-  permissionList: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.xs },
   actions: { gap: SPACING.sm },
 });

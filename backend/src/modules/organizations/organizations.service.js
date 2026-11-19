@@ -11,6 +11,8 @@ const shape = (organization, roles = []) => ({
   name: organization.name,
   slug: organization.slug,
   description: organization.description,
+  profileDetails: organization.profileDetails ?? null,
+  settings: organization.settings ?? null,
   countryCode: organization.countryCode,
   roles,
   createdAt: organization.createdAt,

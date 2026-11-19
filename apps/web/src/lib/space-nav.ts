@@ -223,6 +223,7 @@ export const ESPACES: EspaceDef[] = [
         get titre() { return tr('ui.navGroupGovernance'); },
         items: [
           { to: '/organization/profile', get label() { return tr('ui.profilOrganisation'); }, icone: 'personne' },
+          { to: '/organization/settings', get label() { return tr('ui.parametres_ef8f0'); }, icone: 'reglages' },
           { to: '/organization/verification', get label() { return tr('ui.verificationOfficielle'); }, icone: 'verification' },
         ],
       },
@@ -280,6 +281,7 @@ export const ESPACES: EspaceDef[] = [
             ],
           },
           { to: '/investment/profile', get label() { return tr('ui.profilInvestisseur'); }, icone: 'personne' },
+          { to: '/investment/settings', get label() { return tr('ui.parametres_ef8f0'); }, icone: 'reglages' },
         ],
       },
     ],

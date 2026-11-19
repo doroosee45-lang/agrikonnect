@@ -20,6 +20,7 @@ export default function FarmerPublicProfile() {
   const farms = useQuery({ queryKey: queryKeys.farms.list({ limit: 50 }), queryFn: () => farmApi.list({ limit: 50 }).then((result) => result.data), enabled: isAuthenticated, retry: false });
 
   const published = farms.data?.filter((farm) => farm.isPublic) ?? [];
+  const professional = me.data?.user.professionalProfile;
 
   return (
     <Section>
@@ -37,7 +38,26 @@ export default function FarmerPublicProfile() {
               </Text>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                 <Chip label={me.data?.user.countryCode ?? '—'} tone="neutral" size="sm" />
+                <Chip label={professional?.publicProfile ? 'Profil professionnel public' : 'Profil professionnel privé'} tone={professional?.publicProfile ? 'success' : 'warning'} size="sm" />
               </div>
+              {professional?.publicProfile && professional.jobTitle ? <Text preset="bodyMd" style={{ marginBottom: 4 }}>{professional.jobTitle}</Text> : null}
+              {professional?.publicProfile && professional.activityDomain ? <Text preset="caption" color={COLORS.slateGray}>{professional.activityDomain}</Text> : null}
+              {professional?.publicProfile && professional.biography ? (
+                <Text preset="bodySm" color={COLORS.slateGray} style={{ marginTop: 12, lineHeight: 1.7 }}>{professional.biography}</Text>
+              ) : null}
+              {professional?.publicProfile && (professional.services?.length ?? 0) > 0 ? (
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>
+                  Services : {professional.services?.join(', ')}
+                </Text>
+              ) : null}
+              {professional?.publicProfile && (professional.certifications?.length ?? 0) > 0 ? (
+                <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 4 }}>
+                  Certifications : {professional.certifications?.join(', ')}
+                </Text>
+              ) : null}
+              <Text preset="caption" color={COLORS.slateGray} style={{ marginTop: 12 }}>
+                Aucun e-mail, numéro de téléphone ou identifiant privé n’est affiché.
+              </Text>
             </Card>
 
             <Text preset="h3" style={{ marginBottom: 12 }}>{t('ui.exploitationsPubliees')}</Text>

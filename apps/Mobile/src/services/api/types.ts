@@ -118,6 +118,29 @@ export interface OrganizationRef {
   roles?: string[];
 }
 
+export interface ProfessionalProfile {
+  jobTitle?: string;
+  activityDomain?: string;
+  expertise?: string;
+  specialties?: string[];
+  yearsExperience?: number;
+  biography?: string;
+  services?: string[];
+  interventionZones?: string[];
+  certifications?: string[];
+  portfolioUrl?: string;
+  available?: boolean;
+  publicProfile?: boolean;
+  publicFields?: string[];
+}
+
+export interface AccountPreferences {
+  theme?: 'system' | 'light' | 'dark';
+  compactNavigation?: boolean;
+  communicationEmail?: boolean;
+  communicationSms?: boolean;
+}
+
 /** `publicUser()` — projection AUTH renvoyée par login/register/me. */
 export interface PublicUser {
   id: string;
@@ -130,6 +153,8 @@ export interface PublicUser {
   countryCode: string;
   status: string;
   avatarUrl: string | null;
+  professionalProfile: ProfessionalProfile | null;
+  accountPreferences: AccountPreferences | null;
   emailVerified: boolean;
   phoneVerified: boolean;
   organizations: OrganizationRef[];
@@ -1093,10 +1118,68 @@ export interface OrganizationSummary {
   name: string;
   slug: string | null;
   description: string | null;
+  profileDetails: OrganizationProfileDetails | null;
+  settings: OrganizationSettings | null;
   countryCode: string;
   createdAt: string;
   updatedAt: string;
   version: number;
+}
+
+export interface OrganizationProfileDetails {
+  officialName?: string;
+  tradingName?: string;
+  logoUrl?: string;
+  coverUrl?: string;
+  sector?: string;
+  foundedAt?: string;
+  registrationCountry?: string;
+  headquartersAddress?: string;
+  legalForm?: string;
+  registrationNumber?: string;
+  taxIdentifier?: string;
+  legalRepresentative?: string;
+  officialPhone?: string;
+  institutionalEmail?: string;
+  website?: string;
+  socialLinks?: string[];
+  activities?: string[];
+  locations?: string[];
+  partners?: string[];
+}
+
+export interface OrganizationSettings {
+  defaultLocale?: 'fr' | 'en';
+  publicProfile?: boolean;
+  publicFields?: string[];
+  memberInvitesAllowed?: boolean;
+}
+
+export interface InvestorProfile {
+  displayName: string;
+  sectors: string[];
+  countries: string[];
+  ticketMin: number | null;
+  ticketMax: number | null;
+  currency: string;
+  preferences: Record<string, unknown> | null;
+  mfaEnabled: boolean;
+  verifiedAt: string | null;
+}
+
+export interface InvestorProfileResult {
+  profile: InvestorProfile;
+  access: { verified: boolean; mfaEnabled: boolean; dataRoomAccess: boolean; requirements?: string[] };
+  disclaimer?: string;
+}
+
+export interface AccountExport {
+  exportedAt: string;
+  profile: Record<string, unknown>;
+  memberships: Array<Record<string, unknown>>;
+  investorProfile: InvestorProfile | null;
+  notificationPreferences: Array<Record<string, unknown>>;
+  smsConsents: Array<Record<string, unknown>>;
 }
 
 export interface Membership {
