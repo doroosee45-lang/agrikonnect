@@ -273,7 +273,7 @@ Scénarios du §19 couverts : 1, 2, 3, 4, 5, 14, 17. Le test RBAC du projet a d�
 **Non exécuté** : la suite complète `npm test` (plus de 100 fichiers). Elle reste à passer en CI avant fusion.
 
 ### E.4 Points d'attention pour la fusion
-- **Branches d'audit non fusionnées** : le lot 2 modifie aussi `src/middleware/tenant.js` (correctif H-03, rôles cloisonnés pour **toutes** les organisations). À la fusion, conserver H-03 : il couvre le cloisonnement des établissements. La fonction ACADEMIA devient alors redondante, sans conflit de comportement.
+- **Branches d'audit** : résolu dans `prep/academia` — H-03 conservé intégralement, variante ACADEMIA retirée (voir `ACADEMIA-02-PREPARATION-FUSION.md` §4.2).
 - **Migration `profile_settings`** (travail local non commité) : datée du 18 novembre, elle précède `academia_foundations` (19 novembre). L'ordre est correct.
 - **Activation en production** : appliquer la migration, puis activer `modules.academia` seulement après la recette des écrans (L3).
 
