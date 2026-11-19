@@ -38,7 +38,7 @@ describe('Home (page d’accueil)', () => {
     renderHome();
     // La marque figure à plusieurs endroits (en-tête, diapositives) : on vérifie sa présence.
     expect(screen.getAllByText(/AGRIKONNECT AFRICA/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Traçabilité agricole/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Traçabilité agricole/).length).toBeGreaterThan(0);
   });
 
   it('rend au moins 15 sections de contenu', () => {

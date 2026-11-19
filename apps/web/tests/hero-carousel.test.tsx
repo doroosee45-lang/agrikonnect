@@ -1,6 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { HeroCarousel } from '@/components/hero/HeroCarousel';
+
+// Le carrousel contient des liens (<Link>) : un routeur est requis pour le rendu.
+const afficher = () =>
+  render(
+    <MemoryRouter>
+      <HeroCarousel slides={slides} height={300} intervalMs={0} />
+    </MemoryRouter>,
+  );
 
 const slides = [
   {
@@ -30,7 +39,7 @@ describe('HeroCarousel', () => {
   });
 
   it('rend toutes les diapositives avec leurs titres', () => {
-    render(<HeroCarousel slides={slides} height={300} intervalMs={0} />);
+    afficher();
 
     expect(screen.getByText('Traçabilité agricole')).toBeInTheDocument();
     expect(screen.getByText('Coopératives')).toBeInTheDocument();
@@ -39,14 +48,14 @@ describe('HeroCarousel', () => {
   });
 
   it('affiche les boutons CTA de chaque diapositive', () => {
-    render(<HeroCarousel slides={slides} height={300} intervalMs={0} />);
+    afficher();
 
     expect(screen.getByText('Créer un compte')).toBeInTheDocument();
     expect(screen.getByText('Voir les coopératives')).toBeInTheDocument();
   });
 
   it('affiche les indicateurs de navigation (dots)', () => {
-    render(<HeroCarousel slides={slides} height={300} intervalMs={0} />);
+    afficher();
 
     const dots = screen.getAllByRole('button', { name: /diapositive/ });
     expect(dots).toHaveLength(2);
