@@ -10,7 +10,7 @@ import { Router } from 'express';
 
 import { asyncHandler } from '../../shared/http/asyncHandler.js';
 import { authenticate, optionalAuth } from '../../middleware/auth.js';
-import { authorize } from '../../middleware/authorize.js';
+import { authorize, requireMfa } from '../../middleware/authorize.js';
 import { validate } from '../../middleware/validate.js';
 import * as controller from './academia.controller.js';
 import * as schema from './academia.schema.js';
@@ -39,7 +39,7 @@ router.post('/affiliations/:id/decision', authorize('affiliations.review'), vali
   validate(schema.decisionSchema), asyncHandler(controller.decideAffiliation));
 
 // Administration d'un établissement (UNIVERSITY_ADMIN de CET établissement, ou gouvernance)
-router.post('/institutions', authorize('institutions.create'), validate(schema.createInstitutionSchema),
+router.post('/institutions', authorize('institutions.create'), requireMfa, validate(schema.createInstitutionSchema),
   asyncHandler(controller.createInstitution));
 router.patch('/institutions/:id', authorize('institutions.write'), validate(schema.idParam, 'params'),
   validate(schema.updateInstitutionSchema), asyncHandler(controller.updateInstitution));
@@ -53,10 +53,11 @@ router.patch('/institutions/:id/units/:unitId', authorize('institutions.write'),
 router.delete('/institutions/:id/units/:unitId', authorize('institutions.write'),
   validate(schema.unitParam, 'params'), asyncHandler(controller.deleteUnit));
 
-// Responsables d'établissement : gouvernance ACADEMIA uniquement
-router.post('/institutions/:id/admins', authorize('academia.admin'), validate(schema.idParam, 'params'),
+// Responsables d'établissement : gouvernance ACADEMIA uniquement, second facteur
+// exigé (preuve MFA de la session) comme pour toute mutation de gouvernance.
+router.post('/institutions/:id/admins', authorize('academia.admin'), requireMfa, validate(schema.idParam, 'params'),
   validate(schema.designateAdminSchema), asyncHandler(controller.designateAdmin));
-router.delete('/institutions/:id/admins/:userId', authorize('academia.admin'), validate(schema.adminParam, 'params'),
+router.delete('/institutions/:id/admins/:userId', authorize('academia.admin'), requireMfa, validate(schema.adminParam, 'params'),
   asyncHandler(controller.revokeAdmin));
 
 export default router;

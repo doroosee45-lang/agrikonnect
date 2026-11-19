@@ -124,6 +124,19 @@ test('non-régression R2 sous H-03 — les rôles académiques et producteurs re
   assert.ok(ASSIGNABLE_ROLES.includes('ACADEMIA_ADMIN'));
 });
 
+test('H-03 — AGRONOMIST : rôle de plateforme sans aucun droit d\'administration ACADEMIA', () => {
+  assert.ok(PLATFORM_ROLES.includes('AGRONOMIST'), 'effectif dans toute organisation (H-03)');
+  const dansUniversite = rolesEffectifs([], ['AGRONOMIST']);
+  for (const permission of ['affiliations.review', 'institutions.write', 'institutions.create', 'academia.admin']) {
+    assert.equal(can(dansUniversite, permission), false, `AGRONOMIST ne doit pas avoir ${permission}`);
+  }
+  // Ni messagerie, ni exploitations, ni gestion des membres via l'université.
+  for (const permission of ['messages.read', 'farms.read', 'cooperatives.members']) {
+    assert.equal(can(dansUniversite, permission), false, permission);
+  }
+  assert.equal(estRoleAffiliable('AGRONOMIST'), false, 'jamais accordé par une affiliation');
+});
+
 test('permissions ACADEMIA — matrice', () => {
   assert.ok(can(['FARMER'], 'academia.read'), 'consultation ouverte');
   assert.ok(can(['BUYER'], 'affiliations.request'), 'tout compte peut demander une affiliation');

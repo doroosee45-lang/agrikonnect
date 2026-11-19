@@ -60,9 +60,28 @@ before(async () => {
   await inscrire('responsableB', 'responsable-b@agrikonnect.test', 'BUYER');
   // L'étudiant est AUSSI producteur : sert la contre-épreuve R2.
   await inscrire('etudiant', 'etudiant@agrikonnect.test', 'FARMER');
-  // Rôle de plateforme attribué directement en base (semis de test).
-  const m = await h.prisma.membership.findFirst({ where: { userId: comptes.gouvernance.id } });
-  await h.prisma.membership.update({ where: { id: m.id }, data: { roles: ['ACADEMIA_ADMIN'] } });
+  await inscrire('gouvernanceSansMfa', 'gouvernance-sans-mfa@agrikonnect.test');
+  await inscrire('agronome', 'agronome-academia@agrikonnect.test');
+  // Rôles de plateforme attribués directement en base (semis de test).
+  await h.prisma.membership.updateMany({ where: { userId: comptes.gouvernance.id }, data: { roles: ['ACADEMIA_ADMIN'] } });
+  await h.prisma.membership.updateMany({ where: { userId: comptes.gouvernanceSansMfa.id }, data: { roles: ['ACADEMIA_ADMIN'] } });
+  await h.prisma.membership.updateMany({ where: { userId: comptes.agronome.id }, data: { roles: ['AGRONOMIST'] } });
+
+  // MFA réelle pour la gouvernance : enrôlement, puis connexion à second
+  // facteur — le banc joint alors la preuve de session à chaque requête.
+  const { currentCode } = await import('../../src/modules/auth/mfa.service.js');
+  const setup = await h.request('POST', '/auth/mfa/setup', { token: comptes.gouvernance.token, body: {} });
+  assert.equal(setup.status, 200, JSON.stringify(setup.body));
+  const confirme = await h.request('POST', '/auth/mfa/confirm', {
+    token: comptes.gouvernance.token, body: { code: currentCode(setup.body.data.secret) },
+  });
+  assert.equal(confirme.status, 200, JSON.stringify(confirme.body));
+  const connexion = await h.request('POST', '/auth/login', {
+    body: { identifier: comptes.gouvernance.email, password: PASSWORD, mfaCode: currentCode(setup.body.data.secret) },
+  });
+  assert.equal(connexion.status, 200, JSON.stringify(connexion.body));
+  assert.ok(connexion.body.data.session.mfaProof, 'session à second facteur');
+  comptes.gouvernance.token = connexion.body.data.session.accessToken;
 });
 
 after(async () => {
@@ -83,6 +102,12 @@ test('§11.4 — création d\'établissement : refusée hors gouvernance, accept
   const corps = { name: 'Université de Kinshasa', kind: 'UNIVERSITY', countryCode: 'CD', city: 'Kinshasa', shortName: 'UNIKIN', disciplines: ['geomatique', 'agronomie'] };
   const refus = await h.request('POST', '/academia/institutions', { token: comptes.etudiant.token, body: corps });
   assert.equal(refus.status, 403);
+
+  // ACADEMIA_ADMIN sans second facteur : refus explicite, rien n'est créé.
+  const sansMfa = await h.request('POST', '/academia/institutions', { token: comptes.gouvernanceSansMfa.token, body: corps });
+  assert.equal(sansMfa.status, 403, JSON.stringify(sansMfa.body));
+  assert.equal(sansMfa.body.details?.mfaRequired, true);
+  assert.equal(await h.prisma.academicInstitution.count(), 0);
 
   const creeA = await h.request('POST', '/academia/institutions', { token: comptes.gouvernance.token, body: corps });
   assert.equal(creeA.status, 201, JSON.stringify(creeA.body));
@@ -106,6 +131,12 @@ test('désignation des responsables (gouvernance uniquement)', async () => {
     token: comptes.responsableA.token, body: { email: comptes.responsableA.email },
   });
   assert.equal(refus.status, 403, 'on ne se désigne pas soi-même');
+
+  const sansMfa = await h.request('POST', `/academia/institutions/${uniA.id}/admins`, {
+    token: comptes.gouvernanceSansMfa.token, body: { email: comptes.responsableA.email },
+  });
+  assert.equal(sansMfa.status, 403, 'désignation refusée sans second facteur');
+  assert.equal(sansMfa.body.details?.mfaRequired, true);
 
   for (const [uni, cle] of [[uniA, 'responsableA'], [uniB, 'responsableB']]) {
     const res = await h.request('POST', `/academia/institutions/${uni.id}/admins`, {
@@ -231,6 +262,27 @@ test('non-régression R2 — l\'étudiant-producteur n\'a pas de droits producte
   // §19.17 — API centrale inchangée dans sa propre organisation.
   const chezLui = await h.request('GET', '/farms', { token: comptes.etudiant.token });
   assert.equal(chezLui.status, 200, JSON.stringify(chezLui.body));
+});
+
+test('H-03 — AGRONOMIST (rôle de plateforme) : aucun pouvoir sur les établissements ni les affiliations', async () => {
+  const t = comptes.agronome.token;
+  const essais = [
+    ['GET', `/academia/institutions/${uniA.id}/affiliations`],
+    ['POST', `/academia/affiliations/${affiliationEtudiant.id}/decision`, { status: 'SUSPENDED' }],
+    ['PATCH', `/academia/institutions/${uniA.id}`, { website: 'https://agronome.example' }],
+    ['POST', `/academia/institutions/${uniA.id}/units`, { kind: 'LABORATORY', name: 'Labo agronome' }],
+    ['POST', '/academia/institutions', { name: 'Fausse université', countryCode: 'CD' }],
+    ['POST', `/academia/institutions/${uniA.id}/admins`, { email: comptes.agronome.email }],
+  ];
+  for (const [methode, chemin, body] of essais) {
+    const res = await h.request(methode, chemin, { token: t, body });
+    assert.equal(res.status, 403, `${methode} ${chemin} : ${JSON.stringify(res.body)}`);
+  }
+  // Consultation publique et profil personnel : ouverts, comme pour tout compte.
+  assert.equal((await h.request('GET', `/academia/institutions/${uniA.id}`, { token: t })).status, 200);
+  assert.equal((await h.request('GET', '/academia/me', { token: t })).status, 200);
+  const intact = await h.prisma.academicAffiliation.findUnique({ where: { id: affiliationEtudiant.id } });
+  assert.equal(intact.status, 'VERIFIED', 'aucune décision prise par l\'agronome');
 });
 
 test('suspension → rôle retiré ; transition invalide refusée', async () => {
