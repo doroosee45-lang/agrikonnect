@@ -40,7 +40,16 @@ export const MODULE_PREFIXES = [
    * voir src/modules/calls/callsConfig.js.
    */
   { module: 'appels', prefixes: ['/calls'] },
+  // ACADEMIA : DÉSACTIVÉ tant qu'aucun réglage ne l'active (recette en cours).
+  { module: 'academia', prefixes: ['/academia'], defaultEnabled: false },
 ];
+
+/**
+ * Le module est-il désactivé ? Réglage explicite d'abord ; sans réglage, la
+ * valeur par défaut du module (`true` pour tous les modules historiques).
+ */
+export const moduleDesactive = (flags, { module, defaultEnabled = true }) =>
+  (flags[`modules.${module}`] ?? defaultEnabled) === false;
 
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const EXEMPT_PREFIXES = ['/auth', '/admin', '/webhooks', '/health'];
@@ -76,9 +85,9 @@ const normalizePath = (req) => {
 };
 
 const matchModule = (path) => {
-  for (const { module, prefixes } of MODULE_PREFIXES) {
-    for (const prefix of prefixes) {
-      if (path === prefix || path.startsWith(`${prefix}/`)) return module;
+  for (const entry of MODULE_PREFIXES) {
+    for (const prefix of entry.prefixes) {
+      if (path === prefix || path.startsWith(`${prefix}/`)) return entry;
     }
   }
   return null;
@@ -93,8 +102,9 @@ export const settingsEffects = async (req, _res, next) => {
     const flags = await loadFlags();
 
     // 1. Module désactivé (AC-M3) — toutes méthodes, lecture comprise.
-    const module = matchModule(path);
-    if (module && flags[`modules.${module}`] === false) {
+    const entry = matchModule(path);
+    if (entry && moduleDesactive(flags, entry)) {
+      const { module } = entry;
       return next(
         ApiError.forbidden(`Module « ${module} » désactivé par l'administration`, {
           code: 'module_disabled',

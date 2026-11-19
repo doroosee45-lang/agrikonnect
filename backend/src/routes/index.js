@@ -4,6 +4,7 @@ import { requireVerifiedForWrites } from '../middleware/auth.js';
 import authRoutes from '../modules/auth/auth.routes.js';
 import usersRoutes from '../modules/users/users.routes.js';
 import organizationsRoutes from '../modules/organizations/organizations.routes.js';
+import academiaRoutes from '../modules/academia/academia.routes.js';
 import cropsRoutes from '../modules/crops/crops.routes.js';
 import farmsRoutes from '../modules/farms/farms.routes.js';
 import plotsRoutes from '../modules/plots/plots.routes.js';
@@ -105,6 +106,11 @@ router.use('/public-api/v1', publicApiRoutes);
 
 // ─── Authentification ─────────────────────────────────────────
 router.use('/auth', authRoutes);
+
+// ─── ACADEMIA (annuaire public + espace connecté) ─────────────
+// Monté AVANT les routeurs montés sur « / » plus bas : l'annuaire des
+// établissements reste consultable sans session (CDC-ACADEMIA-01 §3.6).
+router.use('/academia', academiaRoutes);
 
 // ─── Espace connecté — V1 FARM ────────────────────────────────
 // Appareils push (FCM / APNs) : monté AVANT `/me` (chemin plus spécifique).
