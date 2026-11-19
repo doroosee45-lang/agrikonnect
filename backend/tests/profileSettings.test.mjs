@@ -1,5 +1,3 @@
-import './helpers/pinTestEnv.mjs';
-
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -9,6 +7,7 @@ import {
   updateMeSchema,
 } from '../src/modules/users/users.schema.js';
 import { updateOrganizationSchema } from '../src/modules/organizations/organizations.schema.js';
+import { completenessCriteria, ROLES_PROFIL_PROFESSIONNEL } from '../src/modules/users/completeness.js';
 
 test('professional profile accepts optional individual career fields', () => {
   const parsed = professionalProfileSchema.parse({
@@ -81,7 +80,7 @@ test('account communication preferences remain separate from notification matrix
 
 // ─── Complétude : critère « professional » conditionnel aux responsabilités ───
 
-const { completenessCriteria, ROLES_PROFIL_PROFESSIONNEL } = await import('../src/modules/users/users.service.js');
+// Règle pure, importée sans charger le service (ni Prisma, ni Supabase).
 
 const profilVide = { firstName: 'Awa', lastName: 'Kabila', professionalProfile: null };
 const cles = (roles, profile = profilVide) =>
